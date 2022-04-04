@@ -1,0 +1,184 @@
+scene: {
+    objects: {
+        tree_0: {
+            model: treeElm
+            world: [1, 0, 0, 0,
+                    0, 1, 0, 0,
+                    0, 0, 1, 0,
+                    20.4, 39.3, 99.3, 1 ]
+
+        }
+        tree_1: {
+            model: treeElm
+            world: [0.707, 0.14, 0.14, 0,
+                    0, 1, 0, 0,
+                    0.14, -0.707, -0.14, 0,
+                    10.1, 40.0, -21.1, 1 ]
+
+        }
+    }
+}
+
+assets: {
+    treeElm: {
+        kind: model
+        models: [ treeElmTrunkModel, treeELmLeafModels ]
+
+    }
+
+    treeElmTrunkModel: {
+        kind: model
+        meshes: [ {
+                mesh: treeElmTrunkMesh
+                material: treeElmTrunkMaterial
+            }
+        ]
+    }
+
+    treeELmLeafModels: {
+        kind: instancedModel
+        model: treeElmLeafModel
+        instances: [ {
+            world: [0.707, 0.14, 0.14, 0,
+                    0, 1, 0, 0,
+                    0.14, -0.707, -0.14, 0,
+                    10.1, 40.0, -21.1, 1 ]
+            }, {
+            world: [0.707, 0.14, 0.14, 0,
+                    0, 1, 0, 0,
+                    0.14, -0.707, -0.14, 0,
+                    10.1, 40.0, -21.1, 1 ]
+            }, {
+            world: [0.707, 0.14, 0.14, 0,
+                    0, 1, 0, 0,
+                    0.14, -0.707, -0.14, 0,
+                    10.1, 40.0, -21.1, 1 ]
+            }, {
+            world: [0.707, 0.14, 0.14, 0,
+                    0, 1, 0, 0,
+                    0.14, -0.707, -0.14, 0,
+                    10.1, 40.0, -21.1, 1 ]
+            }, {
+            ...
+            }
+        ]
+    }
+
+    treeELmLeafModel: {
+        kind: model
+        meshes: [ {
+                mesh: treeElmLeafMesh
+                material: treeElmLeafMaterial
+            }
+        ]
+    }
+
+    treeElmTrunkMesh: {
+        kind: mesh
+        source: tree/elm/trunk.mesh
+    }
+
+    treeElmTrunkMaterial: {
+        kind: material
+        shaders: [opaque_vs, opaque_fs]
+        // other graphics pipeline stuff
+        textures: {
+            albedo: txTreeElm
+            normal: txTreeElmNormal
+            tangent: txTreeElmTangent
+            roughness: txTreeElmRoughness
+        }
+    }
+
+    opaque_vs: {
+        kind: shader
+        stage: vertex
+        source: og/opaque.vs.glsl
+    }
+
+    opaque_fs: {
+        kind: shader
+        stage: fragment
+        source: og/opaque.fs.glsl
+    }
+
+    txTreeElm: {
+        kind: texture
+        format: r8g8b8a8_unorm
+        mipLods: *
+        source: tree/elm/trunk.png
+    }
+
+    txTreeElmNormal: {
+        kind: texture
+        format: r8g8b8a8_unorm
+        mipLods: *
+        source: tree/elm/trunk.normal.png
+    }
+
+    txTreeElmTangent: {
+        kind: texture
+        format: r8g8b8a8_unorm
+        mipLods: *
+        source: tree/elm/trunk.tangent.png
+    }
+
+    txTreeElmRoughness: {
+        kind: texture
+        format: r8g8b8a8_unorm
+        mipLods: *
+        source: tree/elm/trunk.roughness.png
+    }
+}
+
+
+file: tree/elm/trunk.mesh:
+{
+    name: elmTrunk
+    kind: kineticMesh
+    vertexFormat: {
+        { pos, float, 3 }
+        { normal, float, 3 }
+        { uv_albedo, float, 2 }
+        { uv_normal, float, 2 }
+        { uv_tangent, float, 2 }
+        { uv_roughness, float, 2 }
+        { frameIdxs, uint8, 4 }
+        { frameWeights, float, 4 }
+    }
+    meshData: [ {
+            vertices: [[ x, y, z, x, y, z, u, v, u, v, u, v, u, v, 0, 0, 0, 0, 1, 1, 1, 1 ],
+                       [ x, y, z, x, y, z, u, v, u, v, u, v, u, v, 0, 0, 0, 0, 1, 1, 1, 1 ],
+                       [ x, y, z, x, y, z, u, v, u, v, u, v, u, v, 0, 0, 0, 0, 1, 1, 1, 1 ],
+                       [ x, y, z, x, y, z, u, v, u, v, u, v, u, v, 0, 0, 0, 0, 1, 1, 1, 1 ],
+                       [ x, y, z, x, y, z, u, v, u, v, u, v, u, v, 0, 0, 0, 0, 1, 1, 1, 1 ],,,]
+            indices: [ 0, 1, 2, 2, 1, 3, 3, 2, 4, 2, 4, 5,,, ]
+            lodDist: 50 // these are tuned to a specific hw rig for this mesh
+        }, {
+            vertices: [[ x, y, z, x, y, z, u, v, u, v, u, v, u, v, 0, 0, 0, 0, 1, 1, 1, 1 ],,,]
+            indices: [0, 1, 2, 2, 1, 3,,,]
+            lodDist: 100
+        },,,
+    ]
+    hostVertices: [ {
+            vertexFormat: {
+                pos: { float, 3 }
+                xdir: { float 3 }
+                zdir: { float 3 }
+                frameIdxs: { uint8, 4 }
+                frameWeights: { float, 4 }
+            }
+            vertices: [ [x, y, z, x, y, z, x, y, z, 0, 0, 0, 0, 1, 1, 1, 1],,, ]
+        }
+    ]
+    skeleton: {
+        transform: [...mx...]
+        joints: [ {
+                transform: [...mx...]
+                joints: [{...}]
+            }, {
+                transform: [...mx...]
+            }
+        ]
+    }
+}

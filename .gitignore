@@ -1,3 +1,8 @@
+# project-specific
+build/
+.venv/
+gen-cpp/
+
 # Prerequisites
 *.d
 

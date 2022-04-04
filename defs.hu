@@ -1,0 +1,1176 @@
+@{ app: boma, boma-version: 0.0.4 }
+{
+    defs: {
+        c++: {
+            sources: [{ file: vulkan/vulkan.h system: true }]
+            attributes: {
+                VkResult: [cStyle]
+                VkStructureType: [cStyle]
+                VkImageLayout: [cStyle]
+                VkObjectType: [cStyle]
+                VkVendorId: [cStyle]
+                VkPipelineCacheHeaderVersion: [cStyle]
+                VkSystemAllocationScope: [cStyle]
+                VkInternalAllocationType: [cStyle]
+                VkFormat: [cStyle]
+                VkImageTiling: [cStyle]
+                VkImageType: [cStyle]
+                VkPhysicalDeviceType: [cStyle]
+                VkQueryType: [cStyle]
+                VkSharingMode: [cStyle]
+                VkComponentSwizzle: [cStyle]
+                VkImageViewType: [cStyle]
+                VkBlendFactor: [cStyle]
+                VkBlendOp: [cStyle]
+                VkCompareOp: [cStyle]
+                VkDynamicState: [cStyle]
+                VkFrontFace: [cStyle]
+                VkVertexInputRate: [cStyle]
+                VkPrimitiveTopology: [cStyle]
+                VkPolygonMode: [cStyle]
+                VkStencilOp: [cStyle]
+                VkLogicOp: [cStyle]
+                VkBorderColor: [cStyle]
+                VkFilter: [cStyle]
+                VkSamplerAddressMode: [cStyle]
+                VkSamplerMipmapMode: [cStyle]
+                VkDescriptorType: [cStyle]
+                VkAttachmentLoadOp: [cStyle]
+                VkAttachmentStoreOp: [cStyle]
+                VkPipelineBindPoint: [cStyle]
+                VkCommandBufferLevel: [cStyle]
+                VkIndexType: [cStyle]
+                VkSubpassContents: [cStyle]
+                VkAccessFlagBits: [cStyle flags]
+                VkImageAspectFlagBits: [cStyle flags]
+                VkFormatFeatureFlagBits: [cStyle flags]
+                VkImageCreateFlagBits: [cStyle flags]
+                VkSampleCountFlagBits: [cStyle flags]
+                VkImageUsageFlagBits: [cStyle flags]
+                VkMemoryHeapFlagBits: [cStyle flags]
+                VkMemoryPropertyFlagBits: [cStyle flags]
+                VkQueueFlagBits: [cStyle flags]
+                VkDeviceQueueCreateFlagBits: [cStyle flags]
+                VkPipelineStageFlagBits: [cStyle flags]
+                VkSparseMemoryBindFlagBits: [cStyle flags]
+                VkSparseImageFormatFlagBits: [cStyle flags]
+                VkFenceCreateFlagBits: [cStyle flags]
+                VkQueryPipelineStatisticFlagBits: [cStyle flags]
+                VkQueryResultFlagBits: [cStyle flags]
+                VkBufferCreateFlagBits: [cStyle flags]
+                VkBufferUsageFlagBits: [cStyle flags]
+                VkImageViewCreateFlagBits: [cStyle flags]
+                VkShaderModuleCreateFlagBits: [cStyle flags]
+                VkPipelineCacheCreateFlagBits: [cStyle flags]
+                VkColorComponentFlagBits: [cStyle flags]
+                VkPipelineCreateFlagBits: [cStyle flags]
+                VkPipelineShaderStageCreateFlagBits: [cStyle flags]
+                VkShaderStageFlagBits: [cStyle flags]
+                VkCullModeFlagBits: [cStyle flags]
+                VkSamplerCreateFlagBits: [cStyle flags]
+                VkDescriptorPoolCreateFlagBits: [cStyle flags]
+                VkDescriptorSetLayoutCreateFlagBits: [cStyle flags]
+                VkAttachmentDescriptionFlagBits: [cStyle flags]
+                VkDependencyFlagBits: [cStyle flags]
+                VkFramebufferCreateFlagBits: [cStyle flags]
+                VkRenderPassCreateFlagBits: [cStyle flags]
+                VkSubpassDescriptionFlagBits: [cStyle flags]
+                VkCommandPoolCreateFlagBits: [cStyle flags]
+                VkCommandPoolResetFlagBits: [cStyle flags]
+                VkCommandBufferUsageFlagBits: [cStyle flags]
+                VkQueryControlFlagBits: [cStyle flags]
+                VkCommandBufferResetFlagBits: [cStyle flags]
+                VkStencilFaceFlagBits: [cStyle flags]
+                VkPointClippingBehavior: [cStyle]
+                VkTessellationDomainOrigin: [cStyle]
+                VkSamplerYcbcrModelConversion: [cStyle]
+                VkSamplerYcbcrRange: [cStyle]
+                VkChromaLocation: [cStyle]
+                VkDescriptorUpdateTemplateType: [cStyle]
+                VkSubgroupFeatureFlagBits: [cStyle flags]
+                VkPeerMemoryFeatureFlagBits: [cStyle flags]
+                VkMemoryAllocateFlagBits: [cStyle flags]
+                VkExternalMemoryHandleTypeFlagBits: [cStyle flags]
+                VkExternalMemoryFeatureFlagBits: [cStyle flags]
+                VkExternalFenceHandleTypeFlagBits: [cStyle flags]
+                VkExternalFenceFeatureFlagBits: [cStyle flags]
+                VkFenceImportFlagBits: [cStyle flags]
+                VkSemaphoreImportFlagBits: [cStyle flags]
+                VkExternalSemaphoreHandleTypeFlagBits: [cStyle flags]
+                VkExternalSemaphoreFeatureFlagBits: [cStyle flags]
+                VkDriverId: [cStyle]
+                VkShaderFloatControlsIndependence: [cStyle]
+                VkSamplerReductionMode: [cStyle]
+                VkSemaphoreType: [cStyle]
+                VkResolveModeFlagBits: [cStyle flags]
+                VkDescriptorBindingFlagBits: [cStyle flags]
+                VkSemaphoreWaitFlagBits: [cStyle flags]
+                VkPresentModeKHR: [cStyle]
+                VkColorSpaceKHR: [cStyle]
+                VkSurfaceTransformFlagBitsKHR: [cStyle flags]
+                VkCompositeAlphaFlagBitsKHR: [cStyle flags]
+                VkSwapchainCreateFlagBitsKHR: [cStyle flags]
+                VkDeviceGroupPresentModeFlagBitsKHR: [cStyle flags]
+                VkDisplayPlaneAlphaFlagBitsKHR: [cStyle flags]
+                VkPerformanceCounterUnitKHR: [cStyle]
+                VkPerformanceCounterScopeKHR: [cStyle]
+                VkPerformanceCounterStorageKHR: [cStyle]
+                VkPerformanceCounterDescriptionFlagBitsKHR: [cStyle flags]
+                VkAcquireProfilingLockFlagBitsKHR: [cStyle flags]
+                VkFragmentShadingRateCombinerOpKHR: [cStyle]
+                VkPipelineExecutableStatisticFormatKHR: [cStyle]
+                VkDebugReportObjectTypeEXT: [cStyle]
+                VkDebugReportFlagBitsEXT: [cStyle flags]
+                VkRasterizationOrderAMD: [cStyle]
+                VkShaderInfoTypeAMD: [cStyle]
+                VkExternalMemoryHandleTypeFlagBitsNV: [cStyle flags]
+                VkExternalMemoryFeatureFlagBitsNV: [cStyle flags]
+                VkValidationCheckEXT: [cStyle]
+                VkConditionalRenderingFlagBitsEXT: [cStyle flags]
+                VkSurfaceCounterFlagBitsEXT: [cStyle flags]
+                VkDisplayPowerStateEXT: [cStyle]
+                VkDeviceEventTypeEXT: [cStyle]
+                VkDisplayEventTypeEXT: [cStyle]
+                VkViewportCoordinateSwizzleNV: [cStyle]
+                VkDiscardRectangleModeEXT: [cStyle]
+                VkConservativeRasterizationModeEXT: [cStyle]
+                VkDebugUtilsMessageSeverityFlagBitsEXT: [cStyle flags]
+                VkDebugUtilsMessageTypeFlagBitsEXT: [cStyle flags]
+                VkBlendOverlapEXT: [cStyle]
+                VkCoverageModulationModeNV: [cStyle]
+                VkValidationCacheHeaderVersionEXT: [cStyle]
+                VkShadingRatePaletteEntryNV: [cStyle]
+                VkCoarseSampleOrderTypeNV: [cStyle]
+                VkRayTracingShaderGroupTypeKHR: [cStyle]
+                VkGeometryTypeKHR: [cStyle]
+                VkAccelerationStructureTypeKHR: [cStyle]
+                VkCopyAccelerationStructureModeKHR: [cStyle]
+                VkAccelerationStructureMemoryRequirementsTypeNV: [cStyle]
+                VkGeometryFlagBitsKHR: [cStyle flags]
+                VkGeometryInstanceFlagBitsKHR: [cStyle flags]
+                VkBuildAccelerationStructureFlagBitsKHR: [cStyle flags]
+                VkQueueGlobalPriorityEXT: [cStyle]
+                VkPipelineCompilerControlFlagBitsAMD: [cStyle flags]
+                VkTimeDomainEXT: [cStyle]
+                VkMemoryOverallocationBehaviorAMD: [cStyle]
+                VkPipelineCreationFeedbackFlagBitsEXT: [cStyle flags]
+                VkPerformanceConfigurationTypeINTEL: [cStyle]
+                VkQueryPoolSamplingModeINTEL: [cStyle]
+                VkPerformanceOverrideTypeINTEL: [cStyle]
+                VkPerformanceParameterTypeINTEL: [cStyle]
+                VkPerformanceValueTypeINTEL: [cStyle]
+                VkShaderCorePropertiesFlagBitsAMD: [cStyle flags]
+                VkToolPurposeFlagBitsEXT: [cStyle flags]
+                VkValidationFeatureEnableEXT: [cStyle]
+                VkValidationFeatureDisableEXT: [cStyle]
+                VkComponentTypeNV: [cStyle]
+                VkScopeNV: [cStyle]
+                VkCoverageReductionModeNV: [cStyle]
+                VkLineRasterizationModeEXT: [cStyle]
+                VkIndirectCommandsTokenTypeNV: [cStyle]
+                VkIndirectStateFlagBitsNV: [cStyle flags]
+                VkIndirectCommandsLayoutUsageFlagBitsNV: [cStyle flags]
+                VkDeviceMemoryReportEventTypeEXT: [cStyle]
+                VkPrivateDataSlotCreateFlagBitsEXT: [cStyle flags]
+                VkDeviceDiagnosticsConfigFlagBitsNV: [cStyle flags]
+                VkFragmentShadingRateTypeNV: [cStyle]
+                VkFragmentShadingRateNV: [cStyle]
+                VkBuildAccelerationStructureModeKHR: [cStyle]
+                VkAccelerationStructureBuildTypeKHR: [cStyle]
+                VkAccelerationStructureCompatibilityKHR: [cStyle]
+                VkAccelerationStructureCreateFlagBitsKHR: [cStyle flags]
+                VkShaderGroupShaderKHR: [cStyle]
+                VkPeerMemoryFeatureFlagBitsKHR: [cStyle flags]
+                VkMemoryAllocateFlagBitsKHR: [cStyle flags]
+                VkExternalMemoryHandleTypeFlagBitsKHR: [cStyle flags]
+                VkExternalMemoryFeatureFlagBitsKHR: [cStyle flags]
+                VkExternalSemaphoreHandleTypeFlagBitsKHR: [cStyle flags]
+                VkExternalSemaphoreFeatureFlagBitsKHR: [cStyle flags]
+                VkSemaphoreImportFlagBitsKHR: [cStyle flags]
+                VkDescriptorUpdateTemplateTypeKHR: [cStyle]
+                VkExternalFenceHandleTypeFlagBitsKHR: [cStyle flags]
+                VkExternalFenceFeatureFlagBitsKHR: [cStyle flags]
+                VkFenceImportFlagBitsKHR: [cStyle flags]
+                VkPointClippingBehaviorKHR: [cStyle]
+                VkTessellationDomainOriginKHR: [cStyle]
+                VkSamplerYcbcrModelConversionKHR: [cStyle]
+                VkSamplerYcbcrRangeKHR: [cStyle]
+                VkChromaLocationKHR: [cStyle]
+                VkDriverIdKHR: [cStyle]
+                VkShaderFloatControlsIndependenceKHR: [cStyle]
+                VkResolveModeFlagBitsKHR: [cStyle flags]
+                VkSemaphoreTypeKHR: [cStyle]
+                VkSemaphoreWaitFlagBitsKHR: [cStyle flags]
+                VkSamplerReductionModeEXT: [cStyle]
+                VkDescriptorBindingFlagBitsEXT: [cStyle flags]
+                VkRayTracingShaderGroupTypeNV: [cStyle]
+                VkGeometryTypeNV: [cStyle]
+                VkAccelerationStructureTypeNV: [cStyle]
+                VkCopyAccelerationStructureModeNV: [cStyle]
+                VkGeometryFlagBitsNV: [cStyle flags]
+                VkGeometryInstanceFlagBitsNV: [cStyle flags]
+                VkBuildAccelerationStructureFlagBitsNV: [cStyle flags]
+            }
+        }
+    }
+    platforms: {
+        c++: {
+            // inherit CPlusPlus is implied
+            includeFiles: [
+                { file: vulkan/vulkan.h system: true }
+            ]
+            outputPaths: {
+                header: ../inc/gen-boma/zeta-boma.hpp
+                source: '../src/gen-boma/*.cpp'
+                inline: ../inc/gen-boma/inl/_*.inl.hpp
+            }
+            settings: {
+                namespace: zeta
+                const: east
+                noexcept: true
+                headerOnly: true
+                cavepersonCtrs: false
+            }
+            features: {
+                defaultConstructible: true // NEEDED for variant's humon extractor. Annoying!
+                nullVariant: default
+                copyable: false
+                setters: false
+                setByMovers: false
+                getters: true
+                privateMembers: true
+            }
+            modifiers: {    // these modify value strings before extracting their value
+                *: { case: toUpper }
+                VkResult: { prefix: VK_ }
+                VkStructureType: { prefix: VK_STRUCTURE_TYPE_ }
+                VkImageLayout: { prefix: VK_IMAGE_LAYOUT_ }
+                VkObjectType: { prefix: VK_OBJECT_TYPE_ }
+                VkVendorId: { prefix: VK_VENDOR_ID_ }
+                VkPipelineCacheHeaderVersion: { prefix: VK_PIPELINE_CACHE_HEADER_VERSION_ }
+                VkSystemAllocationScope: { prefix: VK_SYSTEM_ALLOCATION_SCOPE_ }
+                VkInternalAllocationType: { prefix: VK_INTERNAL_ALLOCATION_TYPE_ }
+                VkFormat: { prefix: VK_FORMAT_ }
+                VkImageTiling: { prefix: VK_IMAGE_TILING_ }
+                VkImageType: { prefix: VK_IMAGE_TYPE_ }
+                VkPhysicalDeviceType: { prefix: VK_PHYSICAL_DEVICE_TYPE_ }
+                VkQueryType: { prefix: VK_QUERY_TYPE_ }
+                VkSharingMode: { prefix: VK_SHARING_MODE_ }
+                VkComponentSwizzle: { prefix: VK_COMPONENT_SWIZZLE_ }
+                VkImageViewType: { prefix: VK_IMAGE_VIEW_TYPE_ }
+                VkBlendFactor: { prefix: VK_BLEND_FACTOR_ }
+                VkBlendOp: { prefix: VK_BLEND_OP_ }
+                VkCompareOp: { prefix: VK_COMPARE_OP_ }
+                VkDynamicState: { prefix: VK_DYNAMIC_STATE_ }
+                VkFrontFace: { prefix: VK_FRONT_FACE_ }
+                VkVertexInputRate: { prefix: VK_VERTEX_INPUT_RATE_ }
+                VkPrimitiveTopology: { prefix: VK_PRIMITIVE_TOPOLOGY_ }
+                VkPolygonMode: { prefix: VK_POLYGON_MODE_ }
+                VkStencilOp: { prefix: VK_STENCIL_OP_ }
+                VkLogicOp: { prefix: VK_LOGIC_OP_ }
+                VkBorderColor: { prefix: VK_BORDER_COLOR_ }
+                VkFilter: { prefix: VK_FILTER_ }
+                VkSamplerAddressMode: { prefix: VK_SAMPLER_ADDRESS_MODE_ }
+                VkSamplerMipmapMode: { prefix: VK_SAMPLER_MIPMAP_MODE_ }
+                VkDescriptorType: { prefix: VK_DESCRIPTOR_TYPE_ }
+                VkAttachmentLoadOp: { prefix: VK_ATTACHMENT_LOAD_OP_ }
+                VkAttachmentStoreOp: { prefix: VK_ATTACHMENT_STORE_OP_ }
+                VkPipelineBindPoint: { prefix: VK_PIPELINE_BIND_POINT_ }
+                VkCommandBufferLevel: { prefix: VK_COMMAND_BUFFER_LEVEL_ }
+                VkIndexType: { prefix: VK_INDEX_TYPE_ }
+                VkSubpassContents: { prefix: VK_SUBPASS_CONTENTS_ }
+                VkAccessFlagBits: { prefix: VK_ACCESS_ }
+                VkImageAspectFlagBits: { prefix: VK_IMAGE_ASPECT_ }
+                VkFormatFeatureFlagBits: { prefix: VK_FORMAT_FEATURE_ }
+                VkImageCreateFlagBits: { prefix: VK_IMAGE_CREATE_ }
+                VkSampleCountFlagBits: { prefix: VK_SAMPLE_COUNT_ }
+                VkImageUsageFlagBits: { prefix: VK_IMAGE_USAGE_ }
+                VkMemoryHeapFlagBits: { prefix: VK_MEMORY_HEAP_ }
+                VkMemoryPropertyFlagBits: { prefix: VK_MEMORY_PROPERTY_ }
+                VkQueueFlagBits: { prefix: VK_QUEUE_ }
+                VkDeviceQueueCreateFlagBits: { prefix: VK_DEVICE_QUEUE_CREATE_ }
+                VkPipelineStageFlagBits: { prefix: VK_PIPELINE_STAGE_ }
+                VkSparseMemoryBindFlagBits: { prefix: VK_SPARSE_MEMORY_BIND_ }
+                VkSparseImageFormatFlagBits: { prefix: VK_SPARSE_IMAGE_FORMAT_ }
+                VkFenceCreateFlagBits: { prefix: VK_FENCE_CREATE_ }
+                VkQueryPipelineStatisticFlagBits: { prefix: VK_QUERY_PIPELINE_STATISTIC_ }
+                VkQueryResultFlagBits: { prefix: VK_QUERY_RESULT_ }
+                VkBufferCreateFlagBits: { prefix: VK_BUFFER_CREATE_ }
+                VkBufferUsageFlagBits: { prefix: VK_BUFFER_USAGE_ }
+                VkImageViewCreateFlagBits: { prefix: VK_IMAGE_VIEW_CREATE_ }
+                VkShaderModuleCreateFlagBits: { prefix: VK_SHADER_MODULE_CREATE_FLAG_BITS_MAX_ENUM postfix: VK_SHADER_MODULE_CREATE_FLAG_BITS_MAX_ENUM }
+                VkPipelineCacheCreateFlagBits: { prefix: VK_PIPELINE_CACHE_CREATE_ }
+                VkColorComponentFlagBits: { prefix: VK_COLOR_COMPONENT_ }
+                VkPipelineCreateFlagBits: { prefix: VK_PIPELINE_CREATE_ }
+                VkPipelineShaderStageCreateFlagBits: { prefix: VK_PIPELINE_SHADER_STAGE_CREATE_ }
+                VkShaderStageFlagBits: { prefix: VK_SHADER_STAGE_ }
+                VkCullModeFlagBits: { prefix: VK_CULL_MODE_ }
+                VkSamplerCreateFlagBits: { prefix: VK_SAMPLER_CREATE_ }
+                VkDescriptorPoolCreateFlagBits: { prefix: VK_DESCRIPTOR_POOL_CREATE_ }
+                VkDescriptorSetLayoutCreateFlagBits: { prefix: VK_DESCRIPTOR_SET_LAYOUT_CREATE_ }
+                VkAttachmentDescriptionFlagBits: { prefix: VK_ATTACHMENT_DESCRIPTION_ }
+                VkDependencyFlagBits: { prefix: VK_DEPENDENCY_ }
+                VkFramebufferCreateFlagBits: { prefix: VK_FRAMEBUFFER_CREATE_ }
+                VkRenderPassCreateFlagBits: { prefix: VK_RENDER_PASS_CREATE_ }
+                VkSubpassDescriptionFlagBits: { prefix: VK_SUBPASS_DESCRIPTION_ }
+                VkCommandPoolCreateFlagBits: { prefix: VK_COMMAND_POOL_CREATE_ }
+                VkCommandPoolResetFlagBits: { prefix: VK_COMMAND_POOL_RESET_ }
+                VkCommandBufferUsageFlagBits: { prefix: VK_COMMAND_BUFFER_USAGE_ }
+                VkQueryControlFlagBits: { prefix: VK_QUERY_CONTROL_ }
+                VkCommandBufferResetFlagBits: { prefix: VK_COMMAND_BUFFER_RESET_ }
+                VkStencilFaceFlagBits: { prefix: VK_STENCIL_ }
+                VkPointClippingBehavior: { prefix: VK_POINT_CLIPPING_BEHAVIOR_ }
+                VkTessellationDomainOrigin: { prefix: VK_TESSELLATION_DOMAIN_ORIGIN_ }
+                VkSamplerYcbcrModelConversion: { prefix: VK_SAMPLER_YCBCR_MODEL_CONVERSION_ }
+                VkSamplerYcbcrRange: { prefix: VK_SAMPLER_YCBCR_RANGE_ }
+                VkChromaLocation: { prefix: VK_CHROMA_LOCATION_ }
+                VkDescriptorUpdateTemplateType: { prefix: VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_ }
+                VkSubgroupFeatureFlagBits: { prefix: VK_SUBGROUP_FEATURE_ }
+                VkPeerMemoryFeatureFlagBits: { prefix: VK_PEER_MEMORY_FEATURE_ }
+                VkMemoryAllocateFlagBits: { prefix: VK_MEMORY_ALLOCATE_ }
+                VkExternalMemoryHandleTypeFlagBits: { prefix: VK_EXTERNAL_MEMORY_HANDLE_TYPE_ }
+                VkExternalMemoryFeatureFlagBits: { prefix: VK_EXTERNAL_MEMORY_FEATURE_ }
+                VkExternalFenceHandleTypeFlagBits: { prefix: VK_EXTERNAL_FENCE_HANDLE_TYPE_ }
+                VkExternalFenceFeatureFlagBits: { prefix: VK_EXTERNAL_FENCE_FEATURE_ }
+                VkFenceImportFlagBits: { prefix: VK_FENCE_IMPORT_ }
+                VkSemaphoreImportFlagBits: { prefix: VK_SEMAPHORE_IMPORT_ }
+                VkExternalSemaphoreHandleTypeFlagBits: { prefix: VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ }
+                VkExternalSemaphoreFeatureFlagBits: { prefix: VK_EXTERNAL_SEMAPHORE_FEATURE_ }
+                VkDriverId: { prefix: VK_DRIVER_ID_ }
+                VkShaderFloatControlsIndependence: { prefix: VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ }
+                VkSamplerReductionMode: { prefix: VK_SAMPLER_REDUCTION_MODE_ }
+                VkSemaphoreType: { prefix: VK_SEMAPHORE_TYPE_ }
+                VkResolveModeFlagBits: { prefix: VK_RESOLVE_MODE_ }
+                VkDescriptorBindingFlagBits: { prefix: VK_DESCRIPTOR_BINDING_ }
+                VkSemaphoreWaitFlagBits: { prefix: VK_SEMAPHORE_WAIT_ }
+                VkPresentModeKHR: { prefix: VK_PRESENT_MODE_ postfix: _KHR }
+                VkColorSpaceKHR: { prefix: VK_ }
+                VkSurfaceTransformFlagBitsKHR: { prefix: VK_SURFACE_TRANSFORM_ postfix: _KHR }
+                VkCompositeAlphaFlagBitsKHR: { prefix: VK_COMPOSITE_ALPHA_ postfix: _KHR }
+                VkSwapchainCreateFlagBitsKHR: { prefix: VK_SWAPCHAIN_CREATE_ postfix: _KHR }
+                VkDeviceGroupPresentModeFlagBitsKHR: { prefix: VK_DEVICE_GROUP_PRESENT_MODE_ postfix: _KHR }
+                VkDisplayPlaneAlphaFlagBitsKHR: { prefix: VK_DISPLAY_PLANE_ALPHA_ postfix: _KHR }
+                VkPerformanceCounterUnitKHR: { prefix: VK_PERFORMANCE_COUNTER_UNIT_ postfix: _KHR }
+                VkPerformanceCounterScopeKHR: { prefix: VK_ postfix: _KHR }
+                VkPerformanceCounterStorageKHR: { prefix: VK_PERFORMANCE_COUNTER_STORAGE_ postfix: _KHR }
+                VkPerformanceCounterDescriptionFlagBitsKHR: { prefix: VK_PERFORMANCE_COUNTER_DESCRIPTION_ postfix: _KHR }
+                VkAcquireProfilingLockFlagBitsKHR: { prefix: VK_ACQUIRE_PROFILING_LOCK_FLAG_BITS_MAX_ENUM_KHR postfix: VK_ACQUIRE_PROFILING_LOCK_FLAG_BITS_MAX_ENUM_KHR }
+                VkFragmentShadingRateCombinerOpKHR: { prefix: VK_FRAGMENT_SHADING_RATE_COMBINER_OP_ postfix: _KHR }
+                VkPipelineExecutableStatisticFormatKHR: { prefix: VK_PIPELINE_EXECUTABLE_STATISTIC_FORMAT_ postfix: _KHR }
+                VkDebugReportObjectTypeEXT: { prefix: VK_DEBUG_REPORT_OBJECT_TYPE_ }
+                VkDebugReportFlagBitsEXT: { prefix: VK_DEBUG_REPORT_ postfix: _EXT }
+                VkRasterizationOrderAMD: { prefix: VK_RASTERIZATION_ORDER_ postfix: _AMD }
+                VkShaderInfoTypeAMD: { prefix: VK_SHADER_INFO_TYPE_ postfix: _AMD }
+                VkExternalMemoryHandleTypeFlagBitsNV: { prefix: VK_EXTERNAL_MEMORY_HANDLE_TYPE_ postfix: _NV }
+                VkExternalMemoryFeatureFlagBitsNV: { prefix: VK_EXTERNAL_MEMORY_FEATURE_ postfix: _NV }
+                VkValidationCheckEXT: { prefix: VK_VALIDATION_CHECK_ postfix: _EXT }
+                VkConditionalRenderingFlagBitsEXT: { prefix: VK_CONDITIONAL_RENDERING_ postfix: _EXT }
+                VkSurfaceCounterFlagBitsEXT: { prefix: VK_SURFACE_COUNTER_ postfix: _EXT }
+                VkDisplayPowerStateEXT: { prefix: VK_DISPLAY_POWER_STATE_ postfix: _EXT }
+                VkDeviceEventTypeEXT: { prefix: VK_DEVICE_EVENT_TYPE_ postfix: _EXT }
+                VkDisplayEventTypeEXT: { prefix: VK_DISPLAY_EVENT_TYPE_ postfix: _EXT }
+                VkViewportCoordinateSwizzleNV: { prefix: VK_VIEWPORT_COORDINATE_SWIZZLE_ postfix: _NV }
+                VkDiscardRectangleModeEXT: { prefix: VK_DISCARD_RECTANGLE_MODE_ postfix: _EXT }
+                VkConservativeRasterizationModeEXT: { prefix: VK_CONSERVATIVE_RASTERIZATION_MODE_ postfix: _EXT }
+                VkDebugUtilsMessageSeverityFlagBitsEXT: { prefix: VK_DEBUG_UTILS_MESSAGE_SEVERITY_ postfix: _EXT }
+                VkDebugUtilsMessageTypeFlagBitsEXT: { prefix: VK_DEBUG_UTILS_MESSAGE_TYPE_ postfix: _EXT }
+                VkBlendOverlapEXT: { prefix: VK_BLEND_OVERLAP_ postfix: _EXT }
+                VkCoverageModulationModeNV: { prefix: VK_COVERAGE_MODULATION_MODE_ postfix: _NV }
+                VkValidationCacheHeaderVersionEXT: { prefix: VK_VALIDATION_CACHE_HEADER_VERSION_ postfix: _EXT }
+                VkShadingRatePaletteEntryNV: { prefix: VK_SHADING_RATE_PALETTE_ENTRY_ }
+                VkCoarseSampleOrderTypeNV: { prefix: VK_COARSE_SAMPLE_ORDER_TYPE_ postfix: _NV }
+                VkRayTracingShaderGroupTypeKHR: { prefix: VK_RAY_TRACING_SHADER_GROUP_TYPE_ }
+                VkGeometryTypeKHR: { prefix: VK_GEOMETRY_TYPE_ }
+                VkAccelerationStructureTypeKHR: { prefix: VK_ACCELERATION_STRUCTURE_TYPE_ }
+                VkCopyAccelerationStructureModeKHR: { prefix: VK_COPY_ACCELERATION_STRUCTURE_MODE_ }
+                VkAccelerationStructureMemoryRequirementsTypeNV: { prefix: VK_ACCELERATION_STRUCTURE_MEMORY_REQUIREMENTS_TYPE_ postfix: _NV }
+                VkGeometryFlagBitsKHR: { prefix: VK_GEOMETRY_ }
+                VkGeometryInstanceFlagBitsKHR: { prefix: VK_GEOMETRY_INSTANCE_ }
+                VkBuildAccelerationStructureFlagBitsKHR: { prefix: VK_BUILD_ACCELERATION_STRUCTURE_ }
+                VkQueueGlobalPriorityEXT: { prefix: VK_QUEUE_GLOBAL_PRIORITY_ postfix: _EXT }
+                VkPipelineCompilerControlFlagBitsAMD: { prefix: VK_PIPELINE_COMPILER_CONTROL_FLAG_BITS_MAX_ENUM_AMD postfix: VK_PIPELINE_COMPILER_CONTROL_FLAG_BITS_MAX_ENUM_AMD }
+                VkTimeDomainEXT: { prefix: VK_TIME_DOMAIN_ postfix: _EXT }
+                VkMemoryOverallocationBehaviorAMD: { prefix: VK_MEMORY_OVERALLOCATION_BEHAVIOR_ postfix: _AMD }
+                VkPipelineCreationFeedbackFlagBitsEXT: { prefix: VK_PIPELINE_CREATION_FEEDBACK_ postfix: _EXT }
+                VkPerformanceConfigurationTypeINTEL: { prefix: VK_PERFORMANCE_CONFIGURATION_TYPE_ postfix: _INTEL }
+                VkQueryPoolSamplingModeINTEL: { prefix: VK_QUERY_POOL_SAMPLING_MODE_ postfix: _INTEL }
+                VkPerformanceOverrideTypeINTEL: { prefix: VK_PERFORMANCE_OVERRIDE_TYPE_ postfix: _INTEL }
+                VkPerformanceParameterTypeINTEL: { prefix: VK_PERFORMANCE_PARAMETER_TYPE_ postfix: _INTEL }
+                VkPerformanceValueTypeINTEL: { prefix: VK_PERFORMANCE_VALUE_TYPE_ postfix: _INTEL }
+                VkShaderCorePropertiesFlagBitsAMD: { prefix: VK_SHADER_CORE_PROPERTIES_FLAG_BITS_MAX_ENUM_AMD postfix: VK_SHADER_CORE_PROPERTIES_FLAG_BITS_MAX_ENUM_AMD }
+                VkToolPurposeFlagBitsEXT: { prefix: VK_TOOL_PURPOSE_ postfix: _EXT }
+                VkValidationFeatureEnableEXT: { prefix: VK_VALIDATION_FEATURE_ENABLE_ postfix: _EXT }
+                VkValidationFeatureDisableEXT: { prefix: VK_VALIDATION_FEATURE_DISABLE_ postfix: _EXT }
+                VkComponentTypeNV: { prefix: VK_COMPONENT_TYPE_ postfix: V }
+                VkScopeNV: { prefix: VK_SCOPE_ postfix: _NV }
+                VkCoverageReductionModeNV: { prefix: VK_COVERAGE_REDUCTION_MODE_ }
+                VkLineRasterizationModeEXT: { prefix: VK_LINE_RASTERIZATION_MODE_ postfix: _EXT }
+                VkIndirectCommandsTokenTypeNV: { prefix: VK_INDIRECT_COMMANDS_TOKEN_TYPE_ postfix: _NV }
+                VkIndirectStateFlagBitsNV: { prefix: VK_INDIRECT_STATE_FLAG_ postfix: _NV }
+                VkIndirectCommandsLayoutUsageFlagBitsNV: { prefix: VK_INDIRECT_COMMANDS_LAYOUT_USAGE_ }
+                VkDeviceMemoryReportEventTypeEXT: { prefix: VK_DEVICE_MEMORY_REPORT_EVENT_TYPE_ }
+                VkPrivateDataSlotCreateFlagBitsEXT: { prefix: VK_PRIVATE_DATA_SLOT_CREATE_FLAG_BITS_MAX_ENUM_EXT postfix: VK_PRIVATE_DATA_SLOT_CREATE_FLAG_BITS_MAX_ENUM_EXT }
+                VkDeviceDiagnosticsConfigFlagBitsNV: { prefix: VK_DEVICE_DIAGNOSTICS_CONFIG_ postfix: _NV }
+                VkFragmentShadingRateTypeNV: { prefix: VK_FRAGMENT_SHADING_RATE_TYPE_ postfix: _NV }
+                VkFragmentShadingRateNV: { prefix: VK_FRAGMENT_SHADING_RATE_ postfix: _NV }
+                VkBuildAccelerationStructureModeKHR: { prefix: VK_BUILD_ACCELERATION_STRUCTURE_MODE_ postfix: _KHR }
+                VkAccelerationStructureBuildTypeKHR: { prefix: VK_ACCELERATION_STRUCTURE_BUILD_TYPE_ postfix: _KHR }
+                VkAccelerationStructureCompatibilityKHR: { prefix: VK_ACCELERATION_STRUCTURE_COMPATIBILITY_ postfix: _KHR }
+                VkAccelerationStructureCreateFlagBitsKHR: { prefix: VK_ACCELERATION_STRUCTURE_CREATE_ postfix: _KHR }
+                VkShaderGroupShaderKHR: { prefix: VK_SHADER_GROUP_SHADER_ postfix: _KHR }
+                VkPeerMemoryFeatureFlagBitsKHR: { prefix: VK_PEER_MEMORY_FEATURE_ }
+                VkMemoryAllocateFlagBitsKHR: { prefix: VK_MEMORY_ALLOCATE_ }
+                VkExternalMemoryHandleTypeFlagBitsKHR: { prefix: VK_EXTERNAL_MEMORY_HANDLE_TYPE_ }
+                VkExternalMemoryFeatureFlagBitsKHR: { prefix: VK_EXTERNAL_MEMORY_FEATURE_ }
+                VkExternalSemaphoreHandleTypeFlagBitsKHR: { prefix: VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_ }
+                VkExternalSemaphoreFeatureFlagBitsKHR: { prefix: VK_EXTERNAL_SEMAPHORE_FEATURE_ }
+                VkSemaphoreImportFlagBitsKHR: { prefix: VK_SEMAPHORE_IMPORT_ }
+                VkDescriptorUpdateTemplateTypeKHR: { prefix: VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_ }
+                VkExternalFenceHandleTypeFlagBitsKHR: { prefix: VK_EXTERNAL_FENCE_HANDLE_TYPE_ }
+                VkExternalFenceFeatureFlagBitsKHR: { prefix: VK_EXTERNAL_FENCE_FEATURE_ }
+                VkFenceImportFlagBitsKHR: { prefix: VK_FENCE_IMPORT_ }
+                VkPointClippingBehaviorKHR: { prefix: VK_POINT_CLIPPING_BEHAVIOR_ }
+                VkTessellationDomainOriginKHR: { prefix: VK_TESSELLATION_DOMAIN_ORIGIN_ }
+                VkSamplerYcbcrModelConversionKHR: { prefix: VK_SAMPLER_YCBCR_MODEL_CONVERSION_ }
+                VkSamplerYcbcrRangeKHR: { prefix: VK_SAMPLER_YCBCR_RANGE_ }
+                VkChromaLocationKHR: { prefix: VK_CHROMA_LOCATION_ }
+                VkDriverIdKHR: { prefix: VK_DRIVER_ID_ }
+                VkShaderFloatControlsIndependenceKHR: { prefix: VK_SHADER_FLOAT_CONTROLS_INDEPENDENCE_ }
+                VkResolveModeFlagBitsKHR: { prefix: VK_RESOLVE_MODE_ }
+                VkSemaphoreTypeKHR: { prefix: VK_SEMAPHORE_TYPE_ }
+                VkSemaphoreWaitFlagBitsKHR: { prefix: VK_SEMAPHORE_WAIT_ }
+                VkSamplerReductionModeEXT: { prefix: VK_SAMPLER_REDUCTION_MODE_ }
+                VkDescriptorBindingFlagBitsEXT: { prefix: VK_DESCRIPTOR_BINDING_ }
+                VkRayTracingShaderGroupTypeNV: { prefix: VK_RAY_TRACING_SHADER_GROUP_TYPE_ }
+                VkGeometryTypeNV: { prefix: VK_GEOMETRY_TYPE_ }
+                VkAccelerationStructureTypeNV: { prefix: VK_ACCELERATION_STRUCTURE_TYPE_ }
+                VkCopyAccelerationStructureModeNV: { prefix: VK_COPY_ACCELERATION_STRUCTURE_MODE_ }
+                VkGeometryFlagBitsNV: { prefix: VK_GEOMETRY_ }
+                VkGeometryInstanceFlagBitsNV: { prefix: VK_GEOMETRY_INSTANCE_ }
+                VkBuildAccelerationStructureFlagBitsNV: { prefix: VK_BUILD_ACCELERATION_STRUCTURE_ }
+            }
+        }
+    }
+
+    pods: {
+      //enumFromString: [BufferStrategy]
+      //topNamespace: overground
+      //namespaces: {
+        //config: {
+          general: {
+            programName: string
+            version: { type: array of: [int, 3] }
+            numWorkerThreads: int
+          }
+
+          assetDatabase: {
+            adbPath: string
+            cacheDir: string
+            cacheFile: string
+            cacheMapWindowSize: int // in MB
+          }
+
+          swapchainImageView: {
+            viewType: VkImageViewType
+            components: { type: array of: [VkComponentSwizzle, 4] }
+            aspectMask: VkImageAspectFlagBits
+          }
+
+          swapchain: {
+            formatPriorities: { type: vector of: { type: pair of: [VkFormat, VkColorSpaceKHR] } }
+            numViews: "unsigned int"
+            imageUsages: { type: vector of: string }
+            imageSharing: bool
+            pretransform: VkSurfaceTransformFlagBitsKHR
+            windowAlpha: VkCompositeAlphaFlagBitsKHR
+            presentModePriorities: { type: vector of: { type: pair of: [VkPresentModeKHR, uint32_t] } }
+            clipped: bool
+            imageView: swapchainImageView
+          }
+
+          graphics: {
+            isConfigured: bool //def: false
+            headless: bool
+            fullScreen: bool
+            width: "unsigned int"
+            height: "unsigned int"
+            vulkanValidationEnabled: bool
+            vulkanValidationLayers: { type: vector of: string }
+            vulkanValidationReports: { type: vector of: string }
+            vulkanExtensions: { type: vector of: string }
+            deviceExtensions: { type: vector of: string }
+            minGraphicsQueues: "unsigned int"
+            desiredGraphicsQueues: "unsigned int"
+            minComputeQueues: "unsigned int"
+            desiredComputeQueues: "unsigned int"
+            minTransferQueues: "unsigned int"
+            desiredTransferQueues: "unsigned int"
+            minDeviceFeatures: { type: vector of: string }
+            desiredDeviceFeatures: { type: vector of: string }
+            swapchain: swapchain
+            bufferStrategy: string // BufferStrategy
+          }
+
+          config: {
+            general: general
+            assetDatabase: assetDatabase
+            graphics: graphics
+          }
+        //}
+
+        //memoryPlan: {
+          memoryType: {
+            memoryProps: { type: vector of: VkMemoryPropertyFlagBits }
+            chunkSize: size_t
+            mappable: bool
+          }
+
+          usageType: {
+            name: string //fromKey: true
+            memoryProps: { type: vector of: { type: vector of: VkMemoryPropertyFlagBits } }
+          }
+
+          memoryPlan: {
+            maxChunkSize: size_t
+            minChunksPerHeap: size_t
+            allocRetries: size_t
+            stagingSize: size_t
+            memoryTypes: { type: vector of: memoryType }
+            usageTypes: { type: map of: [string, usageType] }
+          }
+        //}
+
+        //renderPlan: {
+          attachment: {
+            name: string //fromKey: true
+            flags: { type: VkAttachmentDescriptionFlagBits default: 0 }
+            numSamples: VkSampleCountFlagBits
+            loadOp: VkAttachmentLoadOp
+            storeOp: VkAttachmentStoreOp
+            stencilLoadOp: VkAttachmentLoadOp
+            stencilStoreOp: VkAttachmentStoreOp
+            initialLayout: VkImageLayout
+            finalLayout: VkImageLayout
+          }
+
+          subpassAttachment: {
+            attachment: string
+            layout: { type: VkImageLayout}
+          }
+
+          subpass: {
+            name: string //fromKey: true
+            flags: VkSubpassDescriptionFlagBits
+            bindPoint: VkPipelineBindPoint
+            inputAttachments: { type: vector of: subpassAttachment }
+            colorAttachments: { type: vector of: subpassAttachment }
+            resolveAttachments: { type: vector of: subpassAttachment }
+            depthStencilAttachment: { type: optional of: subpassAttachment }
+            preserveAttachments: { type: vector of: "unsigned int" }
+          }
+
+          subpassDependency: {
+            srcSubpass: { 
+              type: int
+        //      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+            }
+            dstSubpass: { 
+              type: int
+        //      aliases: [[external, VK_SUBPASS_EXTERNAL]]
+            }
+            srcStageMask: VkPipelineStageFlagBits
+            dstStageMask: VkPipelineStageFlagBits
+            srcAccessMask: VkAccessFlagBits
+            dstAccessMask: VkAccessFlagBits
+          }
+
+          renderPass: {
+            name: string //fromKey: true
+            attachments: { type: map of: [string, attachment] }
+            subpasses: { type: map of: [string, subpass] }
+            dependencies: { type: vector of: subpassDependency }
+          }
+
+          // render operations
+
+          identifyVisibleThings: { 
+            type: string
+            tags: { type: vector of: string }
+          }
+
+          drawRecursiveCameras: { 
+            type: string
+          }
+
+          computeShadows: { 
+            type: string
+            tags: { type: vector of: string }
+          }
+
+          updateUbos: {
+            type: string
+          }
+
+          setRenderPass: {
+            type: string
+            renderPassName: string
+          }
+
+          nextSubpass: { 
+            type: string
+          }
+
+          endRenderPass: { 
+            type: string
+          }
+
+          computeDepth: { 
+            type: string
+            tags: { type: vector of: string }
+          }
+
+          drawUi: { 
+            type: string
+          }
+
+          drawOpaque: { 
+            type: string
+          }
+
+          drawTransparent: { 
+            type: string
+          }
+
+          drawImposters: { 
+            type: string
+          }
+
+          drawSkybox: { 
+            type: string
+          }
+
+          runPostEffects: { 
+            type: string
+          }
+
+          operationList: {
+            name: string //fromKey: true
+            primaryPlan: bool
+            ops: { type: vector of: { type: variant of: [
+                  identifyVisibleThings
+                  drawRecursiveCameras
+                  computeShadows
+                  updateUbos
+                  setRenderPass
+                  nextSubpass
+                  endRenderPass
+                  computeDepth
+                  drawUi
+                  drawOpaque
+                  drawTransparent
+                  drawImposters
+                  drawSkybox
+                  runPostEffects
+                ]
+              }
+            }
+          }
+
+          renderPlan: {
+            name: string
+            renderPasses: { type: map of: [string, renderPass] }
+            operations: { type: map of: [string, operationList] }
+          }
+        //}
+
+        // framePlan: {
+        //   framePhase: {
+        //     kind: FramePhaseKinds
+        //     name: string
+        //     computePassName: { type: optional of: [string, string] }
+        //     renderPassName: { type: optional of: [string, string] }
+        //     subpass: { type: optional of: [string, int] }
+        //     arg: { type: optional of: [string, string] }
+        //   }
+
+        //   framePlan: {
+        //     name: string
+        //     phases: { type: vector of: framePhase }
+        //   }
+        // }
+
+        // commandList: {
+          cmdBindPipeline: {
+            type: string
+            bindPoint: VkPipelineBindPoint
+            pipelineName: string
+          }
+          cmdSetViewport: { 
+            type: string
+          }
+          cmdSetScissor: {
+            type: string
+          }
+          cmdSetLineWidth:
+          { 
+            type: string
+            width: float
+          }
+          cmdSetDepthBias: {
+            type: string
+            constantFactor: float
+            clamp: float
+            slopeFactor: float
+          }
+          cmdSetBlendConstants: { 
+            type: string
+            constants: { type: array of: [float, 4] }
+          }
+          cmdSetDepthBounds: {
+            type: string
+            min: float
+            max: float
+          }
+          cmdSetStencilCompareMask: {
+            type: string
+            faceMask: VkStencilFaceFlagBits
+            compareMask: "uint32_t"
+          }
+          cmdSetStencilWriteMask: {
+            type: string
+            faceMask: VkStencilFaceFlagBits
+            writeMask: "uint32_t"
+          }
+          cmdSetStencilReference: {
+            type: string
+            faceMask: VkStencilFaceFlagBits
+            reference: "uint32_t"
+          }
+          cmdBindDescriptorSets: {
+            type: string
+          }
+          cmdBindIndexBuffer: {
+            type: string
+          }
+          cmdBindIndexBuffers: {
+            type: string
+          }
+          cmdDraw: {
+            type: string
+          }
+          cmdDrawIndexed: {
+            type: string
+          }
+          cmdDrawIndirect: {
+            type: string
+          }
+          cmdDrawIndexedIndirect: {
+            type: string
+          }
+          cmdDispatch: {
+            type: string
+          }
+          cmdDispatchIndirect: {
+            type: string
+          }
+          cmdCopyBuffer: {
+            type: string
+            src: string
+            dst: string
+          }
+          cmdCopyImage: {
+            type: string
+            src: string
+            dst: string
+          }
+          cmdBlitImage: {
+            type: string
+            src: string
+            dst: string
+            filter: VkFilter
+          }
+          cmdCopyBufferToImage: {
+            type: string
+            src: string
+            dst: string
+          }
+          cmdCopyImageToBuffer: {
+            type: string
+            src: string
+            dst: string
+          }
+          cmdUpdateBuffer: {
+            type: string
+            dst: string
+          }
+          cmdFillBuffer: {
+            type: string
+            dst: string
+            data: uint32_t
+          }
+          cmdClearColorImage: {
+            type: string
+            dst: string
+            color: { type: array of: [float, 4] }
+          }
+          cmdClearDepthStencilImage: {
+            type: string
+            dst: string
+            depth: float
+            stencil: uint32_t
+          }
+          cmdClearAttachments: {
+            type: string
+            attachments: { type: vector of: string }
+          }
+          cmdResolveImage: {
+            type: string
+            src: string
+            dst: string
+          }
+          cmdSetEvent: {
+            type: string
+            event: string
+            stageMask: VkPipelineStageFlagBits
+          }
+          cmdWaitEvents: {
+            type: string
+          }
+          cmdPipelineBarrier: {
+            type: string
+          }
+          cmdBeginQuery: {
+            type: string
+          }
+          cmdEndQuery: {
+            type: string
+          }
+          cmdResetQueryPool: {
+            type: string
+          }
+          cmdWriteTimestamp: {
+            type: string
+          }
+          cmdCopyQueryPoolResults: {
+            type: string
+          }
+          cmdPushConstants: {
+            type: string
+            // TODO: Specific fields
+          }
+          cmdBeginRenderPass: {
+            type: string
+          // ...
+          }
+          cmdNextSubpass: {
+            type: string
+          // ...
+          }
+          cmdEndRenderPass: {
+            type: string
+          }
+          cmdExecuteCommands: {
+            type: string
+            commandBuffers: { type: vector of: string }
+          }
+          commandList: {
+            name: string
+            queue: string // TODO: enum for COMPUTE, GRAPHICS, etc
+            cmds: { type: vector of: { type: variant of: [
+                cmdBindPipeline
+                cmdSetViewport
+                cmdSetScissor
+                cmdSetLineWidth
+                cmdSetDepthBias
+                cmdSetBlendConstants
+                cmdSetDepthBounds
+                cmdSetStencilCompareMask
+                cmdSetStencilWriteMask
+                cmdSetStencilReference
+                cmdBindDescriptorSets
+                cmdBindIndexBuffer
+                cmdBindIndexBuffers
+                cmdDraw
+                cmdDrawIndexed
+                cmdDrawIndirect
+                cmdDrawIndexedIndirect
+                cmdDispatch
+                cmdDispatchIndirect
+                cmdCopyBuffer
+                cmdCopyImage
+                cmdBlitImage
+                cmdCopyBufferToImage
+                cmdCopyImageToBuffer
+                cmdUpdateBuffer
+                cmdFillBuffer
+                cmdClearColorImage
+                cmdClearDepthStencilImage
+                cmdClearAttachments
+                cmdResolveImage
+                cmdSetEvent
+                cmdWaitEvents
+                cmdPipelineBarrier
+                cmdPushConstants
+                cmdBeginRenderPass
+                cmdNextSubpass
+                cmdEndRenderPass
+                cmdExecuteCommands
+              ]
+            }
+          }
+        }
+
+        //material: {
+          descriptor: { 
+            descType: { type: map of: [string, VkDescriptorType] }
+            asset: { type: optional of: string }
+            buffer: { type: optional of: string }
+            pushConstants: { type: optional of: string }
+          }
+          
+          shaderModule: {
+            name: string
+            shaderName: string
+          }
+
+      //    vertexDeclEntry: {
+      //      offset: int
+      //      format: VkFormat
+      //    }
+
+          stage: {
+            shaderAsset: string
+            entry: string
+          }
+
+          rasterizationState: {
+            depthClampEnable: bool
+            rasterizerDiscardEnable: bool
+            polygonFillMode: VkPolygonMode
+            cullMode: VkCullModeFlagBits
+            frontFace: VkFrontFace
+            depthBiasEnable: bool
+            lineWidth: float
+          }
+
+          multisampleState: {
+            rasterizationSamples: int
+            sampleShadingEnable: bool
+            sampleMask: VkSampleMask
+            alphaToCoverageEnable: bool
+            alphaToOneEnable: bool
+          }
+
+          blendStateAttachment: {
+            srcColorFactor: VkBlendFactor
+            dstColorFactor: VkBlendFactor
+            colorOp: VkBlendOp
+            srcAlphaFactor: VkBlendFactor
+            dstAlphaFactor: VkBlendFactor
+            alphaOp: VkBlendOp
+            colorWriteMask: { type: vector of: char }
+          }
+
+          blendState: {
+            logicOpEnable: bool
+            attachments: { type: vector of: blendStateAttachment }
+          }
+
+          tesselationState: {
+          }
+
+          stencilOp: {
+            failOp: VkStencilOp
+            passOp: VkStencilOp
+            depthFailOp: VkStencilOp
+            compareOp: VkCompareOp
+            compareMask: uint32_t
+            writeMask: uint32_t
+            reference: int
+          }
+
+          depthStencilState: {
+            depthTestEnable: bool
+            depthWriteEnable: bool
+            depthCompareOp: VkCompareOp
+            depthBoundsTestEnable: bool
+            stencilTestEnable: bool
+            frontStencilOp: stencilOp
+            backStencilOp: stencilOp
+            minDepthBounds: float
+            maxDepthBounds: float
+          }
+
+          material: {
+    //        vertexDecl: { 
+    //          type: vector of: vertexDeclEntry
+    //          serialized: false // This should be set by the material/mesh combination
+    //        }
+            stages: { type: map of: [string, stage] }
+            rasterizationState: rasterizationState
+            multisampleState: multisampleState
+            blendState: blendState
+            tesselationState: tesselationState
+            depthStencilState: depthStencilState
+            dynamicStates: { type: vector of: VkDynamicState }
+            // Need: Sampler state? Maybe?
+            // Need: A way to parameterize materials. They'll get set in the UBO or push costants or shader constants. But do I spec them here? Command buffers set the values. Something has to know that they need settin'. Are there standard bits for materials like MVP matrices? Should be able to design custom paramterizations for things like specialized skinning, or whatever. Not to be painting ourselves in, yes. OR: Should I not bother, making a separate material for each variant, and the material knows how to set constants? Nothing wrong with having hundreds of pipeline objects, so might be worth it.
+          }
+        //}
+
+        //asset: {
+          mesh: {
+            type: string //deserialized: false
+          }
+
+          componentMapping: {
+            r: VkComponentSwizzle
+            g: VkComponentSwizzle
+            b: VkComponentSwizzle
+            a: VkComponentSwizzle
+          }
+
+          image: {
+            //deserialized: false
+            imageType: VkImageType
+            numLayers: size_t //default: 1
+            extents: { type: array of: [size_t, 3] }
+            numMipLevels: size_t
+            componentMapping: { type: optional of: componentMapping }
+          }
+
+          partition: {
+            numSrcFiles: size_t
+            faceLayout: string  // TODO: Enum for face layout
+          }
+
+          cubeMapImage: {
+            //deserialized: false
+            numCubes: size_t //default: 1
+            extents: { type: array of: [size_t, 3] }
+            numMipLevels: size_t
+            componentMapping: { type: optional of: componentMapping }
+            partitions: { type: vector of: partition }
+          }
+
+          shader: {
+            //deserialized: false
+            entryPoint: string
+            //...
+          }
+
+          asset: {
+            name: string //fromKey: true
+            src: { type: vector of: string }
+            monitorFile: bool //default: true
+            importData: { type: variant of: [
+                mesh image cubeMapImage shader  // Is this right? from conversion
+              ]
+            }
+            format: { type: optional of: VkFormat }
+          }
+        //}
+
+        //tableau: {
+          matrixTransform: {
+            transform: { type: array of: [float, 16] }
+          }
+
+          srtTransform: {
+            //requiresFeatures: [matrixTransform]
+            scale: { type: array of: [float, 3] }
+            rotation: { type: array of: [float, 3] }
+            translate: { type: array of: [float, 3] }
+          }
+
+          drawableSubmesh: {
+            submesh: string
+            material: string
+            tags: { type: vector of: string } // TODO: These alter tags gotten from material.
+          }
+
+          drawableMesh: {
+            //requiresFeatures: [matrixTransform]
+            mesh: string
+            subMeshes: { type: vector of: drawableSubmesh }
+          }
+
+          directionalLight: {
+            //requiresFeatures: [matrixTransform]
+            color: { type: array of: [float, 3] }
+          }
+
+          pointLight: {
+            //requiresFeatures: [matrixTransform]
+            attenuation: { type: array of: [float, 3] }
+            color: { type: array of: [float, 3] }
+          }
+
+          spotLight: {
+            //requiresFeatures: [matrixTransform]
+            attenuation: { type: array of: [float, 3] }
+            hotspot: float
+            falloff: float
+            color: { type: array of: [float, 3] }
+          }
+
+          camera: {
+            //requiresFeatures: [matrixTransform]
+            fovAroundYAxis: float
+            minDepth: float
+            maxDepth: float
+            renderPlan: string
+          }
+
+          // add new feature types here
+
+          feature: {
+            featureData: { type: variant of: [
+                matrixTransform
+                srtTransform
+                drawableMesh
+                directionalLight
+                pointLight
+                spotLight
+                camera
+              ]
+            }
+          }
+
+          otherKindOfObject: {
+            //deserialized: false
+          }
+
+          object: {
+            name: string //fromKey: true
+            children: { type: vector of: object }
+            features: { type: vector of: feature }
+            data: { type: optional of: { type: variant of: [otherKindOfObject] } }
+          }
+
+          tableau: {
+            name: string //fromKey: true
+            objects: { type: map of: [string, object] }
+          }
+        //}
+
+        //assembly: {
+          //uses: [ config memoryPlan renderPlan asset material tableau ]
+          // Every file in the assemblies dir -is- an assembly. They merge into the following superset:
+          assembly: {
+            configs: { type: map of: [string, config] }
+            memoryPlans: { type: map of: [string, memoryPlan] }
+            renderPlans: { type: map of: [string, renderPlan] }
+            assets: { type: map of: [string, asset] }
+            materials: { type: map of: [string, material] }
+            tableaux: { type: map of: [string, tableau] }
+            tableauGroups: { type: map of: [string, { type: vector of: string }] }
+            usingConfig: string
+            usingMemoryPlan: string
+            usingTableauGroup: string
+          }
+        //}
+      }
+    }
+  
+

@@ -1,0 +1,15 @@
+Resource:
+    refs to Resource
+    refs to Asset
+
+
+
+Allocation: huge
+    Buffer[few]:     large, uniqe by usage, sharing mode, sparse memory flags
+        vertices from multiple meshes
+        indices from multiple meshes
+        ubos
+    Image[few]:      large, multiple images and LODs for each? need to learn more
+        image array
+             lod image
+

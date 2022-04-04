@@ -1,0 +1,23 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [construct]
+    exeName: mesh
+
+    buildKind: debug
+
+    sources: [
+        'gen-cpp/overground/src/*.cpp'
+        main.cpp
+    ]
+
+    includeDirs: [
+        'gen-cpp/overground/inc'
+    ]
+
+    linkDirs: [
+    ]
+
+    libraries: [
+        humon
+    ]
+}

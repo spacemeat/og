@@ -1,0 +1,14 @@
+@ { app: boma version: 0.0.4 }
+{
+    enums: {
+        AssetKind: [mesh, model, etc]
+    }
+
+    types: {
+        assetList: { assets: { type: vector of: asset } }
+        asset: {
+            kind: AssetKind
+            source: string
+        }
+    }
+}
