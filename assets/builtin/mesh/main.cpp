@@ -1,6 +1,4 @@
-#include "gen-cpp/overground/inc/overground.hpp"
-
-namespace og = overground;
+#include "gen-cpp/og/inc/og.hpp"
 
 int main(int argc, char** argv)
 {

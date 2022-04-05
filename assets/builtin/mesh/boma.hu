@@ -1,7 +1,7 @@
 @ { app: boma version: 0.0.4 }
 {
     inherit: [cpp17]
-    namespace: overground
+    namespace: og
     enums: {
         vertexElementType:  [ float32, float64,
                               int8, int16, int32, int64,

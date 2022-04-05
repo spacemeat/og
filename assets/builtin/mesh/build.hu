@@ -6,12 +6,12 @@
     compileAndLinkOptions: [Werror]
 
     sources: [
-        'gen-cpp/overground/src/*.cpp'
+        'gen-cpp/og/src/*.cpp'
         main.cpp
     ]
 
     includeDirs: [
-        'gen-cpp/overground/inc'
+        'gen-cpp/og/inc'
     ]
 
     libDirs: [
