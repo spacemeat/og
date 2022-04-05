@@ -3,7 +3,7 @@
     inherit: [construct]
     exeName: mesh
 
-    buildKind: debug
+    compileAndLinkOptions: [Werror]
 
     sources: [
         'gen-cpp/overground/src/*.cpp'
@@ -14,10 +14,11 @@
         'gen-cpp/overground/inc'
     ]
 
-    linkDirs: [
+    libDirs: [
     ]
 
-    libraries: [
+    libs: [
         humon
+        c
     ]
 }
