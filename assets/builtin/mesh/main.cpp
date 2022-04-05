@@ -1,4 +1,4 @@
-#include "gen-cpp/og/inc/og.hpp"
+#include "gen-cpp/og_gen/inc/og_gen.hpp"
 #include <fmt/format.h>
 
 int main(int argc, char** argv)
@@ -6,7 +6,7 @@ int main(int argc, char** argv)
     auto tr = hu::Trove::fromFile("sampleMesh.hu");
     if (auto && t = std::get_if<hu::Trove>(& tr))
     {
-        auto mesh = og::mesh(t->root());
+        auto mesh = og::gen::mesh(t->root());
         auto meshData = mesh.get_meshData();
         if (meshData.has_value())
         {
