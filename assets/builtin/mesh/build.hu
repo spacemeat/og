@@ -17,8 +17,5 @@
     libDirs: [
     ]
 
-    libs: [
-        humon
-        c
-    ]
+    libs: [humon, c, fmt]
 }

@@ -1,4 +1,5 @@
 #include "gen-cpp/og/inc/og.hpp"
+#include <fmt/format.h>
 
 int main(int argc, char** argv)
 {
@@ -18,9 +19,9 @@ int main(int argc, char** argv)
                     {
                         for (int i = 0; i < 3; ++i)
                         {
-                            std::cout << vx[i] << "; ";
+                            fmt::print("{}; ", vx[i]);
                         }
-                        std::cout << "\n";
+                        fmt::print("\n");
                     }
                 }
             }
