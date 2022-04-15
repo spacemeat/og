@@ -1,0 +1,75 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [cpp17, vulkan]
+    namespace: og
+    genDir: gen-cpp
+    diffable: false
+
+    include: ['"inc/FeatureDb.hpp"']
+    serializeTo: [humon]
+    deserializeFrom: [humon]
+
+    types: {
+        featureDb: {
+            -deriveFrom: FeatureDb<featureDb>
+            features: { type: vector of: featureReq }
+        }
+        featureReq: {
+            -deriveFrom: FeatureReq<featureReq>
+            featureRefCount: { type: int default: 0 }
+            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
+            sizeInCache: int
+            sizeInResource: int
+            memoryProperties: { type: VkMemoryPropertyFlagBits }
+            usages: { type: variant of: [VkBufferUsageFlagBits, VkImageUsageFlagBits] }
+            queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+            dedicated: bool
+            sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
+            gpuAddress: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
+        }
+
+        // schedule
+        featureSchedule: {
+            schedule: { type: vector of: { type: variant of: [
+                setAssetDbWindowCommand,
+                transferCachedAssetCommand,
+                stageCachedAssetCommand,
+                scheduleStagedTransfersCommand,
+                scheduleMemoryMoveCommand,
+                /*... other shader / pipeline / other uses (even audio)
+                -- anything that needs to be scheduled from cache, really. */]}}
+        }
+
+        setAssetDbWindowCommand: {
+            assetDb: stringView
+            window: int
+        }
+
+        transferCachedAssetCommand: {
+            assetDb: stringView
+            assetIndex: int
+            completionFunction: { type: function of: 'void(void*, int)' }
+        }
+
+        stageCachedAssetCommand: {
+            assetDb: stringView
+            assetIndex: int
+            stagingBufferIndex: int
+            stagingBufferOffset: int
+            memorySize: int
+            memoryGranularity: int
+            completionFunction: { type: function of: 'void()' }
+        }
+
+        scheduleStagedTransfersCommand: {
+            stagingBufferIndex: int
+        }
+
+        scheduleMemoryMoveCommand: {
+            from: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
+            to: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
+            memorySize: int
+            completionFunction: { type: function of: 'void()' }
+        }
+    }
+}

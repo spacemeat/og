@@ -1,0 +1,56 @@
+@ { app: overground, ogVersion: 0.0.1 }
+@ { type: feature, typeVersion: 0.0.1 }
+{
+    features: [ {
+            assetDbAddress: [assetDb0, 0]
+            offsetInCache: 0
+            sizeInCache: 400
+            gpuAddress: [0, 0, 0, 0]
+            offsetInResource: 0
+            sizeInResource: 480
+            memoryProperties: [device_local_bit]
+            usages: [transfer_dst_bit, vertex_buffer_bit, uniform_buffer_but]
+            queues: [[transfer, transfer_write_bit, transfer_bit]
+                     [compute, shader_read_bit, compute_shader_bit]
+                     [graphics, vertex_attribute_read_bit, vertex_input_bit]]
+            dedicated: true
+        }, {
+            assetDbAddress: [assetDb0, 1]
+            offsetInCache: 400
+            sizeInCache: 100
+            gpuAddress: [0, 0, 0, 1]
+            offsetInResource: 480
+            sizeInResource: 160
+            memoryProperties: [device_local_bit]
+            usages: [transfer_dst_bit, index_buffer_bit, uniform_buffer_but]
+            queues: [[transfer, transfer_write_bit, transfer_bit]
+                     [compute, shader_read_bit, compute_shader_bit]
+                     [graphics, vertex_attribute_read_bit, vertex_shader_bit]]
+            dedicated: true
+        }, {
+            assetDbAddress: [assetDb0, 2]
+            offsetInCache: 500
+            sizeInCache: 11400
+            gpuAddress: [0, 0, 1, 0]
+            offsetInResource: 0
+            sizeInResource: 11680
+            memoryProperties: [device_local_bit]
+            usages: [transfer_dst_bit, sampled_bit]
+            queues: [[transfer, transfer_write_bit, transfer_bit]
+                     [graphics, shader_read_bit, fragment_shader_bit]]
+            dedicated: true
+        }, {
+            assetDbAddress: [assetDb0, 3]
+            offsetInCache: 11900
+            sizeInCache: 11400
+            gpuAddress: [0, 0, 1, 1]
+            offsetInResource: 11680
+            sizeInResource: 11680
+            memoryProperties: [device_local_bit]
+            usages: [transfer_dst_bit, sampled_bit]
+            queues: [[transfer, transfer_write_bit, transfer_bit]
+                     [graphics, shader_read_bit, fragment_shader_bit]]
+            dedicated: true
+        }
+    ]
+}
