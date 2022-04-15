@@ -1,0 +1,34 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [cpp17, vulkan]
+    namespace: og
+    genDir: gen-cpp
+    diffable: true
+
+    include: ['"inc/AssetDb.hpp"']
+
+    enums: {
+        assetKind: [ mesh ]
+    }
+
+    types: {
+        assetDb: {
+            -deriveFrom: AssetDb<assetDb>
+            cache: stringView
+            lastCacheModTime: int
+            assets: { type: vector of: assetDef }
+        }
+
+        assetDef: {
+            -deriveFrom: AssetDef<assetDef>
+            name: stringView
+            kind: assetKind
+            src: stringView
+            lastModTime: { type: optional of: int }
+            cacheOffset: { type: optional of: int }
+            usages: { type: VkBufferUsageFlagBits, default: [transfer_src_bit transfer_dst_bit] }
+            sharingMode: { type: VkSharingMode, default: exclusive }
+            sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
+        }
+    }
+}

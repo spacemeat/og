@@ -1,0 +1,10 @@
+@ { app: overground, ogVersion: 0.0.1 }
+@ { type: assetDb, typeVersion: 0.0.1 }
+{
+    cache: ogCache
+    assets: [ {
+            name: cube
+            src: ../assets/builtin/mesh/cube.hu
+        }
+    ]
+}

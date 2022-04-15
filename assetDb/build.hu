@@ -1,0 +1,22 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [construct]
+    exeName: assetDbTest
+
+    compileAndLinkOptions: [Werror]
+
+    sources: [
+        'gen-cpp/src/*.cpp'
+        src/AssetDb.cpp
+        main.cpp
+    ]
+
+    includeDirs: [
+        'gen-cpp/inc'
+    ]
+
+    libDirs: [
+    ]
+
+    libs: [humon, c, fmt]
+}

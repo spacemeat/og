@@ -13,3 +13,264 @@ Allocation: huge
         image array
              lod image
 
+
+
+Engine start:
+    find all assetDbs
+    for each assetDb:
+        zero out assetDb working set
+        load assetDb from hu
+        diff the assetDbs
+        clear diff.lastCacheModTime changed bit
+        for each asset in assetDb:
+            find source file, if any, get mod time, other info
+        find cache file, if any, get mod time
+
+
+When assetDb.diff has changes (including at startup):
+    if cache changed:
+        TODO: handle new cache file creation and cache-cache transfer
+    if lastCachedModTime changed:
+        TODO: handle reload of assetDb from hu
+    if assets changed:
+        determine if any cached data has changed
+        if so:
+            determine if the data must grow in size or have a stricter alignment
+        ... we can refine this down, and go up as far as 'if assets changed, reload the works'
+        compute and accrue the assigned buffer/image layout reqs
+    if any b/i layout changes, inform the memory manager of the new layout
+    (mm will move what it can (if an asset doesn't need reimporting))
+    mm will schedule transfers for any missing asset data
+
+
+mm is using a large staging buffer that it keeps around, big enough to move
+a huge amount (256 MB or so). A future project may explore keeping multiple
+staging buffers and pipelining the transfers.
+
+
+mm gets a structure that looks like (given by examining the object/feature set):
+featureDb: [ {
+        assetDbAddress: [0, 0]
+        memoryProperties: deviceLocal
+        size:   2000
+        usages: [transfer_dst_bit,      // comes from the asset
+                 vertex_buffer_bit,     // comes from the feature
+                 uniform_buffer_bit]    // comes from the feature
+        queues: [[transfer, transfer_write_bit, transfer_bit],
+                 // queue  // VK_ACCESS        VK_PIPELINE_STAGE
+                           // set by engine if there is a transfer-only queue available
+                 [compute, shader_read_bit, compute_shader_bit],   // comes from the feature
+                 [graphics, shader_read_bit, vertex_shader_bit]]   // comes from the feature
+        dedicated: true
+        // sharing mode is determined by config. In general, prefer exclusive even on multi-family accesses.
+        address: // NOT FILLED IN YET: alloc 0, resIdx: 0, bufImg: buf, offset: 0
+            // assembling the memory plan will reveal this subresource's future mm address
+    }, {
+        assetDbAddress: [0, 1]
+        memoryProperties: deviceLocal
+        size:   1200
+        usages: [transfer_dst_bit, index_buffer_bit, uniform_buffer_bit]
+        queues: [[transfer, transfer_write_bit, transfer_bit],
+                 [compute, shader_read_bit, compute_shader_bit],
+                 [graphics, shader_read_bit, index_shader_bit]]
+        dedicated: true
+        address: ... TBD
+    }, {
+        ... shaders too? pipelines? other things that need to be stored and referenced?
+    }
+]
+
+and arranges it into:
+
+memoryPlan: [ {
+        memoryType 0: [ { // alloc 0
+                memoryProperties: deviceLocal
+                usages: [transfer_dst_bit, vertex_buffer_bit, index_buffer_bit, uniform_buffer_bit ]
+                resources: [ {
+                        kind: buffer    // vs image
+                        usages: [transfer_dst_bit, vertex_buffer_bit, index_buffer_bit, uniform_buffer_bit]
+                        size:   3600
+                        dedicated: True
+                        sharingMode: exclusive?
+                        queues: [compute, graphics]
+                        subresources: [ {
+                                assetCache: vertices (assetDb: 0 page: 0 asset: 0)   // not all subresources will have an asset in cache
+                                usages: [transfer_dst_bit, vertex_buffer_bit, uniform_buffer_bit]
+                                size:   2000
+                            } {
+                                assetCache: indices (assetDb: 0 page: 0 asset: 1)
+                                usages: [transfer_dst_bit, index_buffer_bit, uniform_buffer_bit]
+                                size:   1200
+                            }
+                        ]
+                    }, {
+                        ...
+                    }
+                ]
+            }, {        // alloc 1
+                memoryProperties: deviceLocal
+            }
+        ]
+        memoryType 1: [
+                ...
+        ]
+    }
+]
+
+and allocates large blocks for any shortfalls from what it has.
+
+Now mm has to track the window state of each assetdb's filemap. This sounds
+like a really low level probing, but it's not bad. We cannot schedule more
+than the window size (256MB probably) from any one assetDb, since we have to
+keep the window there until the transfers are done. We can, however, schedule
+as many assetDbs as we want at once.
+
+Now mm builds a schedule to fill out its needs:
+
+setWindow   0
+assetDb0        schedule buffers 0, 3-45 buffers 46-123 images 124-135 buffers 136-151
+assetDb1        schedule buffers 0-12 images 13-44
+clearStaging
+assetDb2        schedule buffers 0-88 images 89-192
+...
+setWindow   1
+assetDb0        schedule buffers 152-164 images 165-211
+assetDb1        schedule images 45-90
+clearStaging
+...
+
+All the VkBuffer and VkImage objects can be created now, and should be (in
+parallel). Their respective resources can be informed of their new Vk*
+objects / offsets if they change. If there are fallback assets, the resource
+will use a different Vk* object until its transfer is complete.
+
+Each setWindow and clearStaging step must wait on previous scheduled transfers
+to complete. The engine should consider advancing a frame on those steps. (The
+number of paging cycles to run per frame shoudld be tunable.)
+
+If the memory plan is stateful, we should always be able to create a schedule
+to get to a desired memory plan from wherever we currently are. So changes to
+the assets should be responsive even if we're in the middle of a multi-frame
+transfer schedule.
+
+In making a memory schedule, we should be working towards a 'plan that works.'
+It's not as important to match a plan's layout as to satisfy fragmentation
+reqs, however that is done quickest. So if plan a specifies db0 then db1, and
+plan b specifies db1, db0, the plans are still 'compatible' and no schedule is
+requierd at all, as long as there are no gaps to fill by settling suballocs.
+
+Other operations may be put into the schedule. If there is a memory plan in
+place already, the diff to get from a to b will have other things like memory
+transfers and entire allocs and deallocs. This can go right into the schedule
+and be acted on in turn.
+
+
+
+Objects
+
+Objects are basically feature containers. They represent instances of things
+in a sim environment. Each has a set of Features which define it.
+
+A Feature is an object that describes how to use the object to the engine. Mesh
+rendering is a feature, being a light source, being a camera, being a skybox.
+Features may require other features to be owned by the same object to work.
+Features reference assets, and describe their usages. When a memory plan is
+being created, the active feature set describes the usage bits and other things.
+So, only active features (even those that are marked 'disabled') will inform
+a memory plan. This makes for gaps in assetDb caches, which will need to be
+skipped when memcpying.
+
+scene
+    frame    - root frame
+        frame   - cube frame
+            object  - cube
+                feature: visibleModel
+                    meshes:
+                        asset: meshAsset
+                            asset: vertices
+                                assetCache: (assetDb: 0 page: 0 asset: 0)
+                                usage: vertex_buffer_bit
+                                queues: graphics
+                                featureReq: 0
+                            asset: indices
+                                assetCache: (assetDb: 0 page: 0 asset: 1)
+                                usage: index_buffer_bit
+                                queues: graphics
+                                featureReq: 1
+                    materials:
+                        asset: brick
+                            asset: brick-albedo
+                                assetCache: (assetDb: 0 page: 0 asset: 2)
+                                usage: sampled_bit
+                                queues: graphics
+                                featureReq: 2
+                            asset: brick-normal
+                                assetCache: (assetDb: 0 page: 0 asset: 3)
+                                usage: sampled_bit
+                                queues: graphics
+                                featureReq: 3
+                            asset: brick-shader
+                                assetCache: (assetDb: 0 page: 0 asset: 4)
+                                stages: ...
+                                bindings: ...
+                                featureReq: ?
+                                ...
+                    shadowCasters:
+                        asset: meshAsset
+                            asset: vertices
+                                assetCache: (assetDb: 0 page: 0 asset: 0)
+                                usage: uniform_buffer_bit
+                                queues: compute
+                                featureReq: 0
+                            asset: indices
+                                assetCache: (assetDb: 0 page: 0 asset: 1)
+                                usage: uniform_buffer_bit
+                                queues: compute
+                                featureReq: 1
+        frame   - plane frame
+            object  - ground plane
+        frame   - skybox frame
+            object  - skybox
+        frame   - camera frame
+            object  - camera
+            object  - target reticle
+            object  - health bar
+            object  - area map
+        frame   -  light frame
+            object  - dir light
+    object - gameplay manager
+
+
+featureDb: [ {
+        // meshAsset vertices
+        usage: [vertex_buffer_bit, uniform_buffer_bit]
+        dedicated: true
+        queues: [compute, graphics]
+        assetCache: vertices (assetDb: 0 page: 0 asset: 0)   // not all subresources will have an asset in cache
+        address: memType: 0, alloc 0, resIdx: 0, bufImg: buf, offset: 0
+    } {
+        // meshAsset indices
+        usage: [index_buffer_bit, uniform_buffer_bit]
+        dedicated: true
+        queues: [compute, graphics]
+        assetCache: vertices (assetDb: 0 page: 0 asset: 1)
+        address: memType: 0, alloc 0, resIdx: 0, bufImg: buf, offset: 2000
+    } {
+        // brickAsset albedo
+        usage: sampled_bit
+        dedicated: true
+        queues: graphics
+        assetCache: vertices (assetDb: 0 page: 0 asset: 2)
+        address: memType: 0, alloc 0, resIdx: 1, bufImg: img, offset: 0
+    } {
+        // brickAsset normal
+        usage: sampled_bit
+        dedicated: true
+        queues: graphics
+        assetCache: vertices (assetDb: 0 page: 0 asset: 3)
+        address: memType: 0, alloc 0, resIdx: 1, bufImg: img, offset: 42000
+    } {
+        ...
+    }
+    ...
+]

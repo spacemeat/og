@@ -1,0 +1,21 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [construct]
+    exeName: memmanTest
+
+    compileAndLinkOptions: [Werror]
+
+    sources: [
+        'gen-cpp/src/*.cpp'
+        main.cpp
+    ]
+
+    includeDirs: [
+        'gen-cpp/inc'
+    ]
+
+    libDirs: [
+    ]
+
+    libs: [humon, c, fmt]
+}
