@@ -10,22 +10,139 @@
     deserializeFrom: [humon]
 
     types: {
-        featureDb: {
+        // tableau / objects
+        tableau: {
+
+        }
+
+        // featureReqs
+
+        featureReqs: {
             -deriveFrom: FeatureDb<featureDb>
             features: { type: vector of: featureReq }
         }
+
+        cacheInfo: {
+            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
+            sizeInCache: int
+        }
+
         featureReq: {
             -deriveFrom: FeatureReq<featureReq>
             featureRefCount: { type: int default: 0 }
-            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
-            sizeInCache: int
+            resourceReady: { type: bool default: false }
+            cacheSource: { type: optional of: cacheInfo }
+            featureDetails: { type: variant of: [featureReq_VkBuffer,
+                                                 featureReq_VkImage,
+                                                 featureReq_VkShaderModule]}
+                                                 // ... others
+        }
+
+        featureReq_VkBuffer: {
             sizeInResource: int
             memoryProperties: { type: VkMemoryPropertyFlagBits }
-            usages: { type: variant of: [VkBufferUsageFlagBits, VkImageUsageFlagBits] }
+            usages: { type: variant of: VkBufferUsageFlagBits }
             queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
             dedicated: bool
             sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
             gpuAddress: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
+        }
+
+        featureReq_VkImage: {
+            sizeInResource: int
+            memoryProperties: { type: VkMemoryPropertyFlagBits }
+            usages: { type: variant of: VkImageUsageFlagBits }
+            queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+            dedicated: bool
+            sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
+            gpuAddress: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
+        }
+
+        featureReq_VkShaderModule: {
+            stage: VkPipelineStageFlagBits
+            stringView: entryPoint
+        }
+
+        featureReq_VkPipeline: {
+        }
+
+        featureReq_VkDescriptorSet: {
+        }
+
+        // featureDb
+
+        featureDb: {
+            -deriveFrom: MemoryPlan<memoryPlan>
+            memoryPlan: { type: list of: memTypePlan }
+            vkoPlan: { type: list of: vkoTypePlan }
+        }
+        memTypePlan: {
+            memTypeIndex: int
+            memoryProperties: { type: VkMemoryPropertyFlagBits }
+            allocations: { type: list of: allocation }
+        }
+        allocation: {
+            allocationIndex: int
+            dedicated: true
+            usages: { type: variant of: [VkBufferUsageFlagBits, VkImageUsageFlagBits] }
+            resources: { type: variant of: [buffer, image]}
+        }
+        buffer: {
+            resourceIndex: int
+            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
+            usages: VkBufferUsageFlagBits
+            sparseMemoryFlags: VkSparseMemoryBindFlagBits
+            sizeInCache: int
+            sizeInResource: int
+            queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+            subresources: { type: vector of: subBuffer }
+        }
+        subBuffer: {
+            subresourceIndex: int
+            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
+            usages: VkBufferUsageFlagBits
+            sizeInCache: int
+            sizeInResource: int
+        }
+        image: {    // image and subImage are very wrong. I know.
+            resourceIndex: int
+            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
+            usages: VkImageUsageFlagBits
+            sizeInCache: int
+            sizeInResource: int
+            queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+            subresources: { type: vector of: subImage }
+        }
+        subImage: {
+            subresourceIndex: int
+            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
+            usages: VkImageUsageFlagBits
+            sizeInCache: int
+            sizeInResource: int
+        }
+
+        vkoTypePlan: {
+            vkoIndex: int
+            vko: { type: variant of: [] }
+        }
+
+        shaderModule: {
+            featureDbIndex: int
+            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
+            stage: VkPipelineStageFlagBits
+            entryPoint: stringView
+        }
+
+        pipeline: {
+            featureDbIndex: int
+            // lots of stuff here to collect and compile into a vkpipeline
+            // including specializationinfo
+            // whatever uniqely defines a pipeline
+        }
+
+        descriptorSet: {
+            featureDbIndex: int
+            // TBD
         }
 
         // schedule
@@ -66,7 +183,7 @@
         }
 
         scheduleMemoryMoveCommand: {
-            from: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
+            from: { type: int } // featureReq index
             to: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
             memorySize: int
             completionFunction: { type: function of: 'void()' }
