@@ -180,65 +180,186 @@ So, only active features (even those that are marked 'disabled') will inform
 a memory plan. This makes for gaps in assetDb caches, which will need to be
 skipped when memcpying.
 
+assetDb: [ {
+        type: model
+        name: cube
+        meshIndex: 1
+        materialIndex: 5
+    }, {
+        type: mesh
+        topology: triangle_list
+        verticesIndex: 2
+        indicesIndex: 3
+        skeletonIndex: 4
+    }, {
+        type: vertexBuffer
+        vertexFormat: [
+            [ pos, float32, 3 ]
+            [ normal, float32, 3 ]
+            [ uv_albedo, float32, 2 ]
+            [ uv_normal, float32, 2 ]
+            [ uv_tangent, float32, 2 ]
+            [ uv_roughness, float32, 2 ]
+            [ frameIdxs, uint8, 1 ]
+            [ frameWeights, float32, 2 ]
+        ]
+        vertices: { assetDb: assetDb0.ogCache
+                    cacheIndex: 0
+                    cacheOffset: 0
+                    cacheSize: 1632 }
+        nextSibling: 3
+    }, {
+        type: indexBuffer
+        indexFormat: uint16
+        indices: { assetDb: assetDb0.ogCache
+                   cacheIndex: 1
+                   cacheOffset: 1632
+                   cacheSize: 72 }
+        nextSibling: 4
+    }, {
+        type: skeleton
+        numBones: 2
+        bones: { assetDb: assetDb0.ogCache
+                 cacheIndex: 2
+                 cacheOffset: 2404
+                 cacheSize: 68 }
+    }, { // 5
+        type: material
+        shaders: [6, 7]
+        textures: [[albedo 8] [normal 9] [tangent 10] [roughness 11]]
+    }, {    // 6
+        type: shader
+        stage: vertex_shader_bit
+        entryPoint: main
+        bytecode: { assetDb: assetDb0.ogCache
+                    cacheIndex: 3
+                    cacheOffset: 2472
+                    cacheSize: 400 }
+        nextSibling: 7
+    }, {    // 7
+        type: shader
+        stage: fragment_shader_bit
+        entryPoint: main
+        bytecode: { assetDb: assetDb0.ogCache
+                    cacheIndex: 4
+                    cacheOffset: 2872
+                    cacheSize: 800 }
+        nextSibling: 8
+    }, {
+        type: texture2d
+        dims: [256, 256]
+        format: r8g8b8a8_unorm
+        mipLevels: 1
+        bytecode: { assetDb: assetDb0.ogCache
+                    cacheIndex: 5
+                    cacheOffset: 3672
+                    cacheSize: 262144 }
+        nextSibling: 9
+    }, {
+        type: texture2d
+        dims: [256, 256]
+        format: r8g8b8a8_unorm
+        mipLevels: 1
+        bytecode: { assetDb: assetDb0.ogCache
+                    cacheIndex: 6
+                    cacheOffset: 265816
+                    cacheSize: 262144 }
+        nextSibling: 10
+    }, {
+        type: texture2d
+        dims: [256, 256]
+        format: r8g8b8a8_unorm
+        mipLevels: 1
+        bytecode: { assetDb: assetDb0.ogCache
+                    cacheIndex: 7
+                    cacheOffset: 527960
+                    cacheSize: 262144 }
+        nextSibling: 11
+    }, { // 11
+        type: texture2d
+        dims: [256, 256]
+        format: r8g8b8a8_unorm
+        mipLevels: 1
+        bytecode: { assetDb: assetDb0.ogCache
+                    cacheIndex: 8
+                    cacheOffset: 780104
+                    cacheSize: 262144 }
+    }
+]
+
 scene
-    frame    - root frame
+    object  - cube
         frame   - cube frame
-            object  - cube
-                feature: visibleModel
-                    meshes:
-                        asset: meshAsset
-                            asset: vertices
-                                assetCache: (assetDb: 0 page: 0 asset: 0)
-                                usage: vertex_buffer_bit
-                                queues: graphics
-                                featureReq: 0
-                            asset: indices
-                                assetCache: (assetDb: 0 page: 0 asset: 1)
-                                usage: index_buffer_bit
-                                queues: graphics
-                                featureReq: 1
-                    materials:
-                        asset: brick
-                            asset: brick-albedo
-                                assetCache: (assetDb: 0 page: 0 asset: 2)
-                                usage: sampled_bit
-                                queues: graphics
-                                featureReq: 2
-                            asset: brick-normal
-                                assetCache: (assetDb: 0 page: 0 asset: 3)
-                                usage: sampled_bit
-                                queues: graphics
-                                featureReq: 3
-                            asset: brick-shader
-                                assetCache: (assetDb: 0 page: 0 asset: 4)
-                                stages: ...
-                                bindings: ...
-                                featureReq: ?
-                                ...
-                    shadowCasters:
-                        asset: meshAsset
-                            asset: vertices
-                                assetCache: (assetDb: 0 page: 0 asset: 0)
-                                usage: uniform_buffer_bit
-                                queues: compute
-                                featureReq: 0
-                            asset: indices
-                                assetCache: (assetDb: 0 page: 0 asset: 1)
-                                usage: uniform_buffer_bit
-                                queues: compute
-                                featureReq: 1
-        frame   - plane frame
-            object  - ground plane
-        frame   - skybox frame
-            object  - skybox
-        frame   - camera frame
-            object  - camera
-            object  - target reticle
-            object  - health bar
-            object  - area map
-        frame   -  light frame
-            object  - dir light
-    object - gameplay manager
+        features: [
+               { @type: visibleModel
+                enabled: true
+                asset: [assetDb0, 0]        // db0, first asset (model)
+            }, { @type: shadowCaster
+                enabled: true
+                asset: [assetDb0, 1]        // db0, second asset (mesh)
+            }
+
+        ]
+
+
+
+
+
+
+         visibleModel(cube)
+            meshes:
+                asset: meshAsset
+                    asset: vertices
+                        assetCache: (assetDb: "assetDb0" asset: 0)
+                        usage: vertex_buffer_bit
+                        queues: graphics
+                        featureReq: 0
+                    asset: indices
+                        assetCache: (assetDb: "assetDb0" asset: 1)
+                        usage: index_buffer_bit
+                        queues: graphics
+                        featureReq: 1
+            materials:
+                asset: brick
+                    asset: brick-albedo
+                        assetCache: (assetDb: "assetDb0" asset: 2)
+                        usage: sampled_bit
+                        queues: graphics
+                        featureReq: 2
+                    asset: brick-normal
+                        assetCache: (assetDb: "assetDb0" asset: 3)
+                        usage: sampled_bit
+                        queues: graphics
+                        featureReq: 3
+                    asset: brick-shader
+                        assetCache: (assetDb: "assetDb0" asset: 4)
+                        stages: ...
+                        bindings: ...
+                        featureReq: ?
+                        ...
+            shadowCasters:
+                asset: meshAsset
+                    asset: vertices
+                        assetCache: (assetDb: "assetDb0" asset: 0)
+                        usage: uniform_buffer_bit
+                        queues: compute
+                        featureReq: 0
+                    asset: indices
+                        assetCache: (assetDb: "assetDb0" asset: 1)
+                        usage: uniform_buffer_bit
+                        queues: compute
+                        featureReq: 1
+    frame   - plane frame
+        object  - ground plane
+    frame   - skybox frame
+        object  - skybox
+    frame   - camera frame
+        object  - camera
+        object  - target reticle
+        object  - health bar
+        object  - area map
+    frame   -  light frame
+        object  - dir light
 
 
 featureDb: [ {

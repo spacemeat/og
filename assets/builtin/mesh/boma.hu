@@ -1,6 +1,6 @@
 @ { app: boma version: 0.0.4 }
 {
-    inherit: [cpp17]
+    inherit: [cpp17, vulkan]
     namespace: og.gen
     enums: {
         vertexElementType:  [ float32, float64,
@@ -11,18 +11,18 @@
 
     types: {
         mesh: {
-            name: string
+            name: stringView
+            topology: VkPrimitiveTopology
             vertexFormat: vxFormat
             indexFormat: { type: optional of: indexType }
             meshData: { type: optional of: { type: vector of: meshLod } }
-            hostVertices: { type: optional of: { type: vector of: hostVxs } }
             skeleton: { type: optional of: bone }
         }
         vxFormat: {
-            component: {
+            elements: {
                 type: vector
                 of: {
-                    type: tuple of: [string, vertexElementType, int]
+                    type: tuple of: [stringView, vertexElementType, int]
                 }
             }
         }
@@ -30,10 +30,6 @@
             vertices: { type: optional of: { type: vector of: { type: vector of: stringView } } }  // stringView becase we can't know the type yet
             indices: { type: optional of: { type: vector of: int } }
             lodDist: { type: optional of: float }
-        }
-        hostVxs: {
-            vertexFormat: vxFormat
-            vertices: { type: vector of: { type: vector of: stringView } }  // stringView becase we can't know the type yet
         }
         bone: {
             transform: { type: array of: [float, 16] }

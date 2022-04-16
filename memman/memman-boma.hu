@@ -3,60 +3,10 @@
     inherit: [cpp17, vulkan]
     namespace: og
     genDir: gen-cpp
-    diffable: false
+    diffable: true
 
     include: ['"inc/Memman.hpp"']
     serializeTo: [humon]
     deserializeFrom: [humon]
 
-    types: {
-        memoryPlan: {
-            -deriveFrom: MemoryPlan<memoryPlan>
-            plan: { type: list of: memTypePlan }
-        }
-        memTypePlan: {
-            memTypeIndex: int
-            memoryProperties: { type: VkMemoryPropertyFlagBits }
-            allocations: { type: list of: allocation }
-        }
-        allocation: {
-            allocationIndex: int
-            dedicated: true
-            usages: { type: variant of: [VkBufferUsageFlagBits, VkImageUsageFlagBits] }
-            resources: { type: variant of: [buffer, image]}
-        }
-        buffer: {
-            resourceIndex: int
-            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
-            usages: VkBufferUsageFlagBits
-            sparseMemoryFlags: VkSparseMemoryBindFlagBits
-            sizeInCache: int
-            sizeInResource: int
-            queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
-            subresources: { type: vector of: subBuffer }
-        }
-        subBuffer: {
-            subresourceIndex: int
-            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
-            usages: VkBufferUsageFlagBits
-            sizeInCache: int
-            sizeInResource: int
-        }
-        image: {    // image and subImage are very wrong. I know.
-            resourceIndex: int
-            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
-            usages: VkImageUsageFlagBits
-            sizeInCache: int
-            sizeInResource: int
-            queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
-            subresources: { type: vector of: subImage }
-        }
-        subImage: {
-            subresourceIndex: int
-            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
-            usages: VkImageUsageFlagBits
-            sizeInCache: int
-            sizeInResource: int
-        }
-    }
 }
