@@ -1,9 +1,8 @@
 @ { app: boma version: 0.0.4 }
 {
     inherit: [cpp17, vulkan]
-    namespace: og
-    genDir: gen-cpp
-    diffable: false
+    namespace: og.featureDb
+    genDir: gen
 
     include: ['"inc/FeatureDb.hpp"']
     serializeTo: [humon]
@@ -12,18 +11,44 @@
     types: {
         // tableau / objects
         tableau: {
+            name: stringView
+            children: { type: vector of: { type: variant of: [object, frame] } }
+        }
 
+        object: {
+            transform: { type: array of: [float, 16] }
+            name: stringView
+            features: { type: vector of: { type: variant of: [
+                visibleModel
+                shadowCaster
+                ] } }
+            children: { type: vector of: { type: variant of: [object, frame] } }
+        }
+
+        frame: {
+            transform: { type: array of: [float, 16] }
+            children: { type: vector of: { type: variant of: [object, frame] } }
+        }
+
+        visibleModel: {
+            enabled: bool
+            asset: { type: pair of: [stringView, int] }
+        }
+
+        shadowCaster: {
+            enabled: bool
+            asset: { type: pair of: [stringView, int] }
         }
 
         // featureReqs
 
         featureReqs: {
-            -deriveFrom: FeatureDb<featureDb>
+            //-deriveFrom: FeatureReqs<featureReqs>
             features: { type: vector of: featureReq }
         }
 
         cacheInfo: {
-            assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
+            assetDbAddress: { type: tuple of: [stringView, int] }
             sizeInCache: int
         }
 
@@ -45,7 +70,6 @@
             queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
             dedicated: bool
             sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
-            gpuAddress: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
         }
 
         featureReq_VkImage: {
@@ -55,12 +79,11 @@
             queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
             dedicated: bool
             sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
-            gpuAddress: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
         }
 
         featureReq_VkShaderModule: {
             stage: VkPipelineStageFlagBits
-            stringView: entryPoint
+            entryPoint: stringView
         }
 
         featureReq_VkPipeline: {
@@ -72,18 +95,20 @@
         // featureDb
 
         featureDb: {
-            -deriveFrom: MemoryPlan<memoryPlan>
-            memoryPlan: { type: list of: memTypePlan }
-            vkoPlan: { type: list of: vkoTypePlan }
+            -deriveFrom: FeatureDb<featureDb>
+            memoryPlan: { type: vector of: memTypePlan }
+            shaderPlan: { type: vector of: shaderModule }
+            pipelinePlan: { type: vector of: pipeline }
+            descriptorSetPlan: { type: vector of: descriptorSet }
         }
         memTypePlan: {
             memTypeIndex: int
             memoryProperties: { type: VkMemoryPropertyFlagBits }
-            allocations: { type: list of: allocation }
+            allocations: { type: vector of: allocation }
         }
         allocation: {
             allocationIndex: int
-            dedicated: true
+            dedicated: bool
             usages: { type: variant of: [VkBufferUsageFlagBits, VkImageUsageFlagBits] }
             resources: { type: variant of: [buffer, image]}
         }
@@ -119,11 +144,6 @@
             usages: VkImageUsageFlagBits
             sizeInCache: int
             sizeInResource: int
-        }
-
-        vkoTypePlan: {
-            vkoIndex: int
-            vko: { type: variant of: [] }
         }
 
         shaderModule: {

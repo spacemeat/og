@@ -1,0 +1,38 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [cpp17, vulkan]
+    namespace: og.mesh
+    genDir: gen
+    enums: {
+        vertexElementType:  [ float32, float64,
+                              int8, int16, int32, int64,
+                              uint8, uint16, uint32, uint64 ]
+        indexType:          [ int16, int32 ]
+    }
+
+    types: {
+        mesh: {
+            name: stringView
+            lods: { type: vector of: lod }
+            skeleton: { type: optional of: bone }
+        }
+        lod: {
+            topology: VkPrimitiveTopology
+            // some distance factor/bias here
+            vertices: vertexInfo
+            indices: indexInfo
+        }
+        vertexInfo: {
+            vertexFormat:   { type: vector   of: { type: tuple  of: [stringView, VkFormat] } }
+            vxData:         { type: optional of: { type: vector of: { type: vector of: stringView } } }  // stringView becase we can't know the type yet
+        }
+        indexInfo: {
+            indexFormat:    VkIndexFormat
+            idxData:        { type: optional of: { type: vector of: int } }
+        }
+        bone: {
+            transform: { type: array of: [float, 16] }
+            joints: { type: optional of: { type: vector of: bone } }
+        }
+    }
+}

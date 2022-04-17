@@ -2,6 +2,7 @@
 build/
 .venv/
 gen-cpp/
+gen/
 
 # Prerequisites
 *.d

@@ -1,0 +1,23 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [construct]
+    exeName: featureTest
+
+    compileAndLinkOptions: [Werror]
+
+    sources: [
+        '../assetDb/gen/src/*.cpp'
+        '../featureDb/gen/src/*.cpp'
+        main.cpp
+    ]
+
+    includeDirs: [
+        '../assetDb/gen/inc/'
+        '../featureDb/gen/inc/'
+    ]
+
+    libDirs: [
+    ]
+
+    libs: [humon, c, fmt]
+}

@@ -1,19 +1,113 @@
-Resource:
-    refs to Resource
-    refs to Asset
-
-
-
-Allocation: huge
-    Buffer[few]:     large, uniqe by usage, sharing mode, sparse memory flags
-        vertices from multiple meshes
-        indices from multiple meshes
-        ubos
-    Image[few]:      large, multiple images and LODs for each? need to learn more
-        image array
-             lod image
-
-
+assetDb: {
+    name: assetDb0
+    cacheFile: assetDb0.ogCache
+    assets: [
+        { @type: model
+            name: cube
+            mesh_adbi: 1
+            material_adbi: 5
+        },
+        { @type: mesh
+            name: cube
+            source: ../assets/builtin/mesh/cube.hu
+            lods: [ {
+                    topology: triangle_list
+                    vertices_adbi: 2
+                    indices_adbi: 3
+                    numBlendWeights: 2
+                    numBones: 2
+                }
+            ]
+            skeleton_adbi: 4
+        },
+        { @type: vertices
+            source_adbi: 1
+            vertexFormat: [
+                [ pos, r32g32b32_sfloat ]
+                [ normal, r32g32b32_sfloat ]
+                [ uv_albedo, r32g32_sfloat ]
+                [ uv_normal, r32g32_sfloat ]
+                [ uv_tangent, r32g32_sfloat ]
+                [ uv_roughness, r32g32_sfloat ]
+                [ frameIdxs, r8_uint ]
+                [ frameWeights, r32g32_sfloat ]
+            ]
+            vxData: { cacheIndex: 0
+                      cacheOffset: 0
+                      cacheSize: 1632 }
+        },
+        { @type: indices
+            source_adbi: 1
+            indexFormat: uint16
+            idxData: { cacheIndex: 1
+                       cacheOffset: 1632
+                       cacheSize: 72 }
+        },
+        { @type: skeleton
+            source_adbi: 1
+            numBones: 2
+            boneData: { cacheIndex: 2
+                        cacheOffset: 2404
+                        cacheSize: 68 }
+        },
+        { @type: material
+            shader_adbis: [6, 7]
+            texture_adbis: [[albedo 8] [normal 9] [tangent 10] [roughness 11]]
+        },
+        { @type: shader
+            source: ../assets/builtin/material/defaultMaterial.vs.glsl
+            stage: vertex_shader_bit
+            entryPoint: main
+            bytecode: { cacheIndex: 3
+                        cacheOffset: 2472
+                        cacheSize: 400 }
+        },
+        { @type: shader
+            source: ../assets/builtin/material/defaultMaterial.fs.glsl
+            stage: fragment_shader_bit
+            entryPoint: main
+            bytecode: { cacheIndex: 4
+                        cacheOffset: 2872
+                        cacheSize: 800 }
+        },
+        { @type: texture2d
+            source: ../assets/builtin/material/brick-albedo.png
+            dims: [256, 256]
+            format: r8g8b8a8_unorm
+            mipLevels: 1
+            txData: { cacheIndex: 5
+                      cacheOffset: 3672
+                      cacheSize: 262144 }
+        },
+        { @type: texture2d
+            source: ../assets/builtin/material/brick-normal.png
+            dims: [256, 256]
+            format: r8g8b8a8_unorm
+            mipLevels: 1
+            txData: { cacheIndex: 6
+                      cacheOffset: 265816
+                      cacheSize: 262144 }
+        },
+        { @type: texture2d
+            source: ../assets/builtin/material/brick-tangent.png
+            dims: [256, 256]
+            format: r8g8b8a8_unorm
+            mipLevels: 1
+            txData: { cacheIndex: 7
+                      cacheOffset: 527960
+                      cacheSize: 262144 }
+        },
+        { @type: texture2d
+            source: ../assets/builtin/material/brick-roughness.png
+            dims: [256, 256]
+            format: r8g8b8a8_unorm
+            mipLevels: 1
+            txData: { cacheIndex: 8
+                      cacheOffset: 780104
+                      cacheSize: 262144 }
+        }
+    ]
+}
 
 Engine start:
     find all assetDbs
@@ -43,79 +137,89 @@ When assetDb.diff has changes (including at startup):
     mm will schedule transfers for any missing asset data
 
 
-mm is using a large staging buffer that it keeps around, big enough to move
-a huge amount (256 MB or so). A future project may explore keeping multiple
-staging buffers and pipelining the transfers.
-
+mm is using large staging buffers that it keeps around, each big enough to move
+a huge amount (256 MB or so). Perhaps two buffers, for pipelining.
 
 mm gets a structure that looks like (given by examining the object/feature set):
 featureDb: [ {
-        assetDbAddress: [0, 0]
+        assetDbAddress: [assetDb0, 2]
         memoryProperties: deviceLocal
-        size:   2000
+        size:   1632
         usages: [transfer_dst_bit,      // comes from the asset
-                 vertex_buffer_bit,     // comes from the feature
-                 uniform_buffer_bit]    // comes from the feature
+                 vertex_buffer_bit]     // comes from the feature
+                                        // another feature might set, say, uniform_buffer_bit.
+                                        // But that will coalesce during plan-making phase.
         queues: [[transfer, transfer_write_bit, transfer_bit],
                  // queue  // VK_ACCESS        VK_PIPELINE_STAGE
                            // set by engine if there is a transfer-only queue available
-                 [compute, shader_read_bit, compute_shader_bit],   // comes from the feature
+                 // another feature might set, say, [compute, ...]
+                 // but that will coalesce during plan-making phase.
                  [graphics, shader_read_bit, vertex_shader_bit]]   // comes from the feature
         dedicated: true
-        // sharing mode is determined by config. In general, prefer exclusive even on multi-family accesses.
-        address: // NOT FILLED IN YET: alloc 0, resIdx: 0, bufImg: buf, offset: 0
-            // assembling the memory plan will reveal this subresource's future mm address
     }, {
         assetDbAddress: [0, 1]
         memoryProperties: deviceLocal
         size:   1200
-        usages: [transfer_dst_bit, index_buffer_bit, uniform_buffer_bit]
+        usages: [transfer_dst_bit, index_buffer_bit]
         queues: [[transfer, transfer_write_bit, transfer_bit],
-                 [compute, shader_read_bit, compute_shader_bit],
                  [graphics, shader_read_bit, index_shader_bit]]
         dedicated: true
         address: ... TBD
     }, {
-        ... shaders too? pipelines? other things that need to be stored and referenced?
+        ... shaders too, etc
     }
 ]
 
 and arranges it into:
 
-memoryPlan: [ {
-        memoryType 0: [ { // alloc 0
-                memoryProperties: deviceLocal
-                usages: [transfer_dst_bit, vertex_buffer_bit, index_buffer_bit, uniform_buffer_bit ]
-                resources: [ {
-                        kind: buffer    // vs image
-                        usages: [transfer_dst_bit, vertex_buffer_bit, index_buffer_bit, uniform_buffer_bit]
-                        size:   3600
-                        dedicated: True
-                        sharingMode: exclusive?
-                        queues: [compute, graphics]
-                        subresources: [ {
-                                assetCache: vertices (assetDb: 0 page: 0 asset: 0)   // not all subresources will have an asset in cache
-                                usages: [transfer_dst_bit, vertex_buffer_bit, uniform_buffer_bit]
-                                size:   2000
-                            } {
-                                assetCache: indices (assetDb: 0 page: 0 asset: 1)
-                                usages: [transfer_dst_bit, index_buffer_bit, uniform_buffer_bit]
-                                size:   1200
-                            }
-                        ]
-                    }, {
-                        ...
-                    }
-                ]
-            }, {        // alloc 1
-                memoryProperties: deviceLocal
-            }
-        ]
-        memoryType 1: [
-                ...
-        ]
-    }
-]
+featureDb: {
+    memoryPlan: [ {
+            memoryType 0: [ { // alloc 0
+                    memoryProperties: deviceLocal
+                    usages: [transfer_dst_bit, vertex_buffer_bit, index_buffer_bit, uniform_buffer_bit ]
+                    resources: [ {
+                            kind: buffer    // vs image
+                            usages: [transfer_dst_bit, vertex_buffer_bit, index_buffer_bit, uniform_buffer_bit]
+                            size:   3600
+                            dedicated: True
+                            sharingMode: exclusive?
+                            queues: [compute, graphics]
+                            subresources: [ {
+                                    assetCache: vertices (assetDb: 0 page: 0 asset: 0)   // not all subresources will have an asset in cache
+                                    usages: [transfer_dst_bit, vertex_buffer_bit, uniform_buffer_bit]
+                                    size:   2000
+                                } {
+                                    assetCache: indices (assetDb: 0 page: 0 asset: 1)
+                                    usages: [transfer_dst_bit, index_buffer_bit, uniform_buffer_bit]
+                                    size:   1200
+                                }
+                            ]
+                        }, {
+                            ...
+                        }
+                    ]
+                }, {        // alloc 1
+                    memoryProperties: deviceLocal
+                }
+            ]
+            memoryType 1: [
+                    ...
+            ]
+        }
+    ]
+    shaderPlan: [ {
+
+        }
+    ]
+    pipelinePlan: [ {
+
+        }
+    ]
+    descriptorSetPlan: [ {
+
+        }
+    ]
+}
 
 and allocates large blocks for any shortfalls from what it has.
 
@@ -180,189 +284,29 @@ So, only active features (even those that are marked 'disabled') will inform
 a memory plan. This makes for gaps in assetDb caches, which will need to be
 skipped when memcpying.
 
-assetDb: [ {
-        type: model
-        name: cube
-        meshIndex: 1
-        materialIndex: 5
-    }, {
-        type: mesh
-        topology: triangle_list
-        verticesIndex: 2
-        indicesIndex: 3
-        skeletonIndex: 4
-    }, {
-        type: vertexBuffer
-        vertexFormat: [
-            [ pos, float32, 3 ]
-            [ normal, float32, 3 ]
-            [ uv_albedo, float32, 2 ]
-            [ uv_normal, float32, 2 ]
-            [ uv_tangent, float32, 2 ]
-            [ uv_roughness, float32, 2 ]
-            [ frameIdxs, uint8, 1 ]
-            [ frameWeights, float32, 2 ]
-        ]
-        vertices: { assetDb: assetDb0.ogCache
-                    cacheIndex: 0
-                    cacheOffset: 0
-                    cacheSize: 1632 }
-        nextSibling: 3
-    }, {
-        type: indexBuffer
-        indexFormat: uint16
-        indices: { assetDb: assetDb0.ogCache
-                   cacheIndex: 1
-                   cacheOffset: 1632
-                   cacheSize: 72 }
-        nextSibling: 4
-    }, {
-        type: skeleton
-        numBones: 2
-        bones: { assetDb: assetDb0.ogCache
-                 cacheIndex: 2
-                 cacheOffset: 2404
-                 cacheSize: 68 }
-    }, { // 5
-        type: material
-        shaders: [6, 7]
-        textures: [[albedo 8] [normal 9] [tangent 10] [roughness 11]]
-    }, {    // 6
-        type: shader
-        stage: vertex_shader_bit
-        entryPoint: main
-        bytecode: { assetDb: assetDb0.ogCache
-                    cacheIndex: 3
-                    cacheOffset: 2472
-                    cacheSize: 400 }
-        nextSibling: 7
-    }, {    // 7
-        type: shader
-        stage: fragment_shader_bit
-        entryPoint: main
-        bytecode: { assetDb: assetDb0.ogCache
-                    cacheIndex: 4
-                    cacheOffset: 2872
-                    cacheSize: 800 }
-        nextSibling: 8
-    }, {
-        type: texture2d
-        dims: [256, 256]
-        format: r8g8b8a8_unorm
-        mipLevels: 1
-        bytecode: { assetDb: assetDb0.ogCache
-                    cacheIndex: 5
-                    cacheOffset: 3672
-                    cacheSize: 262144 }
-        nextSibling: 9
-    }, {
-        type: texture2d
-        dims: [256, 256]
-        format: r8g8b8a8_unorm
-        mipLevels: 1
-        bytecode: { assetDb: assetDb0.ogCache
-                    cacheIndex: 6
-                    cacheOffset: 265816
-                    cacheSize: 262144 }
-        nextSibling: 10
-    }, {
-        type: texture2d
-        dims: [256, 256]
-        format: r8g8b8a8_unorm
-        mipLevels: 1
-        bytecode: { assetDb: assetDb0.ogCache
-                    cacheIndex: 7
-                    cacheOffset: 527960
-                    cacheSize: 262144 }
-        nextSibling: 11
-    }, { // 11
-        type: texture2d
-        dims: [256, 256]
-        format: r8g8b8a8_unorm
-        mipLevels: 1
-        bytecode: { assetDb: assetDb0.ogCache
-                    cacheIndex: 8
-                    cacheOffset: 780104
-                    cacheSize: 262144 }
-    }
-]
 
-scene
-    object  - cube
-        frame   - cube frame
+
+tableau
+    object  - cube                      // an object is also a frame (transform)
         features: [
-               { @type: visibleModel
+            { @type: visibleModel
                 enabled: true
                 asset: [assetDb0, 0]        // db0, first asset (model)
             }, { @type: shadowCaster
                 enabled: true
                 asset: [assetDb0, 1]        // db0, second asset (mesh)
             }
-
         ]
-
-
-
-
-
-
-         visibleModel(cube)
-            meshes:
-                asset: meshAsset
-                    asset: vertices
-                        assetCache: (assetDb: "assetDb0" asset: 0)
-                        usage: vertex_buffer_bit
-                        queues: graphics
-                        featureReq: 0
-                    asset: indices
-                        assetCache: (assetDb: "assetDb0" asset: 1)
-                        usage: index_buffer_bit
-                        queues: graphics
-                        featureReq: 1
-            materials:
-                asset: brick
-                    asset: brick-albedo
-                        assetCache: (assetDb: "assetDb0" asset: 2)
-                        usage: sampled_bit
-                        queues: graphics
-                        featureReq: 2
-                    asset: brick-normal
-                        assetCache: (assetDb: "assetDb0" asset: 3)
-                        usage: sampled_bit
-                        queues: graphics
-                        featureReq: 3
-                    asset: brick-shader
-                        assetCache: (assetDb: "assetDb0" asset: 4)
-                        stages: ...
-                        bindings: ...
-                        featureReq: ?
-                        ...
-            shadowCasters:
-                asset: meshAsset
-                    asset: vertices
-                        assetCache: (assetDb: "assetDb0" asset: 0)
-                        usage: uniform_buffer_bit
-                        queues: compute
-                        featureReq: 0
-                    asset: indices
-                        assetCache: (assetDb: "assetDb0" asset: 1)
-                        usage: uniform_buffer_bit
-                        queues: compute
-                        featureReq: 1
-    frame   - plane frame
-        object  - ground plane
-    frame   - skybox frame
-        object  - skybox
-    frame   - camera frame
-        object  - camera
+    object  - ground plane
+    object  - skybox
+    object  - camera
         object  - target reticle
         object  - health bar
         object  - area map
-    frame   -  light frame
-        object  - dir light
+    object  - dir light
 
 
-featureDb: [ {
+featureReqs: [ {
         // meshAsset vertices
         usage: [vertex_buffer_bit, uniform_buffer_bit]
         dedicated: true

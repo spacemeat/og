@@ -1,0 +1,103 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [cpp17, vulkan]
+    namespace: og.assetDb
+    genDir: gen
+    diffable: true
+
+    include: ['"inc/AssetDb.hpp"']
+
+    enums: {
+        assetKind: [ mesh ]
+    }
+
+    types: {
+        assetDb: {
+            -deriveFrom: AssetDb<assetDb>
+            name: stringView
+            cacheFile: stringView
+            lastCacheModTime: int
+            assets: { type: vector of: { type: variant of: [
+                model
+                mesh
+                vertices
+                indices
+                skeleton
+                material
+                shader
+                texture2d
+            ]}}
+        }
+
+        cacheRef: {
+            cacheIndex: int
+            cacheOffset: int
+            cacheSize: int
+        }
+
+        import: {
+            source: stringView
+            lastModTime: int
+        }
+
+        model: {
+            name: stringView
+            mesh_adbi: int
+            material_adbi: int
+        }
+
+        mesh: {
+            name: stringView
+            source: import
+            lods: { type: vector of: meshLod }
+            skeleton_adbi: int
+        }
+
+        meshLod: {
+            topology: VkPrimitiveTopology
+            vertices_adbi: int
+            // vxs offset, numVx, index offset, numPrims
+            indices_adbi: { type: optional of: int }
+            numBlendWeights: { type: optional of: int }
+            numBones: { type: optional of: int }
+        }
+
+        vertices: {
+            source_adbi: int
+            vertexFormat: { type: vector of: { type: tuple  of: [stringView, VkFormat] } }
+            vxData: cacheRef
+        }
+
+        indices: {
+            source_adbi: int
+            indexFormat: VkIndexFormat
+            idxData: cacheRef
+        }
+
+        skeleton: {
+            source_adbi: int
+            numBones: int
+            boneData: cacheRef
+        }
+
+        material: {
+            shader_adbis: { type: vector of: int }
+            texture_adbis: { type: vector of: { type: pair of: [stringView, int] } }
+        }
+
+        shader: {
+            source: import
+            stage: VkPipelineStageFlagBits
+            entryPoint: stringView
+            bytecode: cacheRef
+        }
+
+        texture2d: {
+            source: import
+            dims: { type: array of: [int, 2] }
+            format: VkFormat
+            mipLevels: int
+            txData: cacheRef
+        }
+    }
+}
