@@ -1,6 +1,7 @@
 {
     "C_Cpp.default.cppStandard": "c++17",
     "files.associations": {
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "variant": "cpp"
     }
 }

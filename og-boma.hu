@@ -1,14 +1,384 @@
 @ { app: boma version: 0.0.4 }
 {
-    enums: {
-        AssetKind: [mesh, model, etc]
+    inherit: [cpp17, vulkan]
+    namespace: og
+    anchor: [project, vulkanEnums]
+
+    --assetDb: {
+        namespace: og.assetDb
+        diffable: true
+        include: ['"inc/AssetDb.hpp"']
+
+        serializeTo: [humon]
+        deserializeFrom: [humon]
+
+        enums: {
+            assetKind: [ mesh ]
+        }
+
+        types: {
+            assetDb: {
+                -deriveFrom: AssetDb<assetDb>
+                name: stringView
+                cacheFile: stringView
+                lastCacheModTime: int
+                assets: { type: vector of: { type: variant of: [
+                    model
+                    mesh
+                    vertices
+                    indices
+                    skeleton
+                    material
+                    shader
+                    texture2d
+                ]}}
+            }
+
+            cacheRef: {
+                cacheIndex: int
+                cacheOffset: int
+                cacheSize: int
+            }
+
+            import: {
+                source: stringView
+                lastModTime: int
+            }
+
+            model: {
+                name: stringView
+                mesh_adbi: int
+                material_adbi: int
+            }
+
+            mesh: {
+                name: stringView
+                source: import
+                lods: { type: vector of: meshLod }
+                skeleton_adbi: int
+            }
+
+            meshLod: {
+                topology: VkPrimitiveTopology
+                vertices_adbi: int
+                // vxs offset, numVx, index offset, numPrims
+                indices_adbi: { type: optional of: int }
+                numBlendWeights: { type: optional of: int }
+                numBones: { type: optional of: int }
+            }
+
+            vertices: {
+                source_adbi: int
+                vertexFormat: { type: vector of: { type: tuple  of: [stringView, VkFormat] } }
+                vxData: cacheRef
+            }
+
+            indices: {
+                source_adbi: int
+                indexFormat: VkIndexFormat
+                idxData: cacheRef
+            }
+
+            skeleton: {
+                source_adbi: int
+                numBones: int
+                boneData: cacheRef
+            }
+
+            material: {
+                shader_adbis: { type: vector of: int }
+                texture_adbis: { type: vector of: { type: pair of: [stringView, int] } }
+            }
+
+            shader: {
+                source: import
+                stage: VkPipelineStageFlagBits
+                entryPoint: stringView
+                bytecode: cacheRef
+            }
+
+            texture2d: {
+                source: import
+                dims: { type: array of: [int, 2] }
+                format: VkFormat
+                mipLevels: int
+                txData: cacheRef
+            }
+        }
     }
 
-    types: {
-        assetList: { assets: { type: vector of: asset } }
-        asset: {
-            kind: AssetKind
-            source: string
+    --asset_mesh: {
+        namespace: og.mesh
+        enums: {
+            vertexElementType:  [ float32, float64,
+                                int8, int16, int32, int64,
+                                uint8, uint16, uint32, uint64 ]
+            indexType:          [ int16, int32 ]
+        }
+
+        types: {
+            mesh: {
+                name: stringView
+                lods: { type: vector of: lod }
+                skeleton: { type: optional of: bone }
+            }
+            lod: {
+                topology: VkPrimitiveTopology
+                // some distance factor/bias here
+                vertices: vertexInfo
+                indices: indexInfo
+            }
+            vertexInfo: {
+                vertexFormat:   { type: vector   of: { type: tuple  of: [stringView, VkFormat] } }
+                vxData:         { type: optional of: { type: vector of: { type: vector of: stringView } } }  // stringView becase we can't know the type yet
+            }
+            indexInfo: {
+                indexFormat:    VkIndexFormat
+                idxData:        { type: optional of: { type: vector of: int } }
+            }
+            bone: {
+                transform: { type: array of: [float, 16] }
+                joints: { type: optional of: { type: vector of: bone } }
+            }
+        }
+    }
+
+    --tableau: {
+        namespace: og.tableau
+        include: ['"tableau/inc/Tableau.hpp"']
+        serializeTo: [humon]
+        deserializeFrom: [humon]
+
+        types: {
+            // tableau / objects
+            tableau: {
+                name: stringView
+                children: { type: vector of: { type: variant of: [object, frame] } }
+            }
+
+            object: {
+                transform: { type: array of: [float, 16] }
+                name: stringView
+                features: { type: vector of: { type: variant of: [
+                    visibleModel
+                    shadowCaster
+                    ] } }
+                children: { type: vector of: { type: variant of: [object, frame] } }
+            }
+
+            frame: {
+                transform: { type: array of: [float, 16] }
+                children: { type: vector of: { type: variant of: [object, frame] } }
+            }
+
+            visibleModel: {
+                enabled: bool
+                asset: { type: pair of: [stringView, int] }
+            }
+
+            shadowCaster: {
+                enabled: bool
+                asset: { type: pair of: [stringView, int] }
+            }
+        }
+    }
+
+    --featureReq: {
+        namespace: og.featureReq
+        include: ['"featureReq/inc/FeatureReq.hpp"']
+        serializeTo: [humon]
+
+        types:
+        {
+            featureReqs: {
+                //-deriveFrom: FeatureReqs<featureReqs>
+                features: { type: vector of: featureReq }
+            }
+
+            cacheInfo: {
+                assetDbAddress: { type: tuple of: [stringView, int] }
+                sizeInCache: int
+            }
+
+            featureReq: {
+                -deriveFrom: FeatureReq<featureReq>
+                featureRefCount: { type: int default: 0 }
+                resourceReady: { type: bool default: false }
+                cacheSource: { type: optional of: cacheInfo }
+                featureDetails: { type: variant of: [featureReq_VkBuffer,
+                                                    featureReq_VkImage,
+                                                    featureReq_VkShaderModule]}
+                                                    // ... others
+            }
+
+            featureReq_VkBuffer: {
+                sizeInResource: int
+                memoryProperties: { type: VkMemoryPropertyFlagBits }
+                usages: { type: variant of: VkBufferUsageFlagBits }
+                queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+                dedicated: bool
+                sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
+            }
+
+            featureReq_VkImage: {
+                sizeInResource: int
+                memoryProperties: { type: VkMemoryPropertyFlagBits }
+                usages: { type: variant of: VkImageUsageFlagBits }
+                queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+                dedicated: bool
+                sparseMemoryFlags: { type: VkSparseMemoryBindFlagBits, default: 0 }
+            }
+
+            featureReq_VkShaderModule: {
+                stage: VkPipelineStageFlagBits
+                entryPoint: stringView
+            }
+
+            featureReq_VkPipeline: {
+            }
+
+            featureReq_VkDescriptorSet: {
+            }
+        }
+    }
+
+    --featureDb: {
+        namespace: og.featureDb
+        include: ['"featureDb/inc/FeatureDb.hpp"']
+        serializeTo: [humon]
+
+        diffable: true
+
+        types:
+        {
+            featureDb: {
+                -deriveFrom: FeatureDb<featureDb>
+                memoryPlan: { type: vector of: memTypePlan }
+                shaderPlan: { type: vector of: shaderModule }
+                pipelinePlan: { type: vector of: pipeline }
+                descriptorSetPlan: { type: vector of: descriptorSet }
+            }
+            memTypePlan: {
+                memTypeIndex: int
+                memoryProperties: { type: VkMemoryPropertyFlagBits }
+                allocations: { type: vector of: allocation }
+            }
+            allocation: {
+                allocationIndex: int
+                dedicated: bool
+                usages: { type: variant of: [VkBufferUsageFlagBits, VkImageUsageFlagBits] }
+                resources: { type: variant of: [buffer, image]}
+            }
+            buffer: {
+                resourceIndex: int
+                assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
+                usages: VkBufferUsageFlagBits
+                sparseMemoryFlags: VkSparseMemoryBindFlagBits
+                sizeInCache: int
+                sizeInResource: int
+                queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+                subresources: { type: vector of: subBuffer }
+            }
+            subBuffer: {
+                subresourceIndex: int
+                assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
+                usages: VkBufferUsageFlagBits
+                sizeInCache: int
+                sizeInResource: int
+            }
+            image: {    // image and subImage are very wrong. I know.
+                resourceIndex: int
+                assetDbAddress: { type: optional of: { type: tuple of: [stringView, int] } }
+                usages: VkImageUsageFlagBits
+                sizeInCache: int
+                sizeInResource: int
+                queues: { type: vector of: { type: tuple of: [VkQueueFlagBits, VkAccessFlagBits, VkPipelineStageFlagBits] } }
+                subresources: { type: vector of: subImage }
+            }
+            subImage: {
+                subresourceIndex: int
+                assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
+                usages: VkImageUsageFlagBits
+                sizeInCache: int
+                sizeInResource: int
+            }
+
+            shaderModule: {
+                featureDbIndex: int
+                assetDbAddress: { type: optional of: { type: tuple of: [stringView, int, int] } }
+                stage: VkPipelineStageFlagBits
+                entryPoint: stringView
+            }
+
+            pipeline: {
+                featureDbIndex: int
+                // lots of stuff here to collect and compile into a vkpipeline
+                // including specializationinfo
+                // whatever uniqely defines a pipeline
+            }
+
+            descriptorSet: {
+                featureDbIndex: int
+                // TBD
+            }
+        }
+    }
+
+    --featureSchedule:
+    {
+        namespace: og.featureSchedule
+        //include: ['"featureDb/inc/FeatureSchedule.hpp"']
+        serializeTo: []
+        deserializeFrom: []
+        comparable: false
+        memberwiseConstructible: true
+
+        types:
+        {
+            // schedule
+            featureSchedule: {
+                schedule: { type: vector of: { type: variant of: [
+                    setAssetDbWindowCommand,
+                    transferCachedAssetCommand,
+                    stageCachedAssetCommand,
+                    scheduleStagedTransfersCommand,
+                    scheduleMemoryMoveCommand,
+                    /*... other shader / pipeline / other uses (even audio)
+                    -- anything that needs to be scheduled from cache, really. */]}}
+            }
+
+            setAssetDbWindowCommand: {
+                assetDb: stringView
+                window: int
+            }
+
+            transferCachedAssetCommand: {
+                assetDb: stringView
+                assetIndex: int
+                // on complete, call fn(pAssetInFileMap)
+                completionFunction: { type: function of: 'void(void*)' }
+            }
+
+            stageCachedAssetCommand: {
+                assetDb: stringView
+                assetIndex: int
+                stagingBufferIndex: int
+                stagingBufferOffset: int
+                memorySize: int
+                memoryGranularity: int
+                completionFunction: { type: function of: 'void()' }
+            }
+
+            scheduleStagedTransfersCommand: {
+                stagingBufferIndex: int
+            }
+
+            scheduleMemoryMoveCommand: {
+                from: { type: int } // featureReq index
+                to: { type: optional of: { type: tuple of: [uint8_t, uint8_t, uint16_t, uint32_t] } }
+                memorySize: int
+                completionFunction: { type: function of: 'void()' }
+            }
         }
     }
 }

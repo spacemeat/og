@@ -3,9 +3,9 @@
 namespace og
 {
     template <class Data>
-    class FeatureDb
+    class FeatureReq
     {
     public:
-        FeatureDb() { }
+        FeatureReq() { }
     };
 }
