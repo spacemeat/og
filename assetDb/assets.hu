@@ -24,6 +24,7 @@ assetDb: {
             skeleton_adbi: 4
         },
         { @type: vertices
+            name: cube
             source_adbi: 1
             vertexFormat: [
                 [ pos, r32g32b32_sfloat ]
@@ -47,6 +48,7 @@ assetDb: {
                        cacheSize: 72 }
         },
         { @type: skeleton
+            name: skeleton
             source_adbi: 1
             numBones: 2
             boneData: { cacheIndex: 2
@@ -54,10 +56,12 @@ assetDb: {
                         cacheSize: 68 }
         },
         { @type: material
+            name: brick
             shader_adbis: [6, 7]
             texture_adbis: [[albedo 8] [normal 9] [tangent 10] [roughness 11]]
         },
-        { @type: shader
+        { @type: shader_vs
+            name: opaque
             source: ../assets/builtin/material/defaultMaterial.vs.glsl
             stage: vertex_shader_bit
             entryPoint: main
@@ -66,6 +70,7 @@ assetDb: {
                         cacheSize: 400 }
         },
         { @type: shader
+            name: opaque_fs
             source: ../assets/builtin/material/defaultMaterial.fs.glsl
             stage: fragment_shader_bit
             entryPoint: main
@@ -74,6 +79,7 @@ assetDb: {
                         cacheSize: 800 }
         },
         { @type: texture2d
+            name: brick-albedo
             source: ../assets/builtin/material/brick-albedo.png
             dims: [256, 256]
             format: r8g8b8a8_unorm
@@ -83,6 +89,7 @@ assetDb: {
                       cacheSize: 262144 }
         },
         { @type: texture2d
+            name: brick-normal
             source: ../assets/builtin/material/brick-normal.png
             dims: [256, 256]
             format: r8g8b8a8_unorm
@@ -92,6 +99,7 @@ assetDb: {
                       cacheSize: 262144 }
         },
         { @type: texture2d
+            name: brick-tangent
             source: ../assets/builtin/material/brick-tangent.png
             dims: [256, 256]
             format: r8g8b8a8_unorm
@@ -101,6 +109,7 @@ assetDb: {
                       cacheSize: 262144 }
         },
         { @type: texture2d
+            name: brick-roughness
             source: ../assets/builtin/material/brick-roughness.png
             dims: [256, 256]
             format: r8g8b8a8_unorm

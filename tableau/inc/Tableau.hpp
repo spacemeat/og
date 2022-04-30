@@ -6,6 +6,10 @@ namespace og
     class Tableau
     {
     public:
-        Tableau() { }
+        Tableau();
+
+        void InterpretFrameHierarchy();
     };
 }
+
+#include "Tableau.inl.hpp"

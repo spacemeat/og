@@ -1,0 +1,64 @@
+@{app: og type: tableau}
+{
+    name: cubevania
+    children: [
+        { @type: object
+            name: cube_a
+            transform: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+            features: [
+                { @type: visibleModel
+                    enabled: true
+                    asset: [assetDb0, 0]        // db0, first asset (model)
+                }
+                { @type: shadowCaster
+                    enabled: true
+                    asset: [assetDb0, 1]        // db0, second asset (mesh)
+                }
+            ]
+        }
+        { @type: object
+            name: cube_b
+            transform: [ 1, 0, 0, 2, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+            features: [
+                { @type: visibleModel
+                    enabled: true
+                    asset: [assetDb0, 0]        // db0, first asset (model)
+                }
+                { @type: shadowCaster
+                    enabled: true
+                    asset: [assetDb0, 1]        // db0, second asset (mesh)
+                }
+            ]
+        }
+        { @type: object
+            name: groundPlane
+            transform: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+        }
+        { @type: object
+            name: skybox
+            transform: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+        }
+        { @type: object
+            name: camera
+            transform: [ 1, 0, 0, 0, 0, 1, 0, 2, 0, 0, 1, -2, 0, 0, 0, 1]
+            children: [
+                { @type: object
+                    name: 'target reticle'
+                    transform: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+                }
+                { @type: object
+                    name: 'health bar'
+                    transform: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+                }
+                { @type: object
+                    name: 'area map'
+                    transform: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+                }
+            ]
+        }
+        { @type: object
+            name: dirLight
+            transform: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+        }
+    ]
+}

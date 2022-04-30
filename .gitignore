@@ -3,6 +3,7 @@ build/
 .venv/
 gen-cpp/
 gen/
+.boma-post
 
 # Prerequisites
 *.d

@@ -1,10 +1,12 @@
-#include "../assetDb/gen/inc/og_assetDb.hpp"
-#include "../featureDb/gen/inc/og_featureDb.hpp"
+#include "../gen/og/assetDb/inc/assetDb.hpp"
+#include "../gen/og/featureDb/inc/featureDb.hpp"
+#include "../gen/og/featureReq/inc/featureReq.hpp"
+#include "../gen/og/tableau/inc/tableau.hpp"
 
 
-std::vector<og::featureDb::featureReq> getReqs(og::featureDb::tableau const & tableau)
+std::vector<og::featureReq::featureReq> getReqs(og::tableau::tableau const & tableau)
 {
-    auto vec = std::vector<og::featureDb::featureReq> { };
+    auto vec = std::vector<og::featureReq::featureReq> { };
     return vec;
 }
 
@@ -15,7 +17,7 @@ int main(int argc, char** argv)
     auto tr = hu::Trove::fromFile("tableau.hu");
     if (auto && t = std::get_if<hu::Trove>(& tr))
     {
-        auto tableau = og::featureDb::tableau(t->root());
+        auto tableau = og::tableau::tableau(t->root());
         std::cout << tableau.get_name();
     }
 

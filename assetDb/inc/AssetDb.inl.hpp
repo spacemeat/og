@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AssetDb.hpp"      // purely for editors
-#include <fmt/core.h>
+#include <iostream>
 
 namespace og
 {
@@ -11,8 +11,8 @@ namespace og
 
     }
 
-     template<class Data>
-   AssetDb<Data>::~AssetDb()
+    template<class Data>
+    AssetDb<Data>::~AssetDb()
     {
 
     }
@@ -21,17 +21,17 @@ namespace og
     void AssetDb<Data>::syncWithSource()
     {
         auto d = static_cast<Data *>(this);
-        fmt::print(d->get_cache());
+        std::cout << d->get_cacheFile();
     }
 
-     template<class Data>
-   void AssetDb<Data>::syncDefs()
+    template<class Data>
+    void AssetDb<Data>::syncDefs()
     {
 
     }
 
-     template<class Data>
-   void AssetDb<Data>::buildCache()
+    template<class Data>
+    void AssetDb<Data>::buildCache()
     {
 
     }

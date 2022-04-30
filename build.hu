@@ -1,0 +1,89 @@
+@ { app: boma version: 0.0.4 }
+{
+    inherit: [construct]
+    projectName: overground
+    compileAndLinkOptions: [Werror]
+
+    --generateSrc: {
+        version: 0.0.1
+        buildType: boilermaker
+        sources: [og-boma.hu]
+        postCheck: [./.boma-post]
+    }
+
+    --og: {
+        version: 0.0.1
+        includeDirs: [
+            'gen/og/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: og
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'gen/og/src/*.cpp'
+            ]
+        }
+    }
+
+    --assetDb: {
+        version: 0.0.1
+        includeDirs: [
+            'gen/og/assetDb/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: assetDb
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'gen/og/assetDb/src/*.cpp'
+                'assetDb/src/*.cpp'
+            ]
+        }
+        --test: {
+            buildType: exe
+            outputDir: $testDir
+            outputName: assetDb
+            sources: [
+                'assetDb/main.cpp'
+            ]
+            libDirs: [$libDir]
+            libs: [humon, c, !..lib!$outputLibPath, !...og.lib!$outputLibPath]
+        }
+    }
+
+    --tableau: {
+        version: 0.0.1
+        includeDirs: [
+            'gen/og/tableau/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: tableau
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'gen/og/tableau/src/*.cpp'
+                'tableau/src/*.cpp'
+            ]
+        }
+        --test: {
+            buildType: exe
+            outputDir: $testDir
+            outputName: tableau
+            sources: [
+                'tableau/main.cpp'
+            ]
+            libDirs: [$libDir]
+            libs: [humon, c, !..lib!$outputLibPath]
+        }
+    }
+}

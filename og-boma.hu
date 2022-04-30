@@ -2,12 +2,14 @@
 {
     inherit: [cpp17, vulkan]
     namespace: og
+    projectNamespace: og
     anchor: [project, vulkanEnums]
+    defaultConstructible: true
 
     --assetDb: {
         namespace: og.assetDb
         diffable: true
-        include: ['"inc/AssetDb.hpp"']
+        include: ['"assetDb/inc/AssetDb.hpp"']
 
         serializeTo: [humon]
         deserializeFrom: [humon]
@@ -68,29 +70,34 @@
             }
 
             vertices: {
+                name: stringView
                 source_adbi: int
                 vertexFormat: { type: vector of: { type: tuple  of: [stringView, VkFormat] } }
                 vxData: cacheRef
             }
 
             indices: {
+                name: stringView
                 source_adbi: int
-                indexFormat: VkIndexFormat
+                indexFormat: VkIndexType
                 idxData: cacheRef
             }
 
             skeleton: {
+                name: stringView
                 source_adbi: int
                 numBones: int
                 boneData: cacheRef
             }
 
             material: {
+                name: stringView
                 shader_adbis: { type: vector of: int }
                 texture_adbis: { type: vector of: { type: pair of: [stringView, int] } }
             }
 
             shader: {
+                name: stringView
                 source: import
                 stage: VkPipelineStageFlagBits
                 entryPoint: stringView
@@ -98,6 +105,7 @@
             }
 
             texture2d: {
+                name: stringView
                 source: import
                 dims: { type: array of: [int, 2] }
                 format: VkFormat
@@ -108,7 +116,7 @@
     }
 
     --asset_mesh: {
-        namespace: og.mesh
+        namespace: og.assets.mesh
         enums: {
             vertexElementType:  [ float32, float64,
                                 int8, int16, int32, int64,
@@ -117,7 +125,7 @@
         }
 
         types: {
-            mesh: {
+            meshDesc: {
                 name: stringView
                 lods: { type: vector of: lod }
                 skeleton: { type: optional of: bone }
@@ -133,7 +141,7 @@
                 vxData:         { type: optional of: { type: vector of: { type: vector of: stringView } } }  // stringView becase we can't know the type yet
             }
             indexInfo: {
-                indexFormat:    VkIndexFormat
+                indexFormat:    VkIndexType
                 idxData:        { type: optional of: { type: vector of: int } }
             }
             bone: {
@@ -150,25 +158,28 @@
         deserializeFrom: [humon]
 
         types: {
-            // tableau / objects
+            // tableau / objs
             tableau: {
+                -deriveFrom: Tableau<tableau>
                 name: stringView
-                children: { type: vector of: { type: variant of: [object, frame] } }
+                hu.node: hierarchy
+                frames: { type: vector of: frame }
+                objects: { type: vector of: object }
+            }
+
+            frame: {
+                name: stringView
+                transform: { type: array of: [float, 16] }
+                owner: int
             }
 
             object: {
-                transform: { type: array of: [float, 16] }
                 name: stringView
+                owner: int
                 features: { type: vector of: { type: variant of: [
                     visibleModel
                     shadowCaster
                     ] } }
-                children: { type: vector of: { type: variant of: [object, frame] } }
-            }
-
-            frame: {
-                transform: { type: array of: [float, 16] }
-                children: { type: vector of: { type: variant of: [object, frame] } }
             }
 
             visibleModel: {
