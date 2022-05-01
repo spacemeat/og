@@ -1,4 +1,4 @@
-#include "gen-cpp/inc/og.hpp"
+#include "gen/inc/featureDb.hpp"
 #include <fmt/format.h>
 
 int main(int argc, char** argv)
@@ -6,7 +6,7 @@ int main(int argc, char** argv)
     auto tr = hu::Trove::fromFile("featureDb.hu");
     if (auto && t = std::get_if<hu::Trove>(& tr))
     {
-        auto featureDb = og::featureDb(t->root());
+        auto featureDb = og::featureDb::featureDb(t->root());
         auto features = featureDb.get_features();
         auto f = features[3];
 

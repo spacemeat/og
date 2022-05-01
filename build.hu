@@ -14,7 +14,7 @@
     --og: {
         version: 0.0.1
         includeDirs: [
-            'gen/og/inc'
+            'og/gen/inc'
         ]
         --lib: {
             buildType: staticLib
@@ -24,7 +24,7 @@
                 og-boma.hu
             ]
             sources: [
-                'gen/og/src/*.cpp'
+                'og/gen/src/*.cpp'
             ]
         }
     }
@@ -32,7 +32,7 @@
     --assetDb: {
         version: 0.0.1
         includeDirs: [
-            'gen/og/assetDb/inc'
+            'og/assetDb/gen/inc'
         ]
         --lib: {
             buildType: staticLib
@@ -42,16 +42,16 @@
                 og-boma.hu
             ]
             sources: [
-                'gen/og/assetDb/src/*.cpp'
-                'assetDb/src/*.cpp'
+                'og/assetDb/gen/src/*.cpp'
+                'og/assetDb/src/*.cpp'
             ]
         }
         --test: {
             buildType: exe
             outputDir: $testDir
-            outputName: assetDb
+            outputName: test.assetDb
             sources: [
-                'assetDb/main.cpp'
+                'og/assetDb/main.cpp'
             ]
             libDirs: [$libDir]
             libs: [humon, c, !..lib!$outputLibPath, !...og.lib!$outputLibPath]
@@ -61,18 +61,18 @@
     --tableau: {
         version: 0.0.1
         includeDirs: [
-            'gen/og/tableau/inc'
+            'og/tableau/gen/inc'
         ]
         --lib: {
             buildType: staticLib
             outputDir: $libDir
-            outputName: tableau
+            outputName: test.tableau
             depends: [
                 og-boma.hu
             ]
             sources: [
-                'gen/og/tableau/src/*.cpp'
-                'tableau/src/*.cpp'
+                'og/tableau/gen/src/*.cpp'
+                'og/tableau/src/*.cpp'
             ]
         }
         --test: {
@@ -80,10 +80,26 @@
             outputDir: $testDir
             outputName: tableau
             sources: [
-                'tableau/main.cpp'
+                'og/tableau/main.cpp'
             ]
             libDirs: [$libDir]
             libs: [humon, c, !..lib!$outputLibPath]
         }
+    }
+
+    --playground: {
+        buildType: exe
+        outputDir: $testDir
+        outputName: pg
+        namespace: playground
+        sources: [
+            'playground/main.cpp'
+        ]
+        libDirs: [$libDir]
+        libs: [humon, c,
+               !..assetDb.lib!$outputLibPath
+               !..tableau.lib!$outputLibPath
+               !..og.lib!$outputLibPath
+               ]
     }
 }

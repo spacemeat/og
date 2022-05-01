@@ -1,4 +1,4 @@
-#include "../gen/og/assetDb/inc/assetDb.hpp"
+#include "gen/inc/assetDb.hpp"
 #include <iostream>
 
 int main(int argc, char** argv)

@@ -1,4 +1,4 @@
-#include "../gen/og/tableau/inc/tableau.hpp"
+#include "gen/inc/tableau.hpp"
 
 int main(int argc, char** argv)
 {

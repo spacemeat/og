@@ -5,11 +5,13 @@
     projectNamespace: og
     anchor: [project, vulkanEnums]
     defaultConstructible: true
+    genDir:                 $baseDir/$namespaceForFs/gen
+    sharedCodeGenDir:       $baseDir/$sharedCodeNamespaceForFs/gen
 
     --assetDb: {
         namespace: og.assetDb
         diffable: true
-        include: ['"assetDb/inc/AssetDb.hpp"']
+        include: ['og/assetDb/inc/AssetDb.hpp']
 
         serializeTo: [humon]
         deserializeFrom: [humon]
@@ -153,7 +155,7 @@
 
     --tableau: {
         namespace: og.tableau
-        include: ['"tableau/inc/Tableau.hpp"']
+        include: ['og/tableau/inc/Tableau.hpp']
         serializeTo: [humon]
         deserializeFrom: [humon]
 
@@ -196,7 +198,7 @@
 
     --featureReq: {
         namespace: og.featureReq
-        include: ['"featureReq/inc/FeatureReq.hpp"']
+        include: ['og/featureReq/inc/FeatureReq.hpp']
         serializeTo: [humon]
 
         types:
@@ -255,7 +257,7 @@
 
     --featureDb: {
         namespace: og.featureDb
-        include: ['"featureDb/inc/FeatureDb.hpp"']
+        include: ['og/featureDb/inc/FeatureDb.hpp']
         serializeTo: [humon]
 
         diffable: true
