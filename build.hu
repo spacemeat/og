@@ -29,6 +29,35 @@
         }
     }
 
+    --logger: {
+        version: 0.0.1
+        includeDirs: [
+            'og/logger/gen/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: logger
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'og/logger/gen/src/*.cpp'
+                //'og/logger/src/*.cpp'
+            ]
+        }
+        --test: {
+            buildType: exe
+            outputDir: $testDir
+            outputName: test.logger
+            sources: [
+                'og/logger/main.cpp'
+            ]
+            libDirs: [$libDir]
+            libs: [humon, fmt, c, !..lib!$outputLibPath, !...og.lib!$outputLibPath]
+        }
+    }
+
     --assetDb: {
         version: 0.0.1
         includeDirs: [
@@ -78,7 +107,7 @@
         --test: {
             buildType: exe
             outputDir: $testDir
-            outputName: tableau
+            outputName: test.tableau
             sources: [
                 'og/tableau/main.cpp'
             ]

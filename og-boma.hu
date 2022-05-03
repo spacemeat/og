@@ -8,6 +8,59 @@
     genDir:                 $baseDir/$namespaceForFs/gen
     sharedCodeGenDir:       $baseDir/$sharedCodeNamespaceForFs/gen
 
+    --logger: {
+        namespace: og.logger
+        deserializeFrom: [humon]
+        include: ['og/logger/inc/Logger.hpp']
+
+        enumFlags: true
+        copy: delete
+        //move: delete
+
+        enums: {
+            logTag: [
+                error, warn
+                phase, assetDb, featureDb, tableau
+                vulkan, validation
+
+                //graphics = [error warn vulkan validation]
+            ]
+            //speakerTypes: []
+            logPart: [
+                logId, logName, time, message, file, line, col, fname, end, numParts
+            ]
+        }
+
+        types: {
+            logger: {
+                -deriveFrom: 'Logger<logger, speaker, logPart>'
+                speakers: { type: vector of: speaker }
+                listeners: { type: vector of: listener }
+                colors: { type: unorderedMap of: [
+                        string
+                        { type: array of:
+                            [uint8_t, 3] } ] }
+            }
+            speaker: {
+                -deriveFrom: 'Speaker<speaker, logPart>'
+                name: string
+                color: string
+                tags: logTag
+            }
+            listener: {
+                -deriveFrom: 'Listener<listener, speaker, logPart>'
+                -knows: [speaker, logPart]
+                interests: logTag
+                //activeParts: logPart
+                logPath: string     // 'stderr' and 'stdout' are special
+                colors: { type: optional of: {
+                        type: unorderedMap of: [logPart, string] } }
+                format: string
+                retainHistory: bool
+            }
+        }
+    }
+
     --assetDb: {
         namespace: og.assetDb
         diffable: true
