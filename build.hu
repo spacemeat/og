@@ -43,7 +43,7 @@
             ]
             sources: [
                 'og/logger/gen/src/*.cpp'
-                //'og/logger/src/*.cpp'
+                'og/logger/src/*.cpp'
             ]
         }
         --test: {
@@ -54,7 +54,7 @@
                 'og/logger/main.cpp'
             ]
             libDirs: [$libDir]
-            libs: [humon, fmt, c, !..lib!$outputLibPath, !...og.lib!$outputLibPath]
+            libs: [c, !..lib!$outputLibPath, !...og.lib!$outputLibPath, humon, fmt]
         }
     }
 

@@ -11,7 +11,7 @@
     --logger: {
         namespace: og.logger
         deserializeFrom: [humon]
-        include: ['og/logger/inc/Logger.hpp']
+        //include: ['og/logger/inc/Logger.hpp']
 
         enumFlags: true
         copy: delete
@@ -32,8 +32,8 @@
         }
 
         types: {
-            logger: {
-                -deriveFrom: 'Logger<logger, speaker, logPart>'
+            loggerData: {
+                //-deriveFrom: 'Logger<logger, speaker, logPart>'
                 speakers: { type: vector of: speaker }
                 listeners: { type: vector of: listener }
                 colors: { type: unorderedMap of: [
@@ -42,14 +42,14 @@
                             [uint8_t, 3] } ] }
             }
             speaker: {
-                -deriveFrom: 'Speaker<speaker, logPart>'
+                //-deriveFrom: 'Speaker<speaker, logPart>'
                 name: string
                 color: string
                 tags: logTag
             }
             listener: {
-                -deriveFrom: 'Listener<listener, speaker, logPart>'
-                -knows: [speaker, logPart]
+                //-deriveFrom: 'Listener<listener, speaker, logPart>'
+                //-knows: [speaker, logPart]
                 interests: logTag
                 //activeParts: logPart
                 logPath: string     // 'stderr' and 'stdout' are special
