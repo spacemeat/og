@@ -83,7 +83,10 @@
                 'og/assetDb/main.cpp'
             ]
             libDirs: [$libDir]
-            libs: [humon, c, !..lib!$outputLibPath, !...og.lib!$outputLibPath]
+            libs: [!..lib!$outputLibPath,
+                   !...logger.lib!$outputLibPath,
+                   !...og.lib!$outputLibPath,
+                   fmt, humon, c]
         }
     }
 
@@ -95,7 +98,7 @@
         --lib: {
             buildType: staticLib
             outputDir: $libDir
-            outputName: test.tableau
+            outputName: tableau
             depends: [
                 og-boma.hu
             ]
@@ -113,6 +116,39 @@
             ]
             libDirs: [$libDir]
             libs: [humon, c, !..lib!$outputLibPath]
+        }
+    }
+
+    --engine: {
+        version: 0.0.1
+        includeDirs: [
+            'og/engine/gen/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: engine
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'og/engine/gen/src/*.cpp'
+                'og/engine/src/*.cpp'
+            ]
+        }
+        --test: {
+            buildType: exe
+            outputDir: $testDir
+            outputName: test.engine
+            sources: [
+                'og/engine/main.cpp'
+            ]
+            libDirs: [$libDir]
+            libs: [!..lib!$outputLibPath,
+                   !...assetDb.lib!$outputLibPath,
+                   !...logger.lib!$outputLibPath,
+                   !...og.lib!$outputLibPath,
+                   fmt, humon, c]
         }
     }
 

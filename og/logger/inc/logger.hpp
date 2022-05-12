@@ -2,7 +2,7 @@
 
 #include <experimental/source_location>
 #include <chrono>
-#include "../gen/inc/loggerData.hpp"
+#include "../gen/inc/loggerConfig.hpp"
 
 namespace og
 {
@@ -30,7 +30,7 @@ namespace og
                     = src_loc::current());
 
     private:
-        logger::loggerData logger;
+        logger::loggerConfig logger;
         std::chrono::time_point<std::chrono::system_clock> clockStart;
         std::vector<std::string> bgColorsFormatted;
         std::vector<newListener> listeners;

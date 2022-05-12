@@ -1,0 +1,5 @@
+@{app: og type: og.engine.appConfig }
+{
+    loggerConfigPath: ./loggers.hu
+    engineConfigPath: ./engine.hu
+}

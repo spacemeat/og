@@ -32,7 +32,13 @@
         }
 
         types: {
-            loggerData: {
+            loggerVersion_t: {
+                major: int
+                minor: int
+                revision: int
+            }
+            loggerConfig: {
+                version: loggerVersion_t
                 //-deriveFrom: 'Logger<logger, speaker, logPart>'
                 speakers: { type: vector of: speaker }
                 listeners: { type: vector of: listener }
@@ -61,10 +67,203 @@
         }
     }
 
+    --cmd: {
+        namespace: og.command
+        serializeTo: []
+        deserializeFrom: []
+
+        enumFlags: false
+
+        enums: {
+            cmd: [
+                adb_createCache
+                adb_openCacheFile
+                adb_scheduleStorageRead
+                adb_scheduleCacheAppend
+                adb_latchCache
+                adb_getImportCacheSize
+                adb_importAsset
+
+                mem_copyHostToHost
+                mem_copyDeviceToDevice
+                // ...
+            ]
+        }
+    }
+
+    --engine: {
+        namespace: og.engine
+
+        serializeTo: [humon]
+        deserializeFrom: [humon]
+
+        enums: {
+            windowMode: [windowed, fullScreen]
+        }
+
+        types: {
+            version_t: {
+                major: int
+                minor: int
+                revision: int
+            }
+            appConfig: {
+                name: stringView
+                version: version_t
+                loggerConfigPath: { type: string }
+                engineConfigPath: { type: string }
+            }
+
+            engineConfig: {
+                version: version_t
+                vulkanVersion: { type: optional of: version_t }   // null means detect the best available
+                winMode: windowMode
+                windowPos: { type: pair of: [int, int] }
+                windowExtents: { type: pair of: [int, int] }
+                defaultMonitor: { type: int default: 0 }
+                screenFormat: { type: VkFormat }
+
+            }
+        }
+    }
+
+    --vkDevices: {
+        namespace: og.vkDevices
+
+        serializeTo: [humon]
+
+        types: {
+            physicalDevice: {
+
+            }
+
+            logicalDevice: {
+
+            }
+        }
+    }
+
+    --renderPlan: {
+        namespace: og.renderPlan
+
+        serializeTo: [humon]
+        deserializeFrom: [humon]
+
+        enums: {
+            stepKind: [computePass, renderPass, namedStep]
+        }
+
+        types: {
+            renderPlan: {
+                name: string
+                passes: { type: vector of: renderPass }
+                steps: { type: vector of: renderStep }
+            }
+
+            renderStep: {
+                kind: stepKind
+                name: string
+                subpass: { type: uint32_t default: 0 }
+            }
+
+            computePass: {
+                name: string
+                //...
+            }
+
+            renderPass: {
+                name: string
+                flags: { type: VkRenderPassCreateFlagBits default: 0 }
+                multiView: { type: optional of: renderPassMultiView }
+                fragmentDensityMap: { type: optional of: string } // pNext
+                inputAttachmentAspects: { type: vector of: inputAttachmentAspectRef } // pNext
+                attachments: { type: vector of: attachmentDesc }
+                subpasses: { type: vector of: subpassDesc }
+                subpassDeps: { type: vector of: subpassDep }
+            }
+
+            renderPassMultiView: {
+                viewMasks: { type: vector of: uint32_t }
+                viewOffsets: { type: vector of: uint32_t }
+                correlationMasks: { type: vector of: uint32_t }
+            }
+
+            attachmentRef: {
+                attachmentIdx: uint32_t
+                layout: VkImageLayout
+                aspectMask: { type: VkImageAspectFlagBits default: none }
+                stencilLayout: { type: VkImageLayout default: undefined } // pNext
+            }
+
+            inputAttachmentAspectRef: {
+                subpass: uint32_t
+                inputAttachmentIndex: uint32_t
+                aspectMask: VkImageAspectFlags
+            }
+
+            attachmentDesc: {
+                mayAlias: { type: bool default: false }
+                format: VkFormat
+                samples: int
+                loadOp: VkAttachmentLoadOp
+                storeOp: VkAttachmentStoreOp
+                stencilLoadOp: { type: VkAttachmentLoadOp default: dont_care }
+                stencilStoreOp: { type: VkAttachmentStoreOp default: dont_care }
+                initialLayout: VkImageLayout
+                finalLayout: VkImageLayout
+                depthStencilInitialLayout: { type: VkImageLayout default: undefined } // pNext
+                depthStencilFinalLayout: { type: VkImageLayout default: undefined }   // ''
+            }
+
+            subpassDesc: {
+                flags: { type: VkSubpassDescriptionFlagBits default: 0 }
+                pipelineBindPoint: VkPipelineBindPoint
+                viewMask: { type: uint32_t default: 0 }
+                inputAttachments: { type: vector of: attachmentRef }
+                colorAttachments: { type: vector of: attachmentRef }
+                resolveAttachments: { type: vector of: attachmentRef }
+                depthStencilAttachments: { type: vector of: attachmentRef }
+                preserveAttachments: { type: vector of: uint32_t }
+                depthStencilResolve: { type: optional of: subpassDescDepthStencilResolve }
+                fragmentShadingRateAttachment: { type: optional of: subpassDescFragmentShadingRateAttachment }
+            }
+
+            subpassDescDepthStencilResolve: {
+                depthResolveMode: VkResolveModeFlagBits
+                stencilResolveMode: VkResolveModeFlagBits
+                depthStencilResolveAttachment: { type: vector of: attachmentRef }
+            }
+
+            subpassDescFragmentShadingRateAttachment: {
+                fragmentShadingRateAttachment: { type: optional of: attachmentRef }
+                shadingRateAttachmentTexelSize: { type: pair of: [uint32_t, uint32_t] }
+            }
+
+            subpassDep: {
+                srcSubpass: uint32_t
+                dstSubpass: uint32_t
+                srcStageMask: VkPipelineStageFlagBits2
+                dstStageMask: VkPipelineStageFlagBits2
+                srcAccessMask: VkAccessFlags2
+                dstAccessMask: VkAccessFlags2
+                flags: VkDependencyFlagBits
+                viewOffset: int32_t
+
+                memoryBarriers: { type: vector of: memoryBarrier }
+            }
+
+            memoryBarrier: {
+                srcStageMask: VkPipelineStageFlagBits2
+                dstStageMask: VkPipelineStageFlagBits2
+                srcAccessMask: VkAccessFlags2
+                dstAccessMask: VkAccessFlags2
+            }
+        }
+    }
+
     --assetDb: {
         namespace: og.assetDb
         diffable: true
-        include: ['og/assetDb/inc/AssetDb.hpp']
 
         serializeTo: [humon]
         deserializeFrom: [humon]
@@ -75,10 +274,12 @@
 
         types: {
             assetDb: {
-                -deriveFrom: AssetDb<assetDb>
+                packs: { type: vector of: string } // asset dirs
+            }
+
+            assetPack: {
                 name: stringView
-                cacheFile: stringView
-                lastCacheModTime: int
+                dir: stringView
                 assets: { type: vector of: { type: variant of: [
                     model
                     mesh
@@ -332,8 +533,7 @@
             allocation: {
                 allocationIndex: int
                 dedicated: bool
-                usages: { type: variant of: [VkBufferUsageFlagBits, VkImageUsageFlagBits] }
-                resources: { type: variant of: [buffer, image]}
+                resources: { type: vector of: { type: variant of: [buffer, image] } }
             }
             buffer: {
                 resourceIndex: int

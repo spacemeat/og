@@ -4,14 +4,14 @@
             topology: triangle_list
             vertices: {
                 vertexFormat: [
-                [ pos, r32g32b32_sfloat ]
-                [ normal, r32g32b32_sfloat ]
-                [ uv_albedo, r32g32_sfloat ]
-                [ uv_normal, r32g32_sfloat ]
-                [ uv_tangent, r32g32_sfloat ]
-                [ uv_roughness, r32g32_sfloat ]
-                [ frameIdxs, r8_uint ]
-                [ frameWeights, r32g32_sfloat ]
+                    [ pos, r32g32b32_sfloat ]
+                    [ normal, r32g32b32_sfloat ]
+                    [ uv_albedo, r32g32_sfloat ]
+                    [ uv_normal, r32g32_sfloat ]
+                    [ uv_tangent, r32g32_sfloat ]
+                    [ uv_roughness, r32g32_sfloat ]
+                    [ frameIdxs, r8_uint ]
+                    [ frameWeights, r32g32_sfloat ]
                 ]
                 vxData: [ [ -1, -1, -1,     0,  0, -1,    0, 0,     0, 0,    0, 0,     0, 0,    0,   1.0, 0.0 ]
                           [ -1,  1, -1,     0,  0, -1,    1, 0,     1, 0,    1, 0,     1, 0,    0,   0.0, 1.0 ]

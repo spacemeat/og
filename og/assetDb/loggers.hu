@@ -1,0 +1,109 @@
+@ {}
+
+{
+    speakers: [ {
+            name: main
+            color: black
+            tags: [phase,
+                   assetDb, featureDb, tableau,
+                   vulkan, validation]
+        }, {
+            name: error
+            color: darkRed
+            tags: [error]
+        }, {
+            name: warn
+            color: darkellow
+            tags: [warn]
+        }
+    ]
+
+    listeners: [ {
+            interests: [error, warn]
+            logFile: stderr
+            colors: {
+                logId:      highYellow
+                logName:    highCyan
+                time:       midGray
+                message:    highGray
+                file:       darkGray
+                line:       midGray
+                col:        darkGray
+                fname:      darkMagenta
+            }
+            format: ^^
+{ic}{logId:2} {tc}{time::%H:%M:%S} {fnc}{fname}{end}
+{file}({line}): {mc}{message}{end}^^
+        }, {
+            interests: [phase,
+                       assetDb, featureDb, tableau,
+                       vulkan, validation]
+            logFile: stdout
+            colors: {
+                logId:      highYellow
+                logName:    highCyan
+                time:       midGray
+                message:    highGray
+                file:       darkGray
+                line:       midGray
+                col:        darkGray
+                fname:      darkMagenta
+            }
+            format: '{ic}{logId:2} {tc}{time:%H:%M:%S} {mc}{message}{ec}'
+        }, {
+            interests: [error, warn]
+            logFile: logs/error.log
+            retainHistory: false
+            format: '{time:%H:%M:%S} {message} ({fname}: {file}({line}){end}'
+        }
+    ]
+
+    colors: {
+        black:          [ 0, 0, 0 ]
+
+        darkGray:       [ 7, 7, 7 ]
+        darkRed:        [ 7, 0, 0 ]
+        darkOrange:     [ 7, 3, 0 ]
+        darkYellow:     [ 7, 7, 0 ]
+        darkGreen:      [ 0, 7, 0 ]
+        darkCyan:       [ 0, 7, 7 ]
+        darkBlue:       [ 0, 0, 7 ]
+        darkMagenta:    [ 7, 0, 7 ]
+
+        lowGray:       [ 63, 63, 63 ]
+        lowRed:        [ 63, 0, 0 ]
+        lowOrange:     [ 63, 31, 0 ]
+        lowYellow:     [ 63, 63, 0 ]
+        lowGreen:      [ 0, 63, 0 ]
+        lowCyan:       [ 0, 63, 63 ]
+        lowBlue:       [ 0, 0, 63 ]
+        lowMagenta:    [ 63, 0, 63 ]
+
+        midGray:       [ 127, 127, 127 ]
+        midRed:        [ 127, 0, 0 ]
+        midOrange:     [ 127, 63, 0 ]
+        midYellow:     [ 127, 127, 0 ]
+        midGreen:      [ 0, 127, 0 ]
+        midCyan:       [ 0, 127, 127 ]
+        midBlue:       [ 0, 0, 127 ]
+        midMagenta:    [ 127, 0, 127 ]
+
+        highGray:       [ 191, 191, 191 ]
+        highRed:        [ 191, 0, 0 ]
+        highOrange:     [ 191, 95, 0 ]
+        highYellow:     [ 191, 191, 0 ]
+        highGreen:      [ 0, 191, 0 ]
+        highCyan:       [ 0, 191, 191 ]
+        highBlue:       [ 0, 0, 191 ]
+        highMagenta:    [ 191, 0, 191 ]
+
+        brightwhite:    [ 255, 255, 255 ]
+        brightRed:      [ 255, 0, 0 ]
+        brightOrange:   [ 255, 127, 0 ]
+        brightYellow:   [ 255, 255, 0 ]
+        brightGreen:    [ 0, 255, 0 ]
+        brightCyan:     [ 0, 25, 255 ]
+        brightBlue:     [ 0, 0, 255 ]
+        brightMagenta:  [ 255, 0, 255 ]
+    }
+}

@@ -1,4 +1,5 @@
 #include <fmt/format.h>
+#include "../../engine/inc/except.hpp"
 #include "../inc/logger.hpp"
 
 namespace og
@@ -8,7 +9,7 @@ namespace og
         auto tr = hu::Trove::fromFile(loggerConfigPath);
         if (auto && t = std::get_if<hu::Trove>(& tr))
         {
-            logger = og::logger::loggerData(t->root());
+            logger = og::logger::loggerConfig(t->root());
 
             auto & colorTable = logger.get_colors();
 
@@ -33,7 +34,7 @@ namespace og
         }
         else
         {
-            throw std::runtime_error(fmt::format("Could not load loggers config at {}.", loggerConfigPath));
+            throw Ex(fmt::format("Could not load loggers config at {}.", loggerConfigPath));
         }
     }
 

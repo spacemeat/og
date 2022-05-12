@@ -1,0 +1,34 @@
+@{ type: og.renderPlan }
+{
+    name: basicShading
+    passes: [ {         // pass 0
+            name: drawSimple
+            attachments: [ {
+                    format: r8g8b8a8_snorm
+                    samples: 1
+                    loadOp: clear
+                    storeOp: store
+                    initialLayout: undefined
+                    finalLayout: present_src_khr
+                }
+            ]
+            subpasses: [ {  // subpass 0
+                    pipelineBindPoint: graphics
+                    colorAttachments: [ { attachmentIdx: 0 layout: color_attachment_optimal }]
+                }
+            ]
+        }
+    ]
+
+    steps: [ // How to know when we can skip whole steps?
+        { kind: renderPass
+          name: drawSimple
+          subpass: 0 }
+
+        { kind: namedStep
+          name: drawVisibleModelsFromCamera }
+
+        { kind: present
+          name: primary } // i dunno
+    ]
+}
