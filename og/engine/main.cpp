@@ -1,3 +1,4 @@
+#include "../logger/inc/logger.hpp"
 #include "inc/engine.hpp"
 #include <fmt/format.h>
 
@@ -12,47 +13,49 @@ namespace og
         l.emplace(loggerConfigPath);
         e.emplace(engineConfigPath);
     }
-}
 
-
-og::engine::appConfig getAppConfig(std::string_view appConfigPath)
-{
-    auto tr = hu::Trove::fromFile(appConfigPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
-    if (auto && t = std::get_if<hu::Trove>(& tr))
+    engine::appConfig getAppConfig(std::string_view appConfigPath)
     {
-        return og::engine::appConfig { t->root() };
-    }
-    else
-    {
-        throw og::Ex(fmt::format("Could not load app config at {}.", appConfigPath));
+        auto tr = hu::Trove::fromFile(appConfigPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
+        if (auto && t = std::get_if<hu::Trove>(& tr))
+        {
+            return engine::appConfig { t->root() };
+        }
+        else
+        {
+            throw Ex(fmt::format("Could not load app config at {}.", appConfigPath));
+        }
     }
 }
 
 
 int main(int argc, char * argv[])
 {
+    using namespace og;
+
     try
     {
         auto && appConfig = getAppConfig("appConfig.hu");
 
-        og::makeSingletons(appConfig.get_loggerConfigPath(),
-                           appConfig.get_engineConfigPath());
+        makeSingletons(appConfig.get_loggerConfigPath(),
+                       appConfig.get_engineConfigPath());
 
-        og::e->loop();
+        e->init(appConfig);
+        e->enterLoop();
 
         std::cout << "Ended loop.\n";
     }
-    catch (og::Ex & ex)
+    catch (Ex & ex)
     {
-        if (og::l)
-            { og::l->log(1, ex.what(), ex.location()); }
+        if (l)
+            { logErr(ex.what(), ex.location()); }
         else
             { std::cout << ex.what() << "\n"; }
     }
     catch (std::exception & ex)
     {
-        if (og::l)
-            { og::l->log(1, ex.what()); }
+        if (l)
+            { logErr(ex.what()); }
         else
             { std::cout << ex.what() << "\n"; }
     }

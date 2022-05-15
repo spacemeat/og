@@ -26,8 +26,7 @@ namespace og
         Logger(std::string_view loggerConfigPath);
         void log(int speakerId,
                  std::string_view message,
-                 const src_loc & loc
-                    = src_loc::current());
+                 const src_loc & loc = src_loc::current());
 
     private:
         logger::loggerConfig logger;
@@ -37,4 +36,13 @@ namespace og
     };
 
     extern std::optional<Logger> l;
+    void log(int speakerId,
+             std::string_view message,
+             const src_loc & loc = src_loc::current());
+    void log(std::string_view message,
+             const src_loc & loc = src_loc::current());
+    void logErr(std::string_view message,
+             const src_loc & loc = src_loc::current());
+    void logWarn(std::string_view message,
+             const src_loc & loc = src_loc::current());
 }

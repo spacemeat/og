@@ -32,13 +32,8 @@
         }
 
         types: {
-            loggerVersion_t: {
-                major: int
-                minor: int
-                revision: int
-            }
             loggerConfig: {
-                version: loggerVersion_t
+                version: { type: array of: [int, 3] }
                 //-deriveFrom: 'Logger<logger, speaker, logPart>'
                 speakers: { type: vector of: speaker }
                 listeners: { type: vector of: listener }
@@ -98,31 +93,33 @@
         deserializeFrom: [humon]
 
         enums: {
-            windowMode: [windowed, fullScreen]
+            windowMode: [headless, windowed, fullScreen]
         }
 
         types: {
-            version_t: {
-                major: int
-                minor: int
-                revision: int
-            }
             appConfig: {
                 name: stringView
-                version: version_t
+                version: { type: array of: [int, 3] }
                 loggerConfigPath: { type: string }
                 engineConfigPath: { type: string }
             }
-
             engineConfig: {
-                version: version_t
-                vulkanVersion: { type: optional of: version_t }   // null means detect the best available
-                winMode: windowMode
-                windowPos: { type: pair of: [int, int] }
-                windowExtents: { type: pair of: [int, int] }
-                defaultMonitor: { type: int default: 0 }
-                screenFormat: { type: VkFormat }
-
+                version: { type: array of: [int, 3] }
+                vulkanVersion: { type: optional of: { type: array of: [int, 3] } }   // null means detect the best available
+                views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
+            }
+            windowConfig_t: {
+                mode: windowMode
+                active: { type: bool default: true }
+                position: { type: optional of: { type: array of: [int, 2] } }
+                extents: { type: array of: [int, 2] }
+                defaultMonitor: { type: optional of: int }
+                screenFormat: { type: optional of: VkFormat }
+                refreshRate: { type: optional of: int }
+            }
+            hmdConfig_t: {
+                active: { type: bool default: false }
+                screenFormat: { type: optional of: VkFormat }
             }
         }
     }
@@ -133,6 +130,10 @@
         serializeTo: [humon]
 
         types: {
+            environment: {
+                extensions: { type: vector of: stringView }
+                physicalDevices: { type: vector of: physicalDevice }
+            }
             physicalDevice: {
 
             }

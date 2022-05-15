@@ -131,4 +131,29 @@ namespace og
             }
         }
     }
+
+    void log(int speakerId,
+             std::string_view message,
+             const src_loc & loc)
+    {
+        l->log(speakerId, message, loc);
+    }
+
+    void log(std::string_view message,
+             const src_loc & loc)
+    {
+        l->log(0, message, loc);
+    }
+
+    void logErr(std::string_view message,
+             const src_loc & loc)
+    {
+        l->log(1, message, loc);
+    }
+
+    void logWarn(std::string_view message,
+             const src_loc & loc)
+    {
+        l->log(2, message, loc);
+    }
 }

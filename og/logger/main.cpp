@@ -1,11 +1,13 @@
 #include "inc/logger.hpp"
 
 
-std::optional<og::Logger> l;
+std::optional<og::Logger> og::l;
 
 
 int main(int argc, char** argv)
 {
+    using namespace og;
+
     l.emplace("loggers.hu");
 
     try

@@ -137,6 +137,16 @@
             ]
         }
         --test: {
+            /* packages:
+                vulkan-tools
+                libvulkan-dev
+                vulkan-validationlayers-dev
+                spirv-tools
+                libglfw3-dev
+                libglm-dev
+                libxxf86vm-dev
+                libxi-dev
+            */
             buildType: exe
             outputDir: $testDir
             outputName: test.engine
@@ -148,7 +158,9 @@
                    !...assetDb.lib!$outputLibPath,
                    !...logger.lib!$outputLibPath,
                    !...og.lib!$outputLibPath,
-                   fmt, humon, c]
+                   fmt, humon,
+                   glfw, vulkan, dl, pthread, X11, Xxf86vm, Xrandr, Xi,
+                   c]
         }
     }
 

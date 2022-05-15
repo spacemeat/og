@@ -1,5 +1,6 @@
 @{app: og type: og.engine.appConfig }
 {
+    name: 'a prog called test'
     loggerConfigPath: ./loggers.hu
     engineConfigPath: ./engine.hu
 }
