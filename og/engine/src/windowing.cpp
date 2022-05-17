@@ -12,6 +12,28 @@ namespace og
         glfwInit();
     }
 
+    bool Engine::anyWindowViews()
+    {
+        for (int i = 0; i < views.size(); ++i)
+        {
+            if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
+                { return true; }
+        }
+
+        return false;
+    }
+
+    bool Engine::anyVulkanWindowViews()
+    {
+        for (int i = 0; i < views.size(); ++i)
+        {
+            if (auto const v = std::get_if<engine::windowConfig_t>(& config.get_views()[i]); v->get_provideVulkanSurface())
+                { return true; }
+        }
+
+        return false;
+    }
+
     void Engine::initWindow(int view, std::string const & appName)
     {
         auto const & viewObj = config.get_views()[view];
@@ -42,7 +64,7 @@ namespace og
             { throw Ex(fmt::format("Could not create window for view {}", view)); }
 
         int w, h;
-        glfwGetWindowSize(window, &w, &h);
+        glfwGetWindowSize(window, & w, & h);
 
         views[view] = { window, {w, h} };
         numActiveWindows += 1;
@@ -98,7 +120,7 @@ namespace og
         }
 
         int w, h;
-        glfwGetWindowSize(window, &w, &h);
+        glfwGetWindowSize(window, & w, & h);
         views[view] = { window, {w, h} };
     }
 
@@ -156,6 +178,11 @@ namespace og
     {
         auto & window = views[view].window;
         return glfwWindowShouldClose(window);
+    }
+
+    bool Engine::glfwSupportsVulkan()
+    {
+        return glfwVulkanSupported() == GLFW_TRUE;
     }
 
     char const ** Engine::getVkExtensionsForGlfw(uint32_t * count)

@@ -28,7 +28,17 @@ namespace og
 
         initVkInstance(appName, appVersion);
         initVkDevices();
-        initWindowEnvironment();
+
+        if (anyWindowViews())
+        {
+            initWindowEnvironment();
+
+            if (anyVulkanWindowViews() && glfwSupportsVulkan() == false)
+            {
+                Ex("GLFW doesn't support vulkan. Unable to create view(s).");
+            }
+        }
+
         initViews(appName);
     }
 

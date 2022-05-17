@@ -16,24 +16,35 @@ namespace og
             ),
             .apiVersion = VK_API_VERSION_1_3 };
 
-
-        std::vector<ExtensionInfo> requiredExtensions;
+        std::vector<RequirementInfo> requiredExtensions;
         checkExtensionRequirements(requiredExtensions);
         std::vector<char const *> extsToLoad { };
         for (auto & re : requiredExtensions)
             { extsToLoad.push_back(re.name.data()); }
 
+        std::vector<RequirementInfo> requiredLayers;
+        checkLayerRequirements(requiredLayers);
+        std::vector<char const *> layersToLoad { };
+        for (auto & re : requiredLayers)
+            { layersToLoad.push_back(re.name.data()); }
+
+        for (auto & re : requiredExtensions)
+            { log(fmt::format("using extension: {}", re.name)); }
+
+        for (auto & re : requiredLayers)
+            { log(fmt::format("using layer: {}", re.name)); }
+
         VkInstanceCreateInfo vici {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pApplicationInfo = & vai,
-            .enabledLayerCount = 0,         // ABOUT TO FIX THIS
-            .ppEnabledLayerNames = nullptr, // ABOUT TO FIX THIS
+            .enabledLayerCount = static_cast<uint32_t>(layersToLoad.size()),
+            .ppEnabledLayerNames = layersToLoad.data(),
             .enabledExtensionCount = static_cast<uint32_t>(extsToLoad.size()),
             .ppEnabledExtensionNames = extsToLoad.data()
         };
 
         VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
-        log("Vulkan instance created.");
+        log("vulkan instance created.");
     }
 
     void Engine::destroyVkInstance()
@@ -42,23 +53,23 @@ namespace og
         vkInstance = nullptr;
     }
 
-    void Engine::checkExtensionRequirements(std::vector<ExtensionInfo> & extensionReqs)
+    void Engine::checkExtensionRequirements(std::vector<RequirementInfo> & extensionReqs)
     {
         uint32_t glfwExtensionCount = 0;
         char const ** glfwExtensions;
         glfwExtensions = getVkExtensionsForGlfw(& glfwExtensionCount);
         for (int i = 0; i < glfwExtensionCount; ++i)
-            { extensionReqs.push_back( { glfwExtensions[i] } ); }
+            { extensionReqs.push_back( { glfwExtensions[i] } ); log(fmt::format("GLFW extension requirement: {}", glfwExtensions[i])); }
 
-        getVkRequiredExtensionFromConfig(extensionReqs);
+        getVkRequiredReqsFromConfig(config.get_vulkanRequirements().get_extensionNeeds(), extensionReqs);
 
         std::sort(begin(extensionReqs), end(extensionReqs),
-                  [](ExtensionInfo & a, ExtensionInfo & b)
+                  [](RequirementInfo & a, RequirementInfo & b)
                     { return a.name < b.name; });
 
         if (confirmExtensions(extensionReqs) == false)
         {
-            log("Some extension requirements could not be met:");
+            log("Some vulkan extension requirements could not be met:");
             for (const auto & re : extensionReqs)
             {
                 if (re.needsMet == false)
@@ -80,26 +91,60 @@ namespace og
         }
     }
 
-    void Engine::getVkRequiredExtensionFromConfig(std::vector<ExtensionInfo> & extensionReqs)
+    void Engine::checkLayerRequirements(std::vector<RequirementInfo> & layerReqs)
     {
-        for (auto const & need : config.get_vulkanRequirements().get_extensionNeeds())
+        getVkRequiredReqsFromConfig(config.get_vulkanRequirements().get_layerNeeds(), layerReqs);
+
+        std::sort(begin(layerReqs), end(layerReqs),
+                  [](RequirementInfo & a, RequirementInfo & b)
+                    { return a.name < b.name; });
+
+        if (confirmLayers(layerReqs) == false)
+        {
+            log("Some vulkan layer requirements could not be met:");
+            for (const auto & re : layerReqs)
+            {
+                if (re.needsMet == false)
+                {
+                    if (re.installedVersion != 0)
+                    {
+                        log(fmt::format("  {} - installed version: {}.{}.{}", re.name,
+                            VK_API_VERSION_MAJOR(re.installedVersion),
+                            VK_API_VERSION_MINOR(re.installedVersion),
+                            VK_API_VERSION_PATCH(re.installedVersion)));
+                    }
+                    else
+                    {
+                        log(fmt::format("  {} - not installed", re.name));
+                    }
+                }
+            }
+            throw Ex("Could not create vulkan instance.");
+        }
+    }
+
+    void Engine::getVkRequiredReqsFromConfig(
+        std::vector<vkRequirements::requirementRef> const & configReqs,
+        std::vector<RequirementInfo> & returnedReqs)
+    {
+        for (auto const & need : configReqs)
         {
             auto const & name = need.get_name();
             auto const & versionReqs = need.get_versionReqs();
 
-            ExtensionInfo * pei;
-            auto extensionIt = std::find_if(begin(extensionReqs), end(extensionReqs),
+            RequirementInfo * pei;
+            auto extensionIt = std::find_if(begin(returnedReqs), end(returnedReqs),
                                             [name](auto & ext){ return ext.name == name; });
-            if (extensionIt != end(extensionReqs))
+            if (extensionIt != end(returnedReqs))
             {
                 pei = &(* extensionIt);
             }
             else
             {
-                ExtensionInfo ei = { .name = name };
+                RequirementInfo ei = { .name = name };
 
-                extensionReqs.push_back(std::move(ei));
-                pei = & extensionReqs[extensionReqs.size() - 1];
+                returnedReqs.push_back(std::move(ei));
+                pei = & returnedReqs[returnedReqs.size() - 1];
             }
 
             if (versionReqs.has_value())
@@ -137,33 +182,59 @@ namespace og
 
     }
 
-    bool Engine::confirmExtensions(std::vector<ExtensionInfo> & extensionReqs)
+    bool Engine::confirmExtensions(std::vector<RequirementInfo> & extensionReqs)
     {
         uint32_t count = 0;
         vkEnumerateInstanceExtensionProperties(nullptr, & count, nullptr);
         std::vector<VkExtensionProperties> extensions(count);
         vkEnumerateInstanceExtensionProperties(nullptr, & count, extensions.data());
 
-        std::sort(begin(extensions), end(extensions),
-                  [](VkExtensionProperties & a, VkExtensionProperties & b)
-                    { return std::string_view(a.extensionName, strlen(a.extensionName)) <
-                             std::string_view(b.extensionName, strlen(b.extensionName)); });
+        return confirmRequirements(extensionReqs, extensions);
+    }
 
-        int installedExtIdx = 0;
-        int requiredExtIdx = 0;
-        for (int installedExtIdx = 0; installedExtIdx < count; ++installedExtIdx)
+    bool Engine::confirmLayers(std::vector<RequirementInfo> & layerReqs)
+    {
+        uint32_t count = 0;
+        vkEnumerateInstanceLayerProperties(& count, nullptr);
+        std::vector<VkLayerProperties> layers(count);
+        vkEnumerateInstanceLayerProperties(& count, layers.data());
+
+        return confirmRequirements(layerReqs, layers);
+    }
+
+    char const * getInstalledObjectName(VkExtensionProperties const & obj) { return obj.extensionName; }
+    char const * getInstalledObjectName(VkLayerProperties const & obj) { return obj.layerName; }
+
+    char const * getGeneralObjectLabel([[maybe_unused]] VkExtensionProperties const & obj) { return "extension"; }
+    char const * getGeneralObjectLabel([[maybe_unused]] VkLayerProperties const & obj) { return "layer"; }
+
+    template<class InfoType, class InstalledType>
+    bool Engine::confirmRequirements(std::vector<InfoType> & reqs, std::vector<InstalledType> & installed)
+    {
+        std::sort(begin(installed), end(installed),
+                  [](InstalledType & a, InstalledType & b)
+                    {
+                        auto an = getInstalledObjectName(a);
+                        auto bn = getInstalledObjectName(b);
+                        return std::string_view(an, strlen(an)) <
+                               std::string_view(bn, strlen(bn)); });
+
+        int requiredIdx = 0;
+        for (int installedIdx = 0; installedIdx < installed.size(); ++installedIdx)
         {
-            auto const & ie = extensions[installedExtIdx];
-            log(fmt::format("extension found: {} version: {}.{}.{}", ie.extensionName,
+            auto const & ie = installed[installedIdx];
+            char const * name = getInstalledObjectName(ie);
+            log(fmt::format("vulkan {} found: {} version: {}.{}.{}",
+                getGeneralObjectLabel(ie), name,
                 VK_API_VERSION_MAJOR(ie.specVersion),
                 VK_API_VERSION_MINOR(ie.specVersion),
                 VK_API_VERSION_PATCH(ie.specVersion)));
 
-            if (requiredExtIdx >= extensionReqs.size())
+            if (requiredIdx >= reqs.size())
                 { continue; }
 
-            auto & re = extensionReqs[requiredExtIdx];
-            if (ie.extensionName == re.name)
+            auto & re = reqs[requiredIdx];
+            if (name == re.name)
             {
                 re.needsMet = true;
                 for (auto const & req : re.versionReqs)
@@ -181,7 +252,7 @@ namespace og
                         re.needsMet = re.needsMet && ie.specVersion > version;
                         break;
                     case vkRequirements::reqOperator::in:
-                        throw Ex("Absurd operator 'in' in vulkan extension version requirement.");
+                        throw Ex("Absurd operator 'in' in vulkan requirement.");
                     case vkRequirements::reqOperator::le:
                         re.needsMet = re.needsMet && ie.specVersion <= version;
                         break;
@@ -193,15 +264,15 @@ namespace og
                         break;
                     }
                 }
-                requiredExtIdx += 1;
+                requiredIdx += 1;
             }
-            else if (std::string_view(ie.extensionName, strlen(ie.extensionName)) > re.name)
+            else if (std::string_view(name, strlen(name)) > re.name)
             {
-                requiredExtIdx += 1;
+                requiredIdx += 1;
             }
         }
 
-        for (auto const & req : extensionReqs)
+        for (auto const & req : reqs)
         {
             if (req.needsMet == false)
                 { return false; }

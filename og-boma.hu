@@ -118,6 +118,7 @@
                 defaultMonitor: { type: optional of: int }
                 screenFormat: { type: optional of: VkFormat }
                 refreshRate: { type: optional of: int }
+                provideVulkanSurface: { type: bool default: true }
             }
             hmdConfig_t: {
                 active: { type: bool default: false }
@@ -146,12 +147,13 @@
                                 reqOperator,
                                 { type: array of: [int, 3]}]}}}
 
-                extensionNeeds: { type: vector of: extensionRef }
-                instanceNeeds: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
+                extensionNeeds: { type: vector of: requirementRef }
+                layerNeeds:     { type: vector of: requirementRef }
+                instanceNeeds:  { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
                 //wants: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
             }
 
-            extensionRef: {
+            requirementRef: {
                 name: string
                 versionReqs: {
                     type: optional of: {
