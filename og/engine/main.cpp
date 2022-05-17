@@ -14,6 +14,12 @@ namespace og
         e.emplace(engineConfigPath);
     }
 
+    void unmakeSingletons()
+    {
+        e = {};
+        l = {};
+    }
+
     engine::appConfig getAppConfig(std::string_view appConfigPath)
     {
         auto tr = hu::Trove::fromFile(appConfigPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
@@ -40,10 +46,12 @@ int main(int argc, char * argv[])
         makeSingletons(appConfig.get_loggerConfigPath(),
                        appConfig.get_engineConfigPath());
 
-        e->init(appConfig);
+        e->init(std::string { appConfig.get_name() }, appConfig.get_version());
         e->enterLoop();
 
-        std::cout << "Ended loop.\n";
+        std::cout << "Ended loop. Shutting down.\n";
+
+        e->shutdown();
     }
     catch (Ex & ex)
     {
@@ -64,5 +72,6 @@ int main(int argc, char * argv[])
         std::cout << "house exception\n";
     }
 
+    unmakeSingletons();
     std::cout << "Donezo.\n";
 }

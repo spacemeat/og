@@ -119,6 +119,40 @@
         }
     }
 
+    --vkRequirements: {
+        version: 0.0.1
+        includeDirs: [
+            'og/vkRequirements/gen/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: vkRequirements
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'og/vkRequirements/gen/src/*.cpp'
+                //'og/vkRequirements/src/*.cpp'
+            ]
+        }
+        --test: {
+            buildType: exe
+            outputDir: $testDir
+            outputName: test.vkRequirements
+            sources: [
+                'og/vkRequirements/main.cpp'
+            ]
+            libDirs: [$libDir]
+            libs: [!..lib!$outputLibPath,
+                   !...logger.lib!$outputLibPath,
+                   !...og.lib!$outputLibPath,
+                   fmt, humon,
+                   glfw, vulkan, dl, pthread, X11, Xxf86vm, Xrandr, Xi,
+                   c]
+        }
+    }
+
     --engine: {
         version: 0.0.1
         includeDirs: [
@@ -155,6 +189,7 @@
             ]
             libDirs: [$libDir]
             libs: [!..lib!$outputLibPath,
+                   !...vkRequirements.lib!$outputLibPath,
                    !...assetDb.lib!$outputLibPath,
                    !...logger.lib!$outputLibPath,
                    !...og.lib!$outputLibPath,

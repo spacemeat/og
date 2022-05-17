@@ -20,7 +20,7 @@ namespace og
             return false;
         }
 
-        log("das loop()!");
+        //log("das loop()!");
         return true;
     }
 }

@@ -1,6 +1,7 @@
 #include "../inc/engine.hpp"
 #include <fmt/format.h>
 #include <thread>
+#include "../../logger/inc/logger.hpp"
 
 using namespace std::chrono_literals;
 
@@ -155,5 +156,35 @@ namespace og
     {
         auto & window = views[view].window;
         return glfwWindowShouldClose(window);
+    }
+
+    char const ** Engine::getVkExtensionsForGlfw(uint32_t * count)
+    {
+        * count = 0;
+
+        bool usingGlfw = false;
+        for (int i = 0; i < views.size(); ++i)
+        {
+            if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
+            {
+                usingGlfw = true;
+                break;
+            }
+        }
+
+        if (usingGlfw)
+        {
+            char const ** extensions;
+            extensions = glfwGetRequiredInstanceExtensions(count);
+
+            for (int i = 0; i < * count; ++i)
+            {
+                log(fmt::format("Extension required for GLFW: {}\n", extensions[i]));
+            }
+
+            return extensions;
+        }
+
+        return nullptr;
     }
 }

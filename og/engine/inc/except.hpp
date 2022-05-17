@@ -3,6 +3,7 @@
 #include <exception>
 #include <experimental/source_location>
 #include <string_view>
+#include <vulkan/vulkan.h>
 
 namespace og
 {
@@ -20,4 +21,14 @@ namespace og
     private:
         src_loc loc;
     };
+
+    static VkResult VKR(VkResult result, const src_loc & loc = src_loc::current())
+    {
+        if (static_cast<std::underlying_type_t<VkResult>>(result) < 0)
+        {
+            throw Ex(fmt::format("Vk error: {}", result), loc);
+        }
+
+        return result;
+    }
 }

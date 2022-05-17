@@ -10,7 +10,6 @@ namespace og
         if (auto t = std::get_if<hu::Trove>(& tr))
         {
             config = og::engine::engineConfig { t->root() };
-            config.get_version();
         }
         else
         {
@@ -20,21 +19,21 @@ namespace og
 
     Engine::~Engine()
     {
-        for (int i = 0; i < views.size(); ++i)
-        {
-            if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
-            {
-                destroyWindow(i);
-            }
-        }
+        shutdown();
     }
 
-    void Engine::init(engine::appConfig const & appConfig)
+    void Engine::init(std::string const & appName, std::array<int, 3> const & appVersion)
     {
         log("engine init");
 
+        initVkInstance(appName, appVersion);
+        initVkDevices();
         initWindowEnvironment();
+        initViews(appName);
+    }
 
+    void Engine::initViews(std::string const & appName)
+    {
         auto const & viewConfigs = config.get_views();
         views.resize(viewConfigs.size());
         for (int i = 0; i < viewConfigs.size(); ++i)
@@ -44,12 +43,26 @@ namespace og
             if (std::holds_alternative<engine::windowConfig_t>(viewConfig))
             {
                 log(fmt::format("view is windowed"));
-                initWindow(i, std::string { appConfig.get_name() });
+                initWindow(i, std::string { appName });
             }
             else
             {
                 // initHmd(i, ...);
             }
         }
+    }
+
+    void Engine::shutdown()
+    {
+        for (int i = 0; i < views.size(); ++i)
+        {
+            if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
+            {
+                destroyWindow(i);
+            }
+        }
+
+        if (vkInstance)
+            { destroyVkInstance(); }
     }
 }

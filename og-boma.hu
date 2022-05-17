@@ -3,6 +3,7 @@
     inherit: [cpp17, vulkan]
     namespace: og
     projectNamespace: og
+    const: east
     anchor: [project, vulkanEnums]
     defaultConstructible: true
     genDir:                 $baseDir/$namespaceForFs/gen
@@ -106,6 +107,7 @@
             engineConfig: {
                 version: { type: array of: [int, 3] }
                 vulkanVersion: { type: optional of: { type: array of: [int, 3] } }   // null means detect the best available
+                vulkanRequirements: vkRequirements
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
             }
             windowConfig_t: {
@@ -120,6 +122,43 @@
             hmdConfig_t: {
                 active: { type: bool default: false }
                 screenFormat: { type: optional of: VkFormat }
+            }
+
+
+        }
+    }
+
+    --vkRequirements: {
+        namespace: og.vkRequirements
+
+        serializeTo: [humon]
+        deserializeFrom: [humon]
+
+        enums: {
+            reqOperator: [in, eq, ne, lt, gt, le, ge]
+        }
+        types: {
+            vkRequirements: {
+                versionReqs: {
+                    type: optional of: {
+                        type: vector of: {
+                            type: tuple of: [
+                                reqOperator,
+                                { type: array of: [int, 3]}]}}}
+
+                extensionNeeds: { type: vector of: extensionRef }
+                instanceNeeds: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
+                //wants: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
+            }
+
+            extensionRef: {
+                name: string
+                versionReqs: {
+                    type: optional of: {
+                        type: vector of: {
+                            type: tuple of: [
+                                reqOperator,
+                                { type: array of: [int, 3]}]}}}
             }
         }
     }
