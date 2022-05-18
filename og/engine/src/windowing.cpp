@@ -14,7 +14,7 @@ namespace og
 
     bool Engine::anyWindowViews()
     {
-        for (int i = 0; i < views.size(); ++i)
+        for (int i = 0; i < config.get_views().size(); ++i)
         {
             if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
                 { return true; }
@@ -25,7 +25,7 @@ namespace og
 
     bool Engine::anyVulkanWindowViews()
     {
-        for (int i = 0; i < views.size(); ++i)
+        for (int i = 0; i < config.get_views().size(); ++i)
         {
             if (auto const v = std::get_if<engine::windowConfig_t>(& config.get_views()[i]); v->get_provideVulkanSurface())
                 { return true; }
@@ -69,7 +69,6 @@ namespace og
         views[view] = { window, {w, h} };
         numActiveWindows += 1;
     }
-
 
     void Engine::updateWindow(int view, engine::windowConfig_t const & newWinConfig)
     {
@@ -189,29 +188,14 @@ namespace og
     {
         * count = 0;
 
-        bool usingGlfw = false;
-        for (int i = 0; i < views.size(); ++i)
+        char const ** extensions;
+        extensions = glfwGetRequiredInstanceExtensions(count);
+
+        for (int i = 0; i < * count; ++i)
         {
-            if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
-            {
-                usingGlfw = true;
-                break;
-            }
+            log(fmt::format("Extension required for GLFW: {}\n", extensions[i]));
         }
 
-        if (usingGlfw)
-        {
-            char const ** extensions;
-            extensions = glfwGetRequiredInstanceExtensions(count);
-
-            for (int i = 0; i < * count; ++i)
-            {
-                log(fmt::format("Extension required for GLFW: {}\n", extensions[i]));
-            }
-
-            return extensions;
-        }
-
-        return nullptr;
+        return extensions;
     }
 }

@@ -55,11 +55,14 @@ namespace og
 
     void Engine::checkExtensionRequirements(std::vector<RequirementInfo> & extensionReqs)
     {
-        uint32_t glfwExtensionCount = 0;
-        char const ** glfwExtensions;
-        glfwExtensions = getVkExtensionsForGlfw(& glfwExtensionCount);
-        for (int i = 0; i < glfwExtensionCount; ++i)
-            { extensionReqs.push_back( { glfwExtensions[i] } ); log(fmt::format("GLFW extension requirement: {}", glfwExtensions[i])); }
+        if (anyVulkanWindowViews())
+        {
+            uint32_t glfwExtensionCount = 0;
+            char const ** glfwExtensions;
+            glfwExtensions = getVkExtensionsForGlfw(& glfwExtensionCount);
+            for (int i = 0; i < glfwExtensionCount; ++i)
+                { extensionReqs.push_back( { glfwExtensions[i] } ); log(fmt::format("GLFW extension requirement: {}", glfwExtensions[i])); }
+        }
 
         getVkRequiredReqsFromConfig(config.get_vulkanRequirements().get_extensionNeeds(), extensionReqs);
 
