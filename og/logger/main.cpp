@@ -12,13 +12,13 @@ int main(int argc, char** argv)
 
     try
     {
-        l->log(0, "Hello, world!");
-        l->log(2, "Hello, warning!");
-        l->log(1, "Hello, error!");
+        log("Hello, world!");
+        log(logger::logTags::warn, "Hello, warning!");
+        log(logger::logTags::error, "Hello, error!");
     }
-    catch (std::exception const & e)
+    catch (std::exception const & ex)
     {
-        std::cout << "Exception thrown: " << e.what() << "\n";
+        std::cout << "Exception thrown: " << ex.what() << "\n";
     }
 
     return 0;

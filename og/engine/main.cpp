@@ -56,14 +56,14 @@ int main(int argc, char * argv[])
     catch (Ex & ex)
     {
         if (l)
-            { logErr(ex.what(), ex.location()); }
+            { log(logger::logTags::error, ex.what(), ex.location()); }
         else
             { std::cout << ex.what() << "\n"; }
     }
     catch (std::exception & ex)
     {
         if (l)
-            { logErr(ex.what()); }
+            { log(logger::logTags::error, ex.what()); }
         else
             { std::cout << ex.what() << "\n"; }
     }

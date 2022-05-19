@@ -12,53 +12,48 @@
     --logger: {
         namespace: og.logger
         deserializeFrom: [humon]
-        //include: ['og/logger/inc/Logger.hpp']
 
-        enumFlags: true
+        enumFlags: false
+
         copy: delete
-        //move: delete
+
+        --logTagEnums: {
+            namespace: og.logger
+            enumFlags: true
+            enums: {
+                logTags: [
+                    error, warn
+                    status, assetDb, featureDb, tableau
+                    vulkan, validation
+
+                    [graphics [error warn vulkan validation]]
+                ]
+            }
+        }
 
         enums: {
-            logTag: [
-                error, warn
-                phase, assetDb, featureDb, tableau
-                vulkan, validation
-
-                //graphics = [error warn vulkan validation]
-            ]
-            //speakerTypes: []
-            logPart: [
-                logId, logName, time, message, file, line, col, fname, end, numParts
+            logParts: [
+                time, message, file, line, col, fname, end, numParts
             ]
         }
 
         types: {
             loggerConfig: {
                 version: { type: array of: [int, 3] }
-                //-deriveFrom: 'Logger<logger, speaker, logPart>'
-                speakers: { type: vector of: speaker }
                 listeners: { type: vector of: listener }
                 colors: { type: unorderedMap of: [
                         string
                         { type: array of:
                             [uint8_t, 3] } ] }
             }
-            speaker: {
-                //-deriveFrom: 'Speaker<speaker, logPart>'
-                name: string
-                color: string
-                tags: logTag
-            }
             listener: {
-                //-deriveFrom: 'Listener<listener, speaker, logPart>'
-                //-knows: [speaker, logPart]
-                interests: logTag
-                //activeParts: logPart
+                interests: logTags
                 logPath: string     // 'stderr' and 'stdout' are special
                 colors: { type: optional of: {
-                        type: unorderedMap of: [logPart, string] } }
+                        type: unorderedMap of: [logParts, string] } }
+                bgColor: { type: optional of: string }
                 format: string
-                retainHistory: bool
+                retainHistory: { type: bool default: true }
             }
         }
     }
@@ -92,6 +87,8 @@
 
         serializeTo: [humon]
         deserializeFrom: [humon]
+
+        enumFlags: false
 
         enums: {
             windowMode: [headless, windowed, fullScreen]
@@ -134,6 +131,8 @@
 
         serializeTo: [humon]
         deserializeFrom: [humon]
+
+        enumFlags: false
 
         enums: {
             reqOperator: [in, eq, ne, lt, gt, le, ge]
@@ -190,6 +189,8 @@
 
         serializeTo: [humon]
         deserializeFrom: [humon]
+
+        enumFlags: false
 
         enums: {
             stepKind: [computePass, renderPass, namedStep]
@@ -310,6 +311,8 @@
         serializeTo: [humon]
         deserializeFrom: [humon]
 
+        enumFlags: false
+
         enums: {
             assetKind: [ mesh ]
         }
@@ -415,6 +418,12 @@
 
     --asset_mesh: {
         namespace: og.assets.mesh
+
+        serializeTo: [humon]
+        deserializeFrom: [humon]
+
+        enumFlags: false
+
         enums: {
             vertexElementType:  [ float32, float64,
                                 int8, int16, int32, int64,

@@ -9,10 +9,11 @@ namespace og
         auto tr = hu::Trove::fromFile(loggerConfigPath);
         if (auto && t = std::get_if<hu::Trove>(& tr))
         {
-            logger = og::logger::loggerConfig(t->root());
+            config = og::logger::loggerConfig(t->root());
 
-            auto & colorTable = logger.get_colors();
+            auto & colorTable = config.get_colors();
 
+            /*
             auto numSpeakers = logger.get_speakers().size();
             bgColorsFormatted.resize(numSpeakers);
             for (int i = 0; i < numSpeakers; ++i)
@@ -24,12 +25,13 @@ namespace og
                 bgColorsFormatted[i] = fmt::format("\x1b[48;2;{};{};{}m",
                     color[0], color[1], color[2]);
             }
+            */
 
-            auto numListeners = logger.get_listeners().size();
+            auto numListeners = config.get_listeners().size();
             listeners.resize(numListeners);
             for (int i = 0; i < numListeners; ++i)
             {
-                listeners[i].init(logger.get_listeners()[i], colorTable);
+                listeners[i].init(config.get_listeners()[i], colorTable);
             }
         }
         else
@@ -41,9 +43,9 @@ namespace og
 
     void newListener::init(logger::listener const & listener, newListener::colorTableType const & colorTable)
     {
-        using LogPartInt = std::underlying_type<logger::logPart>::type;
+        using LogPartInt = std::underlying_type<logger::logParts>::type;
 
-        auto & logPath = listener.get_logPath();
+        auto const & logPath = listener.get_logPath();
         if (logPath == "stdout")
             { usingStdout = true; }
         else if (logPath == "stderr")
@@ -53,62 +55,69 @@ namespace og
             auto mode = listener.get_retainHistory() ?
                 std::ios_base::app :
                 std::ios_base::out;
-            logFile = std::make_unique<std::ofstream>(logPath, mode);
+            logFile = std::make_unique<std::ofstream>(std::string { logPath }, mode);
         }
 
         colorsFormatted.resize(
-            static_cast<LogPartInt>(logger::logPart::numParts));
+            static_cast<LogPartInt>(logger::logParts::numParts));
 
-        auto & colors = listener.get_colors();
+        auto const & colors = listener.get_colors();
         if (colors.has_value())
         {
-            for (auto && c: *colors)
+            for (auto const & c: * colors)
             {
-                auto & colorName = c.second;
-                auto & color = colorTable.at(colorName);
+                auto const & colorName = c.second;
+                auto const & color = colorTable.at(colorName);
                 LogPartInt i = static_cast<LogPartInt>(c.first);
                 colorsFormatted[i] = fmt::format("\x1b[38;2;{};{};{}m",
                     color[0], color[1], color[2]);
             }
 
-            colorsFormatted[static_cast<LogPartInt>(logger::logPart::end)] = "\x1b[0m";
+            colorsFormatted[static_cast<LogPartInt>(logger::logParts::end)] = "\x1b[0m";
+        }
+
+        auto const & bgColorName = listener.get_bgColor();
+        if (bgColorName.has_value())
+        {
+            auto const & bgColor = colorTable.at(* bgColorName);
+            bgColorFormatted = fmt::format("\x1b[48;2;{};{};{}m",
+                bgColor[0], bgColor[1], bgColor[2]);
+        }
+        else
+        {
+            bgColorFormatted = "\x1b[48;2;0;0;0m";
         }
     }
 
 
-    void Logger::log(int speakerId,
+    void Logger::log(logger::logTags tags,
                 std::string_view message,
                 const src_loc & loc)
     {
         auto time_placeholder = std::string_view("time");
-        auto & speaker = logger.get_speakers()[speakerId];
-        auto const & name = speaker.get_name();
-        auto const & tags = speaker.get_tags();
+        //auto & speaker = logger.get_speakers()[speakerId];
+        //auto const & name = speaker.get_name();
+        //auto const & tags = speaker.get_tags();
 
-        using LogPartInt = std::underlying_type<logger::logPart>::type;
+        using LogPartInt = std::underlying_type_t<logger::logParts>;
 
         for (int i = 0; i < listeners.size(); ++i)
         {
-            auto & genListener = logger.get_listeners()[i];
+            auto const & genListener = config.get_listeners()[i];
             auto & listener = listeners[i];
             if (static_cast<LogPartInt>(genListener.get_interests())
               & static_cast<LogPartInt>(tags))
             {
                 auto const & format = genListener.get_format();
-                auto bg = bgColorsFormatted[speakerId];
                 auto fullMessage = fmt::format(format,
-                    fmt::arg("beg", bg),
-                    fmt::arg("ic", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::logId)]),
-                    fmt::arg("nc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::logName)]),
-                    fmt::arg("tc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::time)]),
-                    fmt::arg("mc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::message)]),
-                    fmt::arg("fic", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::file)]),
-                    fmt::arg("lc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::line)]),
-                    fmt::arg("cc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::col)]),
-                    fmt::arg("fnc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::fname)]),
-                    fmt::arg("end", listener.colorsFormatted[static_cast<LogPartInt>(logger::logPart::end)]),
-                    fmt::arg("logId", speakerId),
-                    fmt::arg("logName", name),
+                    fmt::arg("beg", listener.bgColorFormatted),
+                    fmt::arg("tc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::time)]),
+                    fmt::arg("mc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::message)]),
+                    fmt::arg("fic", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::file)]),
+                    fmt::arg("lc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::line)]),
+                    fmt::arg("cc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::col)]),
+                    fmt::arg("fnc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::fname)]),
+                    fmt::arg("end", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::end)]),
                     fmt::arg("time", time_placeholder),
                     fmt::arg("message", message),
                     fmt::arg("file", loc.file_name()),
@@ -132,28 +141,16 @@ namespace og
         }
     }
 
-    void log(int speakerId,
+    void log(logger::logTags tags,
              std::string_view message,
              const src_loc & loc)
     {
-        l->log(speakerId, message, loc);
+        l->log(tags, message, loc);
     }
 
     void log(std::string_view message,
              const src_loc & loc)
     {
-        l->log(0, message, loc);
-    }
-
-    void logErr(std::string_view message,
-             const src_loc & loc)
-    {
-        l->log(1, message, loc);
-    }
-
-    void logWarn(std::string_view message,
-             const src_loc & loc)
-    {
-        l->log(2, message, loc);
+        l->log(logger::logTags::status, message, loc);
     }
 }

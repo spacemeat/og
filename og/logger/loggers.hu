@@ -1,6 +1,7 @@
 @ {}
 
 {
+    /*
     speakers: [ {
             name: main
             color: black
@@ -13,65 +14,89 @@
             tags: [error]
         }, {
             name: warn
-            color: darkellow
+            color: darkYellow
             tags: [warn]
         }
     ]
+    */
 
     listeners: [ {
-            interests: [error, warn]
-            //activeParts: [logId, logName, time, message, file, line, col, fname]
-            logFile: stderr
+            interests: [warn]
+            logPath: stderr
             colors: {
-                logId:      highYellow
-                logName:    highCyan
                 time:       midGray
                 message:    highGray
-                file:       darkGray
+                file:       saturatedCyan
                 line:       midGray
                 col:        darkGray
-                fname:      darkMagenta
+                fname:      highMagenta
             }
+            bgColor: darkYellow
+            format_future: ^^
+{beg}{tc}{time:%H:%M:%S} {fnc}{fname}{fic}
+{file}({line}): {mc}{message}{end}
+^^
             format: ^^
-{ic}{logId:2} {tc}{time::%H:%M:%S} {fnc}{fname}{end}
-{file}({line}): {mc}{message}{end}^^
+{beg}{tc}{time} {fnc}{fname}{fic}
+{file}({line}): {mc}{message}{end}
+^^
         }, {
-            interests: [phase,
+            interests: [error]
+            logPath: stderr
+            colors: {
+                time:       midGray
+                message:    highGray
+                file:       saturatedCyan
+                line:       midGray
+                col:        darkGray
+                fname:      highMagenta
+            }
+            bgColor: darkRed
+            format_future: ^^
+{beg}{tc}{time:%H:%M:%S} {fnc}{fname}{fic}
+{file}({line}): {mc}{message}{end}
+^^
+            format: ^^
+{beg}{tc}{time} {fnc}{fname}{fic}
+{file}({line}): {mc}{message}{end}
+^^
+        }, {
+            interests: [status,
                        assetDb, featureDb, tableau,
                        vulkan, validation]
-            //activeParts: [logId, logName, time, message, file, line, col, fname]
-            logFile: stdout
+            logPath: stdout
             colors: {
-                logId:      highYellow
-                logName:    highCyan
                 time:       midGray
                 message:    highGray
                 file:       darkGray
                 line:       midGray
                 col:        darkGray
-                fname:      darkMagenta
+                fname:      highCyan
             }
-            format: '{ic}{logId:2} {tc}{time:%H:%M:%S} {mc}{message}{ec}'
+            format_future: '{beg}{tc}{time:%H:%M:%S} {mc}{message}{end}\n'
+            format: '{beg}{tc}{time} {mc}{message}{end}
+'
         }, {
             interests: [error, warn]
-            //activeParts: [logId, logName, time, message, file, line, col, fname]
-            logFile: logs/error.log
+            logPath: logs/error.log
             retainHistory: false
-            format: '{time:%H:%M:%S} {message} ({fname}: {file}({line}){end}'
+            format_future: '{time:%H:%M:%S} {message} ({fname}: {file}({line})\n'
+            format: '{time} {message} ({fname}: {file}({line})
+'
         }
     ]
 
     colors: {
         black:          [ 0, 0, 0 ]
 
-        darkGray:       [ 7, 7, 7 ]
-        darkRed:        [ 7, 0, 0 ]
-        darkOrange:     [ 7, 3, 0 ]
-        darkYellow:     [ 7, 7, 0 ]
-        darkGreen:      [ 0, 7, 0 ]
-        darkCyan:       [ 0, 7, 7 ]
-        darkBlue:       [ 0, 0, 7 ]
-        darkMagenta:    [ 7, 0, 7 ]
+        darkGray:       [ 15, 15, 15 ]
+        darkRed:        [ 15, 0, 0 ]
+        darkOrange:     [ 15, 7, 0 ]
+        darkYellow:     [ 15, 15, 0 ]
+        darkGreen:      [ 0, 15, 0 ]
+        darkCyan:       [ 0, 15, 15 ]
+        darkBlue:       [ 0, 0, 15 ]
+        darkMagenta:    [ 15, 0, 15 ]
 
         lowGray:       [ 63, 63, 63 ]
         lowRed:        [ 63, 0, 0 ]
@@ -100,7 +125,7 @@
         highBlue:       [ 0, 0, 191 ]
         highMagenta:    [ 191, 0, 191 ]
 
-        brightwhite:    [ 255, 255, 255 ]
+        white:          [ 255, 255, 255 ]
         brightRed:      [ 255, 0, 0 ]
         brightOrange:   [ 255, 127, 0 ]
         brightYellow:   [ 255, 255, 0 ]
@@ -108,5 +133,13 @@
         brightCyan:     [ 0, 25, 255 ]
         brightBlue:     [ 0, 0, 255 ]
         brightMagenta:  [ 255, 0, 255 ]
+
+        saturatedRed:      [ 255, 127, 127 ]
+        saturatedOrange:   [ 255, 127, 127 ]
+        saturatedYellow:   [ 255, 255, 127 ]
+        saturatedGreen:    [ 127, 255, 127 ]
+        saturatedCyan:     [ 127, 255, 255 ]
+        saturatedBlue:     [ 127, 127, 255 ]
+        saturatedMagenta:  [ 255, 127, 255 ]
     }
 }
