@@ -1,0 +1,135 @@
+
+@{ type: engineConfig }
+{
+    version: 0.0.1
+    // We'll use the first profile that passes requiremetns
+    // in the desired group.
+    vkInstanceProfiles: [ {
+            name: debug
+            profiles: [ {
+                    name: v1_3
+                    requires: {
+                        criteria: [ [vulkan ge 1.3.0]
+                                    [VK_EXT_debug_utils in extensions]
+                                    [VK_EXT_debug_report in extensions]
+                                    [VK_LAYER_KHRONOS_validation in layers]
+                        ]
+                    }
+                    desires: {
+                        criteria: [ [VK_LAYER_KHRONOS_synchronization2 in layers]
+                                    [VK_LAYER_MESA_device_select in layers]
+                        ]
+                    }
+                }, {
+                    name: v1_1
+                    requires: {
+                        criteria: [ [vulkan ge 1.1.0]
+                                    [VK_EXT_debug_utils in extensions]
+                                    [VK_EXT_debug_report in extensions]
+                                    [VK_LAYER_KHRONOS_validation in layers]
+                        ]
+                    }
+                    desires: {
+                        criteria: [ [VK_LAYER_MESA_device_select in layers]
+                        ]
+                    }
+                }
+            ]
+            desires: { criteria: [] }
+        }, {
+            name: release
+            profiles: [ {
+                    name: v1_3
+                    requires: {
+                        criteria: [ [vulkan ge 1.3.0] ]
+                    }
+                }, {
+                    name: v1_1
+                    requires: {
+                        criteria: [ [vulkan ge 1.1.0] ]
+                    }
+                }
+            ]
+            desires: { criteria: [] }
+        }
+    ]
+
+    views: [ { @ type: windowConfig_t
+            name: mainWindow
+            mode: windowed
+            position: [300, 300]
+            extents: [800, 600]
+        }
+    ]
+
+    // selects which above profile group to use
+    useVkInstanceProfileGroup: debug
+    vkInstanceDesires: { criteria: [] }
+
+    physicalVkDeviceProfiles: [ {
+            name: graphicsDevices
+            profiles: [ {
+                    name: baller
+                    requires: {
+                        criteria: [ [deviceType eq discrete_gpu]
+                                    [vulkan ge 1.3.0]
+                                    [queueTypes.graphics ge 8]
+                        ]
+                    }
+                    desires: { criteria: [] }
+                }, {
+                    name: highPerf
+                    requires: {
+                        criteria: [ [deviceType eq discrete_gpu]
+                                    [vulkan ge 1.3.0]
+                                    [queueTypes.graphics ge 1]
+                        ]
+                    }
+                    desires: { criteria: [] }
+                }, {
+                    name: feeb
+                    requires: {
+                        criteria: [ [vulkan ge 1.1.0]
+                                    [queueTypes.graphics ge 1]
+                        ]
+                    }
+                }
+            ]
+            desires: { criteria: [queueTypes.graphics le 8] }
+        }, {
+            name: computeDevices
+            profiles: [ {
+                    name: thinkumDinkum
+                    requires: {
+                        criteria: [ [vulkan ge 1.1.0]
+                                    [queueTypes.compute ge 1]
+                        ]
+                    }
+                }
+            ]
+            desires: { criteria: [queueTypes.compute le 8] }
+        }, {
+            name: presentDevices
+            profiles: [ {
+                    name: hellFlipYouForReal
+                    requires: {
+                        criteria: [ [deviceExtension.VK_KHR_swapchain ge 0.0.1]
+                                    [queueTypes.present ge 1] ]
+                    }
+                }
+            ]
+            desires: { criteria: [queueTypes.present eq 1] }
+        }
+    ]
+
+    workUnits: [ {
+            targetViews: {
+                mainWindow: [presentDevices, 1]
+            }
+            tableau: cubeland
+            renderPlan: drawWimple
+            graphicsDevices: [graphicsDevices, 1]
+            computeDevices: [computeDevices, 16]
+        }
+    ]
+}

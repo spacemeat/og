@@ -1,25 +1,6 @@
-@ {}
-
+@ {type: loggerConfig}
 {
-    /*
-    speakers: [ {
-            name: main
-            color: black
-            tags: [phase,
-                   assetDb, featureDb, tableau,
-                   vulkan, validation]
-        }, {
-            name: error
-            color: darkRed
-            tags: [error]
-        }, {
-            name: warn
-            color: darkYellow
-            tags: [warn]
-        }
-    ]
-    */
-
+    version: [0, 0, 1]
     listeners: [ {
             interests: [warn]
             logPath: stderr

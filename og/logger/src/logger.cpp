@@ -6,26 +6,13 @@ namespace og
 {
     Logger::Logger(std::string_view loggerConfigPath)
     {
-        auto tr = hu::Trove::fromFile(loggerConfigPath);
-        if (auto && t = std::get_if<hu::Trove>(& tr))
+        auto tr = hu::Trove::fromFile(loggerConfigPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
+        if (auto t = std::get_if<hu::Trove>(& tr))
         {
-            config = og::logger::loggerConfig(t->root());
+            configTrove = std::move(* t);
+            config = og::logger::loggerConfig(configTrove.root());
 
             auto & colorTable = config.get_colors();
-
-            /*
-            auto numSpeakers = logger.get_speakers().size();
-            bgColorsFormatted.resize(numSpeakers);
-            for (int i = 0; i < numSpeakers; ++i)
-            {
-                auto & speaker = logger.get_speakers()[i];
-                auto const & colorName = speaker.get_color();
-                auto & color = colorTable.at(colorName);
-
-                bgColorsFormatted[i] = fmt::format("\x1b[48;2;{};{};{}m",
-                    color[0], color[1], color[2]);
-            }
-            */
 
             auto numListeners = config.get_listeners().size();
             listeners.resize(numListeners);

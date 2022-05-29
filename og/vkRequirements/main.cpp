@@ -1,4 +1,4 @@
-#include "gen/inc/vkRequirements.hpp"
+#include "gen/inc/properties.hpp"
 
 int main()
 {

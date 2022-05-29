@@ -22,12 +22,11 @@ namespace og
         shutdown();
     }
 
-    void Engine::init(std::string const & appName, std::array<int, 3> const & appVersion)
+    void Engine::init(std::string_view appName, version_t appVersion)
     {
         log("engine init");
 
         initVkInstance(appName, appVersion);
-        initVkDevices();
 
         if (anyWindowViews())
         {
@@ -40,9 +39,12 @@ namespace og
         }
 
         initViews(appName);
+
+        initVkPhysicalDevices();
+
     }
 
-    void Engine::initViews(std::string const & appName)
+    void Engine::initViews(std::string_view appName)
     {
         auto const & viewConfigs = config.get_views();
         views.resize(viewConfigs.size());

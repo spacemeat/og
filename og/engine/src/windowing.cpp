@@ -34,7 +34,7 @@ namespace og
         return false;
     }
 
-    void Engine::initWindow(int view, std::string const & appName)
+    void Engine::initWindow(int view, std::string_view appName)
     {
         auto const & viewObj = config.get_views()[view];
         auto const & winConfig = std::get<engine::windowConfig_t>(viewObj);
@@ -123,7 +123,7 @@ namespace og
         views[view] = { window, {w, h} };
     }
 
-    void Engine::updateWindowTitle(int view, std::string const & name)
+    void Engine::updateWindowTitle(int view, std::string_view name)
     {
         auto window = views[view].window;
         glfwSetWindowTitle(window, name.data());

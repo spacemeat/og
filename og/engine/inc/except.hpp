@@ -22,7 +22,7 @@ namespace og
         src_loc loc;
     };
 
-    static VkResult VKR(VkResult result, const src_loc & loc = src_loc::current())
+    static inline VkResult VKR(VkResult result, const src_loc & loc = src_loc::current())
     {
         if (static_cast<std::underlying_type_t<VkResult>>(result) < 0)
         {

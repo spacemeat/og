@@ -9,12 +9,11 @@
 
 #include "../../gen/inc/og.hpp"
 #include "except.hpp"
+#include "utils.hpp"
 
 
 namespace og
 {
-    using version_t = std::array<int, 3>;
-
     struct DisplayView
     {
         GLFWwindow * window;
@@ -52,18 +51,18 @@ namespace og
         Engine(std::string_view configPath);
         ~Engine();
 
-        void init(std::string const & appName, std::array<int, 3> const & appVersion);
+        void init(std::string_view appName, version_t appVersion);
         void shutdown();
     private:
-        void initViews(std::string const & appName);
+        void initViews(std::string_view appName);
 
 
         void initWindowEnvironment();
         bool anyWindowViews();
         bool anyVulkanWindowViews();
-        void initWindow(int view, std::string const & appName);
+        void initWindow(int view, std::string_view appName);
         void updateWindow(int view, engine::windowConfig_t const & winConfig);
-        void updateWindowTitle(int view, std::string const & name);
+        void updateWindowTitle(int view, std::string_view name);
         void destroyWindow(int view);
         bool iterateWindowsLoop();
         bool iterateWindowsLoop(int view);
@@ -77,18 +76,19 @@ namespace og
     private:
         bool iterateLoop();
 
-        void initVkInstance(std::string const & appName, std::array<int, 3> const & appVersion);
+        void initVkInstance(std::string_view appName, version_t appVersion);
         void destroyVkInstance();
         void checkExtensionRequirements(std::vector<RequirementInfo> & requiredExtensions);
         void checkLayerRequirements(std::vector<RequirementInfo> & layerReqs);
-        void getVkRequiredReqsFromConfig(std::vector<vkRequirements::requirementRef> const & configReqs, std::vector<RequirementInfo> & returnedReqs);
+        void getVkRequiredReqsFromConfig(std::vector<vkRequirements::properties> const & configReqs, std::vector<RequirementInfo> & returnedReqs);
         void checkInstanceNeeds(std::vector<NeedInfo> & needs);
-        void initVkDevices();
         bool confirmExtensions(std::vector<RequirementInfo> & requiredExtensions);
         bool confirmLayers(std::vector<RequirementInfo> & requiredExtensions);
         template <class InfoType, class InstalledType>
         bool confirmRequirements(std::vector<InfoType> & reqs, std::vector<InstalledType> & installed);
         void reqportLayers();
+        void initVkPhysicalDevices();
+
         void waitForIdleVkDevice();
 
     private:

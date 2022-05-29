@@ -16,7 +16,7 @@ namespace og
         std::vector<std::string> colorsFormatted;
         std::string bgColorFormatted;
 
-        using colorTableType = std::unordered_map<std::string, std::array<uint8_t, 3>>;
+        using colorTableType = std::unordered_map<std::string_view, std::array<uint8_t, 3>>;
 
         void init(logger::listener const & listener, colorTableType const & colorTable);
     };
@@ -30,6 +30,7 @@ namespace og
                  const src_loc & loc = src_loc::current());
 
     private:
+        hu::Trove configTrove;
         logger::loggerConfig config;
         std::chrono::time_point<std::chrono::system_clock> clockStart;
         std::vector<std::string> bgColorsFormatted;

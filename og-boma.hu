@@ -42,17 +42,17 @@
                 version: { type: array of: [int, 3] }
                 listeners: { type: vector of: listener }
                 colors: { type: unorderedMap of: [
-                        string
+                        stringView
                         { type: array of:
                             [uint8_t, 3] } ] }
             }
             listener: {
                 interests: logTags
-                logPath: string     // 'stderr' and 'stdout' are special
+                logPath: stringView     // 'stderr' and 'stdout' are special
                 colors: { type: optional of: {
-                        type: unorderedMap of: [logParts, string] } }
-                bgColor: { type: optional of: string }
-                format: string
+                        type: unorderedMap of: [logParts, stringView] } }
+                bgColor: { type: optional of: stringView }
+                format: stringView
                 retainHistory: { type: bool default: true }
             }
         }
@@ -97,17 +97,21 @@
         types: {
             appConfig: {
                 name: stringView
-                version: { type: array of: [int, 3] }
-                loggerConfigPath: { type: string }
-                engineConfigPath: { type: string }
+                version: stringView
+                loggerConfigPath: { type: stringView }
+                engineConfigPath: { type: stringView }
             }
             engineConfig: {
-                version: { type: array of: [int, 3] }
-                vulkanVersion: { type: optional of: { type: array of: [int, 3] } }   // null means detect the best available
-                vulkanRequirements: vkRequirements
+                version: stringView
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
+                vkInstanceProfiles: { type: vector of: vkInstanceProfileGroup }
+                useVkInstanceProfileGroup: stringView
+                vkInstanceDesires: { type: optional of: properties }
+                physicalVkDeviceProfiles: { type: vector of: physicalVkDeviceProfileGroup }
+                workUnits: { type: vector of: workUnit }
             }
             windowConfig_t: {
+                name: stringView
                 mode: windowMode
                 active: { type: bool default: true }
                 position: { type: optional of: { type: array of: [int, 2] } }
@@ -116,13 +120,41 @@
                 screenFormat: { type: optional of: VkFormat }
                 refreshRate: { type: optional of: int }
                 provideVulkanSurface: { type: bool default: true }
+                provideSwapchain: { type: bool default: true }
             }
             hmdConfig_t: {
+                name: stringView
                 active: { type: bool default: false }
                 screenFormat: { type: optional of: VkFormat }
             }
-
-
+            vkInstanceProfileGroup: {
+                name: stringView
+                profiles: { type: vector of: vkInstanceProfile }
+                desires: { type: optional of: properties }
+            }
+            vkInstanceProfile: {
+                name: stringView
+                requires: properties
+                desires: { type: optional of: properties }
+            }
+            physicalVkDeviceProfileGroup: {
+                name: stringView
+                profiles: { type: vector of: physicalVkDeviceProfile }
+                desires: { type: optional of: properties }
+            }
+            physicalVkDeviceProfile: {
+                name: stringView
+                enabled: { type: bool default: true }
+                requires: properties
+                desires: { type: optional of: properties }
+            }
+            workUnit: {
+                targetViews: { type: unorderedMap of: [stringView, {type: tuple of: [stringView, int]} ] }    // each view that has a swap chain or the like
+                tableau: { type: stringView }
+                renderPlan: { type: stringView }
+                graphicsDevice: { type: tuple of: [stringView, int] }
+                computeDevice: { type: tuple of: [stringView, int] }
+            }
         }
     }
 
@@ -135,32 +167,13 @@
         enumFlags: false
 
         enums: {
-            reqOperator: [in, eq, ne, lt, gt, le, ge]
+            reqOperator: [in, nin, eq, ne, lt, gt, le, ge]
         }
         types: {
-            vkRequirements: {
-                versionReqs: {
-                    type: optional of: {
-                        type: vector of: {
-                            type: tuple of: [
-                                reqOperator,
-                                { type: array of: [int, 3]}]}}}
-
-                extensionNeeds: { type: vector of: requirementRef }
-                layerNeeds:     { type: vector of: requirementRef }
-                instanceNeeds:  { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
-                //wants: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
+            properties: {
+                criteria: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
             }
 
-            requirementRef: {
-                name: string
-                versionReqs: {
-                    type: optional of: {
-                        type: vector of: {
-                            type: tuple of: [
-                                reqOperator,
-                                { type: array of: [int, 3]}]}}}
-            }
         }
     }
 
