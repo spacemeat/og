@@ -10,22 +10,23 @@ namespace og
     void makeSingletons(std::string_view loggerConfigPath,
                         std::string_view engineConfigPath)
     {
-        l.emplace(loggerConfigPath);
-        e.emplace(engineConfigPath);
+        l.emplace(std::string {loggerConfigPath});
+        e.emplace(std::string {engineConfigPath});
     }
 
     void unmakeSingletons()
     {
-        e = {};
-        l = {};
+        e.reset();
+        l.reset();
     }
 
-    engine::appConfig getAppConfig(std::string_view appConfigPath)
+    engine::appConfig getAppConfig(std::string_view appConfigPath, hu::Trove & trove)
     {
         auto tr = hu::Trove::fromFile(appConfigPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
         if (auto && t = std::get_if<hu::Trove>(& tr))
         {
-            return engine::appConfig { t->root() };
+            trove = std::move(*t);
+            return engine::appConfig { trove.root() };
         }
         else
         {
@@ -41,7 +42,8 @@ int main(int argc, char * argv[])
 
     try
     {
-        auto && appConfig = getAppConfig("appConfig.hu");
+        hu::Trove appConfigTrove;
+        auto const & appConfig = getAppConfig("appConfig.hu", appConfigTrove);
 
         makeSingletons(appConfig.get_loggerConfigPath(),
                        appConfig.get_engineConfigPath());

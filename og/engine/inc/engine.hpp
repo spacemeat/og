@@ -48,7 +48,7 @@ namespace og
         using engineTimeDuration = std::chrono::duration<engineTimerType, std::micro>;
         using engineTimePoint = std::chrono::time_point<std::chrono::high_resolution_clock, engineTimeDuration>;
 
-        Engine(std::string_view configPath);
+        Engine(std::string configPath);
         ~Engine();
 
         void init(std::string_view appName, version_t appVersion);
@@ -78,21 +78,12 @@ namespace og
 
         void initVkInstance(std::string_view appName, version_t appVersion);
         void destroyVkInstance();
-        void checkExtensionRequirements(std::vector<RequirementInfo> & requiredExtensions);
-        void checkLayerRequirements(std::vector<RequirementInfo> & layerReqs);
-        void getVkRequiredReqsFromConfig(std::vector<vkRequirements::properties> const & configReqs, std::vector<RequirementInfo> & returnedReqs);
-        void checkInstanceNeeds(std::vector<NeedInfo> & needs);
-        bool confirmExtensions(std::vector<RequirementInfo> & requiredExtensions);
-        bool confirmLayers(std::vector<RequirementInfo> & requiredExtensions);
-        template <class InfoType, class InstalledType>
-        bool confirmRequirements(std::vector<InfoType> & reqs, std::vector<InstalledType> & installed);
-        void reqportLayers();
         void initVkPhysicalDevices();
 
         void waitForIdleVkDevice();
 
     private:
-
+        hu::Trove configTrove;
         engine::engineConfig config;
         std::vector<DisplayView> views;
         int numActiveWindows = 0;

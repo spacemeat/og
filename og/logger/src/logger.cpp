@@ -4,7 +4,7 @@
 
 namespace og
 {
-    Logger::Logger(std::string_view loggerConfigPath)
+    Logger::Logger(std::string loggerConfigPath)    // TODO: make this a string_view once humon gets a fix
     {
         auto tr = hu::Trove::fromFile(loggerConfigPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
         if (auto t = std::get_if<hu::Trove>(& tr))

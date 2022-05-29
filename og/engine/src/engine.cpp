@@ -4,12 +4,13 @@
 
 namespace og
 {
-    Engine::Engine(std::string_view configPath)
+    Engine::Engine(std::string configPath)      // TODO: make this a string_view once humon gets a fix
     {
         auto tr = hu::Trove::fromFile(configPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
         if (auto t = std::get_if<hu::Trove>(& tr))
         {
-            config = og::engine::engineConfig { t->root() };
+            configTrove = std::move(* t);
+            config = og::engine::engineConfig { configTrove.root() };
         }
         else
         {

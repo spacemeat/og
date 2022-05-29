@@ -24,7 +24,7 @@ namespace og
     class Logger
     {
     public:
-        Logger(std::string_view loggerConfigPath);
+        Logger(std::string loggerConfigPath);
         void log(logger::logTags tags,
                  std::string_view message,
                  const src_loc & loc = src_loc::current());
