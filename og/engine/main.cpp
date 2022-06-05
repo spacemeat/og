@@ -1,24 +1,30 @@
 #include "../logger/inc/logger.hpp"
 #include "inc/engine.hpp"
+#include "inc/app.hpp"
 #include <fmt/format.h>
 
 namespace og
 {
+    std::optional<App> app;
     std::optional<Logger> l;
     std::optional<Engine> e;
 
-    void makeSingletons(std::string_view loggerConfigPath,
-                        std::string_view engineConfigPath)
+    struct makeGlobOpts
     {
-        l.emplace(std::string {loggerConfigPath});
-        e.emplace(std::string {engineConfigPath});
-    }
+        makeGlobOpts(std::string_view appConfigPath)
+        {
+            app.emplace(std::string {appConfigPath});
+            l.emplace(std::string {app->get_config().get_loggerConfigPath()});
+            e.emplace(std::string {app->get_config().get_engineConfigPath()});
+        }
 
-    void unmakeSingletons()
-    {
-        e.reset();
-        l.reset();
-    }
+        ~makeGlobOpts()
+        {
+            e.reset();
+            l.reset();
+            app.reset();
+        }
+    };
 
     engine::appConfig getAppConfig(std::string_view appConfigPath, hu::Trove & trove)
     {
@@ -42,16 +48,12 @@ int main(int argc, char * argv[])
 
     try
     {
-        hu::Trove appConfigTrove;
-        auto const & appConfig = getAppConfig("appConfig.hu", appConfigTrove);
+        auto globOpts = makeGlobOpts { "appConfig.hu" };
 
-        makeSingletons(appConfig.get_loggerConfigPath(),
-                       appConfig.get_engineConfigPath());
+        app->init();
+        app->run();
 
-        e->init(std::string { appConfig.get_name() }, appConfig.get_version());
-        e->enterLoop();
-
-        std::cout << "Ended loop. Shutting down.\n";
+        log("Ended loop. Shutting down.\n");
 
         e->shutdown();
     }
@@ -74,6 +76,5 @@ int main(int argc, char * argv[])
         std::cout << "house exception\n";
     }
 
-    unmakeSingletons();
     std::cout << "Donezo.\n";
 }

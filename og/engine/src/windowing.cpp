@@ -2,17 +2,18 @@
 #include <fmt/format.h>
 #include <thread>
 #include "../../logger/inc/logger.hpp"
+#include "../inc/app.hpp"
 
 using namespace std::chrono_literals;
 
 namespace og
 {
-    void Engine::initWindowEnvironment()
+    void App::initWindowEnvironment()
     {
         glfwInit();
     }
 
-    bool Engine::anyWindowViews()
+    bool App::anyWindowViews()
     {
         for (int i = 0; i < config.get_views().size(); ++i)
         {
@@ -23,19 +24,20 @@ namespace og
         return false;
     }
 
-    bool Engine::anyVulkanWindowViews()
+    bool App::anyVulkanWindowViews()
     {
         for (int i = 0; i < config.get_views().size(); ++i)
         {
-            if (auto const v = std::get_if<engine::windowConfig_t>(& config.get_views()[i]); v->get_provideVulkanSurface())
+            if (auto const v = std::get_if<engine::windowConfig_t>(& config.get_views()[i]); v && v->get_provideVulkanSurface())
                 { return true; }
         }
 
         return false;
     }
 
-    void Engine::initWindow(int view, std::string_view appName)
+    void App::initWindow(int view, std::string_view titleText)
     {
+        auto const & appConfig = app->get_config();
         auto const & viewObj = config.get_views()[view];
         auto const & winConfig = std::get<engine::windowConfig_t>(viewObj);
 
@@ -59,7 +61,7 @@ namespace og
 
         // TODO: hook up GLFW's monitor config change handler
 
-        auto window = glfwCreateWindow(extents[0], extents[1], appName.data(), monitor, nullptr);
+        auto window = glfwCreateWindow(extents[0], extents[1], std::string { titleText }.data(), monitor, nullptr);
         if (window == nullptr)
             { throw Ex(fmt::format("Could not create window for view {}", view)); }
 
@@ -70,7 +72,7 @@ namespace og
         numActiveWindows += 1;
     }
 
-    void Engine::updateWindow(int view, engine::windowConfig_t const & newWinConfig)
+    void App::updateWindow(int view, engine::windowConfig_t const & newWinConfig)
     {
         auto window = views[view].window;
         auto const & viewObj = config.get_views()[view];
@@ -123,13 +125,13 @@ namespace og
         views[view] = { window, {w, h} };
     }
 
-    void Engine::updateWindowTitle(int view, std::string_view name)
+    void App::updateWindowTitle(int view, std::string_view name)
     {
         auto window = views[view].window;
         glfwSetWindowTitle(window, name.data());
     }
 
-    void Engine::destroyWindow(int view)
+    void App::destroyWindow(int view)
     {
         // TODO: destroy surface
 
@@ -142,7 +144,7 @@ namespace og
         }
     }
 
-    bool Engine::iterateWindowsLoop()
+    bool App::iterateWindowsLoop()
     {
         for (int i = 0; i < views.size(); ++i)
         {
@@ -164,7 +166,7 @@ namespace og
         return true;
     }
 
-    bool Engine::iterateWindowsLoop(int view)
+    bool App::iterateWindowsLoop(int view)
     {
         auto window = views[view].window;
         if (glfwWindowShouldClose(window))
@@ -173,18 +175,18 @@ namespace og
         return true;
     }
 
-    bool Engine::shouldClose(int view)
+    bool App::shouldClose(int view)
     {
         auto & window = views[view].window;
         return glfwWindowShouldClose(window);
     }
 
-    bool Engine::glfwSupportsVulkan()
+    bool App::glfwSupportsVulkan()
     {
         return glfwVulkanSupported() == GLFW_TRUE;
     }
 
-    char const ** Engine::getVkExtensionsForGlfw(uint32_t * count)
+    char const ** App::getVkExtensionsForGlfw(uint32_t * count)
     {
         * count = 0;
 

@@ -100,15 +100,17 @@
                 version: stringView
                 loggerConfigPath: { type: stringView }
                 engineConfigPath: { type: stringView }
-            }
-            engineConfig: {
-                version: stringView
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
-                vkInstanceProfiles: { type: vector of: vkInstanceProfileGroup }
-                useVkInstanceProfileGroup: stringView
-                vkInstanceDesires: { type: optional of: properties }
-                physicalVkDeviceProfiles: { type: vector of: physicalVkDeviceProfileGroup }
-                workUnits: { type: vector of: workUnit }
+                works: { type: vector of: workUnit }
+            }
+            workUnit: {
+                useDeviceProfileGroups: { type: vector of: { type: tuple of: [stringView, int, int ]}}
+                targetViews: { type: vector of: workView }
+            }
+            workView: {
+                views: { type: vector of: stringView }
+                tableau: { type: stringView }
+                renderPlan: { type: stringView }
             }
             windowConfig_t: {
                 name: stringView
@@ -127,33 +129,34 @@
                 active: { type: bool default: false }
                 screenFormat: { type: optional of: VkFormat }
             }
+            engineConfig: {
+                version: stringView
+                vkInstanceProfileGroups: { type: vector of: vkInstanceProfileGroup }
+                useVkInstanceProfileGroup: stringView
+                vkInstanceDesires: { type: optional of: criteria }
+                vkDeviceProfilesGroups: { type: vector of: physicalVkDeviceProfileGroup }
+            }
             vkInstanceProfileGroup: {
                 name: stringView
                 profiles: { type: vector of: vkInstanceProfile }
-                desires: { type: optional of: properties }
+                desires: { type: optional of: criteria }
             }
             vkInstanceProfile: {
                 name: stringView
-                requires: properties
-                desires: { type: optional of: properties }
+                requires: criteria
+                desires: { type: optional of: criteria }
             }
             physicalVkDeviceProfileGroup: {
                 name: stringView
                 profiles: { type: vector of: physicalVkDeviceProfile }
-                desires: { type: optional of: properties }
+                desires: { type: optional of: criteria }
+                queueFamilyGroups: { type: vector of: queueFamilyGroup }
             }
             physicalVkDeviceProfile: {
                 name: stringView
                 enabled: { type: bool default: true }
-                requires: properties
-                desires: { type: optional of: properties }
-            }
-            workUnit: {
-                targetViews: { type: unorderedMap of: [stringView, {type: tuple of: [stringView, int]} ] }    // each view that has a swap chain or the like
-                tableau: { type: stringView }
-                renderPlan: { type: stringView }
-                graphicsDevice: { type: tuple of: [stringView, int] }
-                computeDevice: { type: tuple of: [stringView, int] }
+                requires: criteria
+                desires: { type: optional of: criteria }
             }
         }
     }
@@ -167,13 +170,30 @@
         enumFlags: false
 
         enums: {
-            reqOperator: [in, nin, eq, ne, lt, gt, le, ge]
+            reqOperator: [in, nin, eq, ne, lt, gt, le, ge, has]
         }
         types: {
-            properties: {
-                criteria: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
+            criteria: {
+                vulkanVersion: { type: optional of: stringView }
+                extensions: { type: vector of: stringView }
+                layers: { type: vector of: stringView }
+                deviceExtensions: { type: vector of: stringView }
+                queueTypesIncluded: { type: optional of: VkQueueFlagBits }
+                queueTypesExcluded: { type: optional of: VkQueueFlagBits }
+                features: { type: vector of: stringView }
+                properties: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
             }
-
+            queueFamilyGroup: {
+                name: stringView
+                queues: { type: vector of: queueFamilyProperties }
+            }
+            queueFamilyProperties: {
+                include: { type: optional of: VkQueueFlagBits }
+                exclude: { type: optional of: VkQueueFlagBits }
+                requires: { type: int default: 1 }
+                desires: { type: int default: 1 }
+                priorities: { type: vector of: float }
+            }
         }
     }
 

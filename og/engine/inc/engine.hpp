@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <map>
 #include <fmt/format.h>
 
 #define GLFW_INCLUDE_VULKAN
@@ -14,12 +15,6 @@
 
 namespace og
 {
-    struct DisplayView
-    {
-        GLFWwindow * window;
-        std::array<int, 2> extents;
-    };
-
     struct RequirementInfo
     {
         std::string_view name;
@@ -51,24 +46,9 @@ namespace og
         Engine(std::string configPath);
         ~Engine();
 
-        void init(std::string_view appName, version_t appVersion);
+        void init();
         void shutdown();
     private:
-        void initViews(std::string_view appName);
-
-
-        void initWindowEnvironment();
-        bool anyWindowViews();
-        bool anyVulkanWindowViews();
-        void initWindow(int view, std::string_view appName);
-        void updateWindow(int view, engine::windowConfig_t const & winConfig);
-        void updateWindowTitle(int view, std::string_view name);
-        void destroyWindow(int view);
-        bool iterateWindowsLoop();
-        bool iterateWindowsLoop(int view);
-        bool shouldClose(int view);
-        bool glfwSupportsVulkan();
-        char const ** getVkExtensionsForGlfw(uint32_t * count);
 
     public:
         void enterLoop();
@@ -76,17 +56,52 @@ namespace og
     private:
         bool iterateLoop();
 
-        void initVkInstance(std::string_view appName, version_t appVersion);
+        void initVkInstance();
         void destroyVkInstance();
+
         void initVkPhysicalDevices();
 
         void waitForIdleVkDevice();
 
+        bool checkVulkan(std::string_view vulkanVersion);
+        bool checkExtension(std::string_view extension);
+        bool checkLayer(std::string_view layer);
+        bool checkDeviceExtension(int deviceIdx, std::string_view deviceExtension);
+        bool checkQueueTypes(int deviceIdx, VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);
+        bool checkFeature(int deviceIdx, std::string_view provider, std::string_view feature, vkRequirements::reqOperator op, std::string_view value);
+        bool checkProperty(int deviceIdx, std::string_view provider, std::string_view property, vkRequirements::reqOperator op, std::string_view value);
+
     private:
         hu::Trove configTrove;
         engine::engineConfig config;
-        std::vector<DisplayView> views;
-        int numActiveWindows = 0;
+        hu::Trove appConfigTrove;
+        engine::appConfig appConfig;
+
+        version_t availableVulkanVersion;
+        version_t utilizedVulkanVersion;
+
+        std::vector<VkExtensionProperties> availableExtensions;
+        std::vector<VkLayerProperties> availableLayers;
+        // vector zips with physical devices
+        std::vector<std::vector<VkExtensionProperties>> availableDeviceExtensions;
+        // vector zips with physical devices
+        std::vector<std::map<std::string_view, void *>> availableDeviceFeatures;
+        // vector zips with physical devices
+        std::vector<std::map<std::string_view, void *>> availableDeviceProperties;
+        // zips
+        std::vector<std::vector<VkQueueFamilyProperties>> availableQueueFamilies;
+
+        // maps profileGroup name to [physical device index, profile index]
+        std::map<std::string_view, std::tuple<int, int>> selectedPhysDeviceProfiles;
+
+        std::vector<VkExtensionProperties> utilizedExtensions;
+        std::vector<VkLayerProperties> utilizedLayers;
+        // vector zips with physical devices
+        std::vector<std::vector<VkExtensionProperties>> utilizedDeviceExtensions;
+        // vector zips with physical devices
+        std::vector<std::map<std::string_view, void *>> utilizedDeviceFeatures;
+        // zips; for each device, a vector of [queueFamilyIndex, numQueues]
+        std::vector<std::vector<std::tuple<uint32_t, uint32_t>>> utilizedQueueFamilies;
 
         VkInstance vkInstance;
     };

@@ -1,6 +1,39 @@
 @{app: og type: og.engine.appConfig }
 {
     name: 'a prog called test'
-    loggerConfigPath: ./loggers.hu
-    engineConfigPath: ./engine.hu
+    version: 0.0.1
+    loggerConfigPath: loggers.hu
+    engineConfigPath: engine.hu
+
+    views: [ { @ type: windowConfig_t
+            name: mainWindow
+            mode: windowed
+            position: [300, 300]
+            extents: [800, 600]
+        }, { @ type: hmdConfig_t
+            name: hmd
+            enabled: false
+            mode: fullScreen
+        }
+    ]
+
+    // All devices allocated hare are uniqe. This says, first allocate exactly one
+    // device that fits the "graphicsDevices" profile the best. Then
+    // allocate up to 16 other devices that fit the "computeDevices" profile.
+    // If there are multiple works, then allocations are distributed according
+    // to needs over wants in order to attempt the most successful works.
+    works: [ {
+            useDeviceProfileGroups: [[graphicsDevices, 1, 1],   // profile, #need, #want
+                                     [computeDevices, 0, 16]]
+            targetViews: [{
+                    views: [mainWindow]
+                    tableau: cubeland
+                    renderPlan: drawWimple
+                }/*, {
+                    views: [mainWindow, hmd]
+                    tableau: cubeland
+                    renderPlan: drawWimple_hmd
+            }*/]
+        }
+    ]
 }

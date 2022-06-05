@@ -1,135 +1,202 @@
-
 @{ type: engineConfig }
 {
     version: 0.0.1
+
     // We'll use the first profile that passes requiremetns
     // in the desired group.
-    vkInstanceProfiles: [ {
+    vkInstanceProfileGroups: [ {
             name: debug
             profiles: [ {
-                    name: v1_3
+                    name: v1.3
                     requires: {
-                        criteria: [ [vulkan ge 1.3.0]
-                                    [VK_EXT_debug_utils in extensions]
-                                    [VK_EXT_debug_report in extensions]
-                                    [VK_LAYER_KHRONOS_validation in layers]
+                        vulkanVersion: 1.3
+                        extensions: [
+                            VK_KHR_get_physical_device_properties2
+                            VK_EXT_debug_utils
+                            VK_EXT_debug_report
+                        ]
+                        layers: [
+                            VK_LAYER_KHRONOS_validation
                         ]
                     }
                     desires: {
-                        criteria: [ [VK_LAYER_KHRONOS_synchronization2 in layers]
-                                    [VK_LAYER_MESA_device_select in layers]
+                        layers: [
+                            VK_LAYER_KHRONOS_synchronization2
+                            VK_LAYER_MESA_device_select
                         ]
                     }
                 }, {
-                    name: v1_1
+                    name: v1.1
                     requires: {
-                        criteria: [ [vulkan ge 1.1.0]
-                                    [VK_EXT_debug_utils in extensions]
-                                    [VK_EXT_debug_report in extensions]
-                                    [VK_LAYER_KHRONOS_validation in layers]
+                        vulkanVersion: 1.1
+                        extensions: [
+                            VK_EXT_debug_utils
+                            VK_EXT_debug_report
+                        ]
+                        layers: [
+                            VK_LAYER_KHRONOS_validation
                         ]
                     }
                     desires: {
-                        criteria: [ [VK_LAYER_MESA_device_select in layers]
+                        layers: [
+                            VK_LAYER_MESA_device_select
                         ]
                     }
                 }
             ]
-            desires: { criteria: [] }
+            desires: { }
         }, {
             name: release
             profiles: [ {
-                    name: v1_3
+                    name: v1.3
                     requires: {
-                        criteria: [ [vulkan ge 1.3.0] ]
+                        vulkanVersion: 1.3
+                        extensions: [
+                            VK_KHR_get_physical_device_properties2
+                        ]
+                        layers: []
                     }
                 }, {
-                    name: v1_1
+                    name: v1.1
                     requires: {
-                        criteria: [ [vulkan ge 1.1.0] ]
+                        vulkanVersion: 1.1
                     }
                 }
             ]
-            desires: { criteria: [] }
-        }
-    ]
-
-    views: [ { @ type: windowConfig_t
-            name: mainWindow
-            mode: windowed
-            position: [300, 300]
-            extents: [800, 600]
+            desires: { }
         }
     ]
 
     // selects which above profile group to use
     useVkInstanceProfileGroup: debug
-    vkInstanceDesires: { criteria: [] }
+    vkInstanceDesires: { criteria: [VK_KHR_multiview in extensions] }
 
-    physicalVkDeviceProfiles: [ {
+    vkDeviceProfilesGroups: [ {
             name: graphicsDevices
             profiles: [ {
                     name: baller
                     requires: {
-                        criteria: [ [deviceType eq discrete_gpu]
-                                    [vulkan ge 1.3.0]
-                                    [queueTypes.graphics ge 8]
-                        ]
+                        vulkanVersion: 1.3
+                        deviceExtensions: [VK_KHR_swapchain]
+                        queueTypesIncluded: [compute_bit graphics_bit]
+                        features: {
+                            vulkan_1_1: [multiview]
+                        }
+                        properties: {
+                            vulkan_1_0: [[deviceType eq discrete_gpu]
+                                         [limits.maxImageDimension2D ge 8192]]
+                            vulkan_1_1: [[maxMultiviewViewCount ge 2]]
+                        }
                     }
-                    desires: { criteria: [] }
+                    desires: {
+                        properties: {
+                            vulkan_1_2: [[haderSignedZeroInfNanPreserveFloat32 eq true]]
+                            vulkan_1_3: [[minSubgroupSize ge 2]]
+                        }
+                    }
                 }, {
                     name: highPerf
                     requires: {
-                        criteria: [ [deviceType eq discrete_gpu]
-                                    [vulkan ge 1.3.0]
-                                    [queueTypes.graphics ge 1]
-                        ]
+                        vulkanVersion: 1.3
+                        queueTypesIncluded: [compute_bit graphics_bit]
+                        proerties: {
+                            vulkan_1_0: [[deviceType eq discrete_gpu]]
+                        }
                     }
-                    desires: { criteria: [] }
+                    desires: {
+                    }
                 }, {
                     name: feeb
                     requires: {
-                        criteria: [ [vulkan ge 1.1.0]
-                                    [queueTypes.graphics ge 1]
-                        ]
+                        vulkanVersion: 1.0
+                        extensions: [VK_KHR_get_physical_device_properties2]
+                        deviceExtensions: [VK_KHR_multiview]
+                        queueTypesIncluded: [compute_bit graphics_bit]
+                        properties: {
+                            multiview: [[maxMultiviewViewCount ge 2]]
+                        }
                     }
                 }
             ]
-            desires: { criteria: [queueTypes.graphics le 8] }
+            desires: {
+            }
+            /* Each group specs a combination of queue families. The first group that
+               matches the available queue family types and queue counts is selected.
+               Each entry in the queues list denotes a uniqe queue family index available
+               on the device, and all the queue families in the group will be requested.
+               If none of the groups can be allocated on the physical device, then device
+               creation fails for this profile group, even if a profile was found. The
+               works structure in appConfig.hu will specify minimum devices for a
+               particular profile group, which may be zero. Queue counts max at
+               max(requires, desires). requires must be at least 1 (and probably will
+               always just be 1.)
+            */
+            queueFamilyGroups: [{
+                    name: gcacat
+                    queues: [{ include: [graphisc_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [compute_bit]   exclude: [graphisc_bit]                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [transfer_bit]  exclude: [graphisc_bit compute_bit]     requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    ]
+                }, {
+                    name: gacat
+                    queues: [{ include: [graphisc_bit]  exclude: [compute_bit],                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [compute_bit]   exclude: [graphisc_bit],                requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [transfer_bit]  exclude: [graphisc_bit compute_bit],    requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    ]
+                }, {
+                    name: gcat
+                    queues: [{ include: [graphisc_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [transfer_bit] exclude: [graphisc_bit compute_bit]      requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    ]
+                }, {
+                    name: gac
+                    queues: [{ include: [graphisc_bit] exclude: [compute_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [compute_bit] exclude: [graphisc_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    ]
+                }, {
+                    name: gct
+                    queues: [{ include: [graphisc_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    ]
+                }
+            ]
         }, {
             name: computeDevices
             profiles: [ {
-                    name: thinkumDinkum
+                    name: computeOnly
                     requires: {
-                        criteria: [ [vulkan ge 1.1.0]
-                                    [queueTypes.compute ge 1]
-                        ]
+                        queueTypesIncluded: [compute_bit]
+                        queueTypesExcluded: [graphics_bit]
+                        properties: {
+                            vulkan_1_0: [[deviceType eq discrete_gpu]]
+                        }
+                    }
+                }, {
+                    name: highPerfGraphics
+                    requires: {
+                        queueTypesIncluded: [compute_bit graphics_bit]
+                        properties: {
+                            vulkan_1_0: [[deviceType eq discrete_gpu]]
+                        }
+                    }
+                }, {
+                    name: any
+                    requires: {
+                        queueTypesIncluded: [compute_bit]
                     }
                 }
             ]
-            desires: { criteria: [queueTypes.compute le 8] }
-        }, {
-            name: presentDevices
-            profiles: [ {
-                    name: hellFlipYouForReal
-                    requires: {
-                        criteria: [ [deviceExtension.VK_KHR_swapchain ge 0.0.1]
-                                    [queueTypes.present ge 1] ]
-                    }
+            desires: { }
+            queueFamilies: [{
+                    name: cat
+                    queues: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [transfer_bit]  exclude: [compute_bit]  requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    ]
+                }, {
+                    name: c
+                    queues: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    ]
                 }
             ]
-            desires: { criteria: [queueTypes.present eq 1] }
-        }
-    ]
-
-    workUnits: [ {
-            targetViews: {
-                mainWindow: [presentDevices, 1]
-            }
-            tableau: cubeland
-            renderPlan: drawWimple
-            graphicsDevices: [graphicsDevices, 1]
-            computeDevices: [computeDevices, 16]
         }
     ]
 }

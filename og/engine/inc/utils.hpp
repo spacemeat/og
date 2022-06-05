@@ -31,4 +31,21 @@ namespace og
     bool operator <=(version_t lhs, version_t rhs);
     bool operator >(version_t lhs, version_t rhs);
     bool operator >=(version_t lhs, version_t rhs);
+
+
+    template <class T>
+    bool obeysInequality(T lhs, T rhs, vkRequirements::reqOperator op)
+    {
+        switch(op)
+        {
+        case vkRequirements::reqOperator::eq: return lhs == rhs;
+        case vkRequirements::reqOperator::ne: return lhs != rhs;
+        case vkRequirements::reqOperator::lt: return lhs < rhs;
+        case vkRequirements::reqOperator::gt: return lhs > rhs;
+        case vkRequirements::reqOperator::le: return lhs <= rhs;
+        case vkRequirements::reqOperator::ge: return lhs >= rhs;
+        default:
+            throw Ex(fmt::format("Invalid operator '{}' for criteria '{}'", op, lhs));
+        }
+    }
 }

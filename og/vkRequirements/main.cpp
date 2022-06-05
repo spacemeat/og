@@ -1,4 +1,4 @@
-#include "gen/inc/properties.hpp"
+#include "gen/inc/criteria.hpp"
 
 int main()
 {
