@@ -44,7 +44,7 @@ namespace og
 
         app->initViews();
 
-        initVkPhysicalDevices();
+        initVkDevices();
     }
 
     void Engine::shutdown()

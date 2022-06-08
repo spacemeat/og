@@ -71,7 +71,7 @@
     useVkInstanceProfileGroup: debug
     vkInstanceDesires: { criteria: [VK_KHR_multiview in extensions] }
 
-    vkDeviceProfilesGroups: [ {
+    vkDeviceProfileGroups: [ {
             name: graphicsDevices
             profiles: [ {
                     name: baller
@@ -130,6 +130,11 @@
                particular profile group, which may be zero. Queue counts max at
                max(requires, desires). requires must be at least 1 (and probably will
                always just be 1.)
+               The priorities are for each queue, up to the number of queues created. This
+               is kind of weak sauce, but how does one assign priorities to a variable number
+               of queues in a declarative configuration? The mind boggles. One could spec
+               a minimum number of queues for the priority set (requires > 1), which selects
+               a priority profile for that number of queues.
             */
             queueFamilyGroups: [{
                     name: gcacat

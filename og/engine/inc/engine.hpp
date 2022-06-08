@@ -59,7 +59,7 @@ namespace og
         void initVkInstance();
         void destroyVkInstance();
 
-        void initVkPhysicalDevices();
+        void initVkDevices();
 
         void waitForIdleVkDevice();
 
@@ -68,7 +68,7 @@ namespace og
         bool checkLayer(std::string_view layer);
         bool checkDeviceExtension(int deviceIdx, std::string_view deviceExtension);
         bool checkQueueTypes(int deviceIdx, VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);
-        bool checkFeature(int deviceIdx, std::string_view provider, std::string_view feature, vkRequirements::reqOperator op, std::string_view value);
+        bool checkFeature(int deviceIdx, std::string_view provider, std::string_view feature);
         bool checkProperty(int deviceIdx, std::string_view provider, std::string_view property, vkRequirements::reqOperator op, std::string_view value);
 
     private:
@@ -82,6 +82,9 @@ namespace og
 
         std::vector<VkExtensionProperties> availableExtensions;
         std::vector<VkLayerProperties> availableLayers;
+
+        VkInstance vkInstance;
+
         // vector zips with physical devices
         std::vector<std::vector<VkExtensionProperties>> availableDeviceExtensions;
         // vector zips with physical devices
@@ -91,8 +94,7 @@ namespace og
         // zips
         std::vector<std::vector<VkQueueFamilyProperties>> availableQueueFamilies;
 
-        // maps profileGroup name to [physical device index, profile index]
-        std::map<std::string_view, std::tuple<int, int>> selectedPhysDeviceProfiles;
+        std::vector<VkDevice> devices;
 
         std::vector<VkExtensionProperties> utilizedExtensions;
         std::vector<VkLayerProperties> utilizedLayers;
@@ -103,7 +105,8 @@ namespace og
         // zips; for each device, a vector of [queueFamilyIndex, numQueues]
         std::vector<std::vector<std::tuple<uint32_t, uint32_t>>> utilizedQueueFamilies;
 
-        VkInstance vkInstance;
+        // maps profileGroup name to [physical device index, profile index]
+        std::map<std::string_view, std::tuple<int, int>> selectedPhysDeviceProfiles;
     };
 
     extern std::optional<Engine> e;

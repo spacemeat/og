@@ -134,7 +134,7 @@
                 vkInstanceProfileGroups: { type: vector of: vkInstanceProfileGroup }
                 useVkInstanceProfileGroup: stringView
                 vkInstanceDesires: { type: optional of: criteria }
-                vkDeviceProfilesGroups: { type: vector of: physicalVkDeviceProfileGroup }
+                vkDeviceProfileGroups: { type: vector of: physicalVkDeviceProfileGroup }
             }
             vkInstanceProfileGroup: {
                 name: stringView
@@ -180,8 +180,8 @@
                 deviceExtensions: { type: vector of: stringView }
                 queueTypesIncluded: { type: optional of: VkQueueFlagBits }
                 queueTypesExcluded: { type: optional of: VkQueueFlagBits }
-                features: { type: vector of: stringView }
-                properties: { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } }
+                features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
+                properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
             }
             queueFamilyGroup: {
                 name: stringView

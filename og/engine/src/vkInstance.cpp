@@ -47,7 +47,7 @@ namespace og
 
         // get best vkInstance profile in requested group
         auto const & groupName = config.get_useVkInstanceProfileGroup();
-        auto const & profileGroups = config.get_vkInstanceProfiles();
+        auto const & profileGroups = config.get_vkInstanceProfileGroups();
         auto pgit = std::find_if(begin(profileGroups), end(profileGroups),
             [& groupName](auto && elem) { return elem.get_name() == groupName; } );
 
@@ -63,25 +63,26 @@ namespace og
             // test profile criteria against version, inst exts, and layers
             bool noGood = false;
 
+            // NOTE: these will check against AVAILABLE extensions, layers, etc.
             auto const & vulkanVersion = profile.get_requires().get_vulkanVersion();
             if (vulkanVersion.has_value())
             {
                 if (checkVulkan(* vulkanVersion) == false)
-                    { noGood = true; break; }
+                    { noGood = true; log("Vulkan version {} reqirement not met."); break; }
             }
 
             auto const & extensions = profile.get_requires().get_extensions();
             for (auto const & extension : extensions)
             {
                 if (checkExtension(extension) == false)
-                    { noGood = true; break; }
+                    { noGood = true; log(fmt::format("Extension {} reqirement not met.", extension)); break; }
             }
 
             auto const & layers = profile.get_requires().get_layers();
             for (auto const & layer : layers)
             {
                 if (checkLayer(layer) == false)
-                    { noGood = true; break; }
+                    { noGood = true; log(fmt::format("Layer {} reqirement not met.", layer)); break; }
             }
 
             if (noGood == false)
@@ -101,26 +102,6 @@ namespace og
 
         std::vector<char const *> requiredExtensions;
         std::vector<char const *> requiredLayers;
-
-        auto fn2 = [&](auto && criterion)
-        {
-            auto && [lhs, op, rhs] = criterion;
-            std::string_view obj = lhs;
-            if (rhs == "extensions")
-            {
-                auto it = std::find_if(begin(availableExtensions), end(availableExtensions),
-                    [& obj](auto && ae){ return obj == ae.extensionName; } );
-                if (it != end(availableExtensions))
-                    { requiredExtensions.push_back(it->extensionName); }
-            }
-            else if (rhs == "layers")
-            {
-                auto it = std::find_if(begin(availableLayers), end(availableLayers),
-                    [& obj](auto && ae){ return obj == ae.layerName; } );
-                if (it != end(availableLayers))
-                    { requiredLayers.push_back(it->layerName); }
-            }
-        };
 
         auto requireExtsAndLayers = [&](og::vkRequirements::criteria const & criteria)
         {
