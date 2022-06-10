@@ -88,9 +88,22 @@ namespace og
         // vector zips with physical devices
         std::vector<std::vector<VkExtensionProperties>> availableDeviceExtensions;
         // vector zips with physical devices
-        std::vector<std::map<std::string_view, void *>> availableDeviceFeatures;
+        //std::vector<std::map<std::string_view, void *>> availableDeviceFeatures;
+
+        // zip
+        std::vector<std::map<std::string_view, int>> featureProviderIndexMap;
+        std::vector<VkPhysicalDeviceFeatures2> availableDeviceFeatures;
+        std::vector<std::vector<std::tuple<VkStructureType, void *>>> availableFeaturesIndexable;
+        std::vector<VkPhysicalDeviceFeatures2> utilizedDeviceFeatures;
+        std::vector<std::vector<vstd::tuple<VkStructureType, void *>>> utilizedFeaturesIndexable;
+
+        // zip
+        std::vector<std::map<std::string_view, int>> propertyProviderIndexMap;
+        std::vector<VkPhysicalDeviceFeatures2> availableDeviceProperties;
+        std::vector<std::vector<std::tuple<VkStructureType, void *>>> availablePropertiesIndexable;
+
         // vector zips with physical devices
-        std::vector<std::map<std::string_view, void *>> availableDeviceProperties;
+        //std::vector<std::map<std::string_view, void *>> availableDeviceProperties;
         // zips
         std::vector<std::vector<VkQueueFamilyProperties>> availableQueueFamilies;
 
@@ -101,7 +114,7 @@ namespace og
         // vector zips with physical devices
         std::vector<std::vector<VkExtensionProperties>> utilizedDeviceExtensions;
         // vector zips with physical devices
-        std::vector<std::map<std::string_view, void *>> utilizedDeviceFeatures;
+        //std::vector<std::map<std::string_view, void *>> utilizedDeviceFeatures;
         // zips; for each device, a vector of [queueFamilyIndex, numQueues]
         std::vector<std::vector<std::tuple<uint32_t, uint32_t>>> utilizedQueueFamilies;
 

@@ -4,105 +4,57 @@
 #include <map>
 
 #define OG_STRUCT(struct_name, struct_t, struct_type_e) \
-    static void reportVkAvailableFeat(struct_t * propFeatStruct) \
+    static void reportVkAvailableFeatureStruct(struct_t * propFeatStruct) \
     { \
         og::log(fmt::format(". Features - {}", #struct_name));
-
 #define OG_MEMBER(member_name) \
             if (propFeatStruct->member_name == VK_TRUE) { og::log(fmt::format(". . {}", #member_name)); }
-
 #define OG_MEMBER_ELSE(struct_name)
-
 #define OG_STRUCT_END() \
     }
-
 #include "../inc/features_mac.h"
-
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
 #undef OG_STRUCT
+
+
+    static void reportVkAvailableFeatureStruct(void * struc)
+    {
+        auto structType = static_cast<VkBaseOutStructure *>(struc)->sType;
+
+        switch(structType)
+        {
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+        case struct_type_e: reportVkAvailableFeatureStruct(static_cast<struct_t *>(struc)); break;
+#define OG_MEMBER(memberName)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END()
+#include "../inc/features_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
+        }
+    }
 
 
 #define OG_STRUCT(struct_name, struct_t, struct_type_e) \
     static void reportVkAvailableProp(struct_t * propFeatStruct) \
     { \
         og::log(fmt::format(". Properties - {}", #struct_name));
-
 #define OG_MEMBER(member_name) \
             og::log(fmt::format(". . {}: {}", #member_name, propFeatStruct->member_name));
-
 #define OG_MEMBER_ELSE(struct_name)
-
 #define OG_STRUCT_END() \
     }
-
 #include "../inc/properties_mac.h"
-
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
 #undef OG_STRUCT
 
-namespace og
-{
-
-#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
-        case struct_type_e: reportVkAvailableFeat(static_cast<struct_t *>(struc)); break;
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-
-    void reportAvailableFeats(void * struc)
-    {
-        VkStructureType structType = static_cast<VkBaseOutStructure *>(struc)->sType;
-        std::ostringstream ss;
-        ss << HumonFormat(structType);
-        auto typeCode = ss.str();
-
-        switch(structType)
-        {
-#include "../inc/features_mac.h"
-        }
-    }
-
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT
-
-#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
-        case struct_type_e: reportVkAvailableProp(static_cast<struct_t *>(struc)); break;
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-
-    void reportAvailableProps(void * struc)
-    {
-        VkStructureType structType = static_cast<VkBaseOutStructure *>(struc)->sType;
-        std::ostringstream ss;
-        ss << HumonFormat(structType);
-        auto typeCode = ss.str();
-
-        switch(structType)
-        {
-#include "../inc/properties_mac.h"
-        }
-    }
-
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT
-
-
-#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
-            case struct_type_e: dst.pNext = new struct_t { struct_type_e }; break;
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-
-    void cloneAndResetDeviceFeatures(VkPhysicalDeviceFeatures2 const & src, VkPhysicalDeviceFeatures2 & dst)
+    static void cloneAndResetDeviceFeatures(VkPhysicalDeviceFeatures2 const & src, VkPhysicalDeviceFeatures2 & dst)
     {
         dst.features = src.features;
         void * next = dst.pNext;
@@ -111,16 +63,78 @@ namespace og
             VkStructureType structType = static_cast<VkBaseOutStructure *>(next)->sType;
             switch(structType)
             {
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+            case struct_type_e: dst.sType = type_e; dst.pNext = new struct_t { struct_type_e }; break;
+#define OG_MEMBER(member_name)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END()
 #include "../inc/features_mac.h"
-            }
-        }
-    }
-
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
 #undef OG_STRUCT
+            }
+        }
+    }
 
+    static void reportAvailableProps(void * struc)
+    {
+        VkStructureType structType = static_cast<VkBaseOutStructure *>(struc)->sType;
+        std::ostringstream ss;
+        ss << HumonFormat(structType);
+        auto typeCode = ss.str();
+
+        switch(structType)
+        {
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+        case struct_type_e: reportVkAvailableProp(static_cast<struct_t *>(struc)); break;
+#define OG_MEMBER(member_name)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END() \
+        default: log(fmt::format("Unknown property structure type '{}'", structType));
+#include "../inc/properties_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
+        }
+    }
+
+    static VkStructureType providerToStructureType(std::string_view provider)
+    {
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+        if (privder == #struct_name) { return struct_type_e; }
+#define OG_MEMBER(member_name)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END() \
+        throw Ex(fmt::format("Unknown extension '{}'.", provider));
+#include "../inc/features_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
+    }
+
+    static std::string_view structureTypeToProvider(VkStructureType sType)
+    {
+        switch (sType)
+        {
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+        case struct_type_e: return #struct_name##sv;
+#define OG_MEMBER(member_name)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END() \
+        default: throw Ex(fmt::format("No known provider for structure type '{}'.", sType));    // TODO: stringize sType
+#include "../inc/features_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
+        }
+    }
+
+namespace og
+{
     void Engine::initVkDevices()
     {
         auto const & workUnits = appConfig.get_works();
@@ -160,71 +174,44 @@ namespace og
                 { log(fmt::format(". available device extension: {} v{}", elem.extensionName, elem.specVersion)); }
 
             // get features for physical device
-            auto & featureMap = availableDeviceFeatures[physIdx];
-
-            VkPhysicalDeviceFeatures2 features { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
+            auto & features = availableDeviceFeatures[physIdx];
+            features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
             vkGetPhysicalDeviceFeatures2(phdev, & features);
+            availableFeaturesIndexable[physIdx].push_back({features.sType, & features.features});
+            featureProviderIndexMap[physIdx]["vulkan_1_0"] = 0;
+            reportVkAvailableFeatureStruct(& features.features);
 
-            featureMap["vulkan_1_0"] = & features.features;
-            reportVkAvailableFeat(& features.features);
             void * next = features.pNext;
             while (next != nullptr)
             {
-                VkStructureType structType = static_cast<VkBaseOutStructure *>(next)->sType;
-                std::ostringstream ss;
-                ss << HumonFormat(structType);
-                auto typeCode = ss.str();
+                auto sType = static_cast<VkBaseOutStructure *>(next)->sType;
 
-                reportAvailableFeats(next);
-                log(fmt::format(". feature struct type: {}", typeCode));
+                availableFeaturesIndexable[physIdx].push_back({sType, next});
+                auto const provider = structureTypeToProvider(sType);
+                featureProviderIndexMap[physIdx][provider] = availableFeaturesIndexable[physIdx].size();
 
-                if (typeCode.rfind("physical_device_", 0) == 0)
-                {
-                    auto const startIdx = strlen("physical_device_");
-                    if (auto endIdx = typeCode.find("_features", startIdx + 1) != std::string::npos)
-                    {
-                        std::string_view name { typeCode.data() + startIdx,
-                                                endIdx - startIdx };
-                        featureMap[std::string{name}] = next;
-                    }
-                    else
-                        { throw Ex("HEY DUMMY BE MORE CAREFUL ABOUT THE PHYSICAL DEVICE FEATURES"); }
-                }
+                reportVkAvailableFeatureStruct(next);
 
                 next = static_cast<VkBaseOutStructure *>(next)->pNext;
             }
 
-            // get properties for physical device
-            auto & propsMap = availableDeviceProperties[physIdx];
+            auto & properties = availableDeviceProperties[physIdx];
+            properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+            vkGetPhysicalDeviceProperties2(phdev, & properties);
+            availablePropertiesIndexable[physIdx].push_back({properties.sType, & properties.properties});
+            propertyProviderIndexMap[physIdx]["vulkan_1_0"] = 0;
+            reportVkAvailablePropertiesStruct(& properties.properties);
 
-            VkPhysicalDeviceProperties2 props { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
-            vkGetPhysicalDeviceProperties2(phdev, & props);
-
-            propsMap["vulkan_1_0"] = & props.properties;
-            reportVkAvailableProp(& props.properties);
-            next = props.pNext;
+            void * next = properties.pNext;
             while (next != nullptr)
             {
-                VkStructureType structType = static_cast<VkBaseOutStructure *>(next)->sType;
-                std::ostringstream ss;
-                ss << HumonFormat(structType);
-                auto typeCode = ss.str();
+                auto sType = static_cast<VkBaseOutStructure *>(next)->sType;
 
-                reportAvailableProps(next);
-                log(fmt::format(". property struct type: {}", typeCode));
+                availablePropertiesIndexable[physIdx].push_back({sType, next});
+                auto const provider = structureTypeToProvider(sType);
+                propertyProviderIndexMap[physIdx][provider] = availablePropertiesIndexable[physIdx].size();
 
-                if (typeCode.rfind("physical_device_", 0) == 0)
-                {
-                    auto const startIdx = strlen("physical_device_");
-                    if (auto endIdx = typeCode.find("_properties", startIdx + 1) != std::string::npos)
-                    {
-                        std::string_view name { typeCode.data() + startIdx,
-                                                endIdx - startIdx };
-                        propsMap[std::string{name}] = next;
-                    }
-                    else
-                        { throw Ex("HEY DUMMY BE MORE CAREFUL ABOUT THE PHYSICAL DEVICE FEATURES"); }
-                }
+                reportVkAvailablePropertyStruct(next);
 
                 next = static_cast<VkBaseOutStructure *>(next)->pNext;
             }
@@ -271,35 +258,35 @@ namespace og
             {
                 auto const & groupName = group.get_name();
                 auto const & profiles = group.get_profiles();
-                log(fmt::format(". Assigning to device group {}.", groupName));
+                log(fmt::format(". Assigning to device group '{}'.", groupName));
                 int selectedProfileIdx = -1;
                 for (int profileIdx = 0; profileIdx < profiles.size(); ++profileIdx)
                 {
                     auto const & profile = profiles[profileIdx];
                     bool noGood = false;
 
-                    log(fmt::format(". . Checking device profile {}.", profile.get_name()));
+                    log(fmt::format(". . Checking device profile '{}'.", profile.get_name()));
 
                     // NOTE: these will check against SELECTED extensions, layers, etc from instance creation.
                     auto const & vulkanVersion = profile.get_requires().get_vulkanVersion();
                     if (vulkanVersion.has_value())
                     {
                         if (checkVulkan(* vulkanVersion) == false)
-                            { noGood = true; log(". . Vulkan version {} reqirement not met."); break; }
+                            { noGood = true; log(". . Vulkan version '{}' reqirement not met."); break; }
                     }
 
                     auto const & extensions = profile.get_requires().get_extensions();
                     for (auto const & extension : extensions)
                     {
                         if (checkExtension(extension) == false)
-                            { noGood = true; log(fmt::format(". . Extension {} reqirement not met.", extension)); break; }
+                            { noGood = true; log(fmt::format(". . Extension '{}' reqirement not met.", extension)); break; }
                     }
 
                     auto const & layers = profile.get_requires().get_layers();
                     for (auto const & layer : layers)
                     {
                         if (checkLayer(layer) == false)
-                            { noGood = true; log(fmt::format(". . Layer {} reqirement not met.", layer)); break; }
+                            { noGood = true; log(fmt::format(". . Layer '{}' reqirement not met.", layer)); break; }
                     }
 
                     // These will check against AVAILABLE device extensions, queueTypes, and features.
@@ -308,7 +295,7 @@ namespace og
                     for (auto const & deviceExtension : deviceExtensions)
                     {
                         if (checkDeviceExtension(physIdx, deviceExtension) == false)
-                            { noGood = true; log(fmt::format(". . Device extension {} reqirement not met.", deviceExtension)); break; }
+                            { noGood = true; log(fmt::format(". . Device extension '{}' reqirement not met.", deviceExtension)); break; }
                     }
 
                     auto const & queueTypesInc = profile.get_requires().get_queueTypesIncluded();
@@ -319,24 +306,43 @@ namespace og
                         == false)
                         { noGood = true; log(". . Queue types reqirement not met."); break; }
 
+
                     auto const & featuresMap = profile.get_requires().get_features();
                     for (auto const & [provider, features] : featuresMap)
                     {
-                        for (auto const & feature : features)
+                        auto const & availableFeatureMap = featureProviderIndexMap[physIdx];
+                        if (auto it = availableFeatureMap.find(provider);
+                            it != availableFeatureMap.end())
                         {
-                            if (checkFeature(physIdx, provider, feature) == false)
-                                { noGood = true; log(fmt::format(". . Feature {} reqirement not met.", feature)); break; }
+                            auto const [sType, strucAvail] = availableFeaturesIndexable[physIdx][it->second];
+
+                            for (auto const & feature : features)
+                            {
+                                if (checkFeature(sType, strucAvail, feature) == false)
+                                    { noGood = true; log(fmt::format(". . Feature '{}' reqirement not met.", feature)); break; }
+                            }
                         }
+                        else
+                            { noGood = true; log(fmt::format(". . Feature '{}' reqirement not met.", feature)); break; }
                     }
 
-                    auto const & propsMap = profile.get_requires().get_properties();
-                    for (auto const & [provider, props] : propsMap)
+                    auto const & propertiesMap = profile.get_requires().get_properties();
+                    for (auto const & [provider, properties] : propertiesMap)
                     {
-                        for (auto const & [prop, op, value] : props)
+                        auto const & availablePropertyMap = propertyProviderIndexMap[physIdx];
+                        if (auto it = availablePropertyMap.find(provider);
+                            it != availablePropertyMap.end())
                         {
-                            if (checkProperty(physIdx, provider, prop, op, value) == false)
-                                { noGood = true; log(fmt::format(". . Property {} reqirement not met.", prop)); break; }
+                            auto const [sType, strucAvail] = availablePropertiesIndexable[physIdx][it->second];
+
+                            for (auto const & property : properties)
+                            {
+                                if (checkProperty(sType, strucAvail, property) == false)
+                                    { noGood = true; log(fmt::format(". . Property '{}' reqirement not met.", property)); break; }
+                            }
                         }
+                        else
+                            { noGood = true; log(fmt::format(". . Property '{}' reqirement not met.", property)); break; }
                     }
 
                     if (noGood == false)
@@ -353,14 +359,38 @@ namespace og
                     continue;   // next profile group
                 }
 
+                auto const & profile = profiles[selectedProfileIdx];
+
+                // Find the best matching queue family group. We can fail device
+                // creation here if there is no matching group.
+                uint32_t selectedQueueFamilyGroup = -1;
+                auto const & queueFamilyGroups = profile.get_queueFamilyGroups();
+                for (uint32_t qfgi = 0; qfgi < queueFamilyGroups.size(); ++qfgi)
+                {
+                    // Populate a list of qfis that match the queue spec for each queue.
+                    auto const & group = queueFamilyGroups[qfgi];
+                    auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (group.get_queues().size());
+                    for (uint32_t queueIdx = 0; queueIdx < group.get_queues().size(); ++queueIdx)
+                    {
+                        auto const & queue : group.get_queues(queueIdx);
+                        auto & selectable = selectableQueueFamilyIndices[queueIdx];
+                        for (int devQfi = 0; devQfi < availableQueueFamilies[physIdx].count(); ++devQfi)
+                        {
+                            auto const & devQueueFamily = availableQueueFamilies[physIdx][devQfi];
+                            if ((queue.get_include() & devQueueFamily.queueFlags) == queue.get_include() &&
+                                 queue.get_requires() <= devQueueFamily.queueCount)
+                            {
+                                selectable.push_back(devQfi);
+                            }
+                        }
+                    }
+                    // Now find a unique qfi assignment for each queue. If there is not one, go to next group.
+                    // TODO NEXT: Right here
+                }
+
                 // We have a device profile that works and a queue family profile that
                 // works. Gather all the things we need to make the device, do some
                 // paperwork, and make that bad boy.
-
-
-
-
-                auto const & profile = profiles[selectedProfileIdx];
 
                 auto const & groupDesires = group.get_desires();
                 auto const & profileDesires = profile.get_desires();
@@ -368,8 +398,8 @@ namespace og
                 std::vector<char const *> requiredDeviceExtensions;
                 std::vector<char const *> requiredLayers;
 
-                VkPhysicalDeviceFeatures2 requiredFeatures { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
-                cloneAndResetDeviceFeatures(features, requiredFeatures);
+                utilizedDeviceFeatures[physIdx].sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+                cloneAndResetDeviceFeatures(availableDeviceFeatures[physIdx], utilizedDeviceFeatures[physIdx]);
 
                 auto requireExtsAndLayersEtc = [&](og::vkRequirements::criteria const & criteria)
                 {
@@ -390,23 +420,26 @@ namespace og
                     }
                     for (auto const & [provider, features] : criteria.get_features())
                     {
-                        auto const & availableFeatureMap = availableDeviceFeatures[physIdx];
+                        auto const & availableFeatureMap = featureProviderIndexMap[physIdx];
                         if (auto it = availableFeatureMap.find(provider);
                             it != availableFeatureMap.end())
                         {
-                            // TODO NEXT: find the provider struct in requiredFeatures pNext chain
+                            void * strucAvail = availableFeaturesIndexable[physIdx][it->second];
+                            void * strucUsing = utilizedFeaturesIndexable[physIdx][it->second];
+
+                            VkStructureType sType = static_cast<VkBaseOutStructure *>(strucAvail)->sType;
 
                             for (auto const & feature : features)
                             {
-                                if (checkFeature(physIdx, provider, feature))
+                                if (checkFeature(sType, strucAvail, feature))
                                 {
-                                    // set the member to VK_TRUE
+                                    setFeature(sType, strucUsing, feature);
                                 }
                             }
                         }
                         else
                         {
-                            // no provider by that name; next feature
+                            // no provider by that name; next provider pls
                             continue;
                         }
                     }
@@ -419,6 +452,8 @@ namespace og
                     { requireExtsAndLayersEtc(* profileDesires); }
 
                 requireExtsAndLayersEtc(profile.get_requires());
+
+                // select queue families and counts by profile
 
                 for (auto & re : requiredDeviceExtensions)
                     { log(fmt::format("  using device extension: {}", re)); }
@@ -442,141 +477,6 @@ namespace og
             }
         }
     }
-
-
-
-/*
-VkPhysicalDeviceFeatures2
-
-VkDeviceDeviceMemoryReportCreateInfoEXT
-VkDeviceDiagnosticsConfigCreateInfoNV
-VkDeviceGroupDeviceCreateInfo
-VkDeviceMemoryOverallocationCreateInfoAMD
-VkDevicePrivateDataCreateInfo
-
-VkPhysicalDevice16BitStorageFeatures
-VkPhysicalDevice8BitStorageFeatures
-VkPhysicalDeviceBufferDeviceAddressFeatures
-VkPhysicalDeviceDescriptorIndexingFeatures
-VkPhysicalDeviceDynamicRenderingFeatures
-VkPhysicalDeviceHostQueryResetFeatures
-VkPhysicalDeviceImageRobustnessFeatures
-VkPhysicalDeviceImagelessFramebufferFeatures
-VkPhysicalDeviceInlineUniformBlockFeatures
-VkPhysicalDeviceMaintenance4Features
-VkPhysicalDeviceMultiviewFeatures
-VkPhysicalDevicePipelineCreationCacheControlFeatures
-VkPhysicalDevicePrivateDataFeatures
-VkPhysicalDeviceProtectedMemoryFeatures
-VkPhysicalDeviceSamplerYcbcrConversionFeatures
-VkPhysicalDeviceScalarBlockLayoutFeatures
-VkPhysicalDeviceSeparateDepthStencilLayoutsFeatures
-VkPhysicalDeviceShaderAtomicInt64Features
-VkPhysicalDeviceShaderDemoteToHelperInvocationFeatures
-VkPhysicalDeviceShaderDrawParametersFeatures
-VkPhysicalDeviceShaderFloat16Int8Features
-VkPhysicalDeviceShaderIntegerDotProductFeatures
-VkPhysicalDeviceShaderSubgroupExtendedTypesFeatures
-VkPhysicalDeviceShaderTerminateInvocationFeatures
-VkPhysicalDeviceSubgroupSizeControlFeatures
-VkPhysicalDeviceSynchronization2Features
-VkPhysicalDeviceTextureCompressionASTCHDRFeatures
-VkPhysicalDeviceTimelineSemaphoreFeatures
-VkPhysicalDeviceUniformBufferStandardLayoutFeatures
-VkPhysicalDeviceVariablePointersFeatures
-VkPhysicalDeviceVulkan11Features
-VkPhysicalDeviceVulkan12Features
-VkPhysicalDeviceVulkan13Features
-VkPhysicalDeviceVulkanMemoryModelFeatures
-VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures
-
-VkPhysicalDevice4444FormatsFeaturesEXT
-VkPhysicalDeviceASTCDecodeFeaturesEXT
-VkPhysicalDeviceAccelerationStructureFeaturesKHR
-VkPhysicalDeviceBlendOperationAdvancedFeaturesEXT
-VkPhysicalDeviceBorderColorSwizzleFeaturesEXT
-VkPhysicalDeviceBufferDeviceAddressFeaturesEXT
-VkPhysicalDeviceCoherentMemoryFeaturesAMD
-VkPhysicalDeviceColorWriteEnableFeaturesEXT
-VkPhysicalDeviceComputeShaderDerivativesFeaturesNV
-VkPhysicalDeviceConditionalRenderingFeaturesEXT
-VkPhysicalDeviceCooperativeMatrixFeaturesNV
-VkPhysicalDeviceCornerSampledImageFeaturesNV
-VkPhysicalDeviceCoverageReductionModeFeaturesNV
-VkPhysicalDeviceCustomBorderColorFeaturesEXT
-VkPhysicalDeviceDedicatedAllocationImageAliasingFeaturesNV
-VkPhysicalDeviceDepthClipControlFeaturesEXT
-VkPhysicalDeviceDepthClipEnableFeaturesEXT
-VkPhysicalDeviceDescriptorSetHostMappingFeaturesVALVE
-VkPhysicalDeviceDeviceGeneratedCommandsFeaturesNV
-VkPhysicalDeviceDeviceMemoryReportFeaturesEXT
-VkPhysicalDeviceDiagnosticsConfigFeaturesNV
-VkPhysicalDeviceExclusiveScissorFeaturesNV
-VkPhysicalDeviceExtendedDynamicState2FeaturesEXT
-VkPhysicalDeviceExtendedDynamicStateFeaturesEXT
-VkPhysicalDeviceExternalMemoryRDMAFeaturesNV
-VkPhysicalDeviceFragmentDensityMap2FeaturesEXT
-VkPhysicalDeviceFragmentDensityMapFeaturesEXT
-VkPhysicalDeviceFragmentDensityMapOffsetFeaturesQCOM
-VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR
-VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT
-VkPhysicalDeviceFragmentShadingRateEnumsFeaturesNV
-VkPhysicalDeviceFragmentShadingRateFeaturesKHR
-VkPhysicalDeviceGlobalPriorityQueryFeaturesKHR
-VkPhysicalDeviceGraphicsPipelineLibraryFeaturesEXT
-VkPhysicalDeviceImage2DViewOf3DFeaturesEXT
-VkPhysicalDeviceImageCompressionControlFeaturesEXT
-VkPhysicalDeviceImageCompressionControlSwapchainFeaturesEXT
-VkPhysicalDeviceImageViewMinLodFeaturesEXT
-VkPhysicalDeviceIndexTypeUint8FeaturesEXT
-VkPhysicalDeviceInheritedViewportScissorFeaturesNV
-VkPhysicalDeviceInvocationMaskFeaturesHUAWEI
-VkPhysicalDeviceLineRasterizationFeaturesEXT
-VkPhysicalDeviceLinearColorAttachmentFeaturesNV
-VkPhysicalDeviceMemoryPriorityFeaturesEXT
-VkPhysicalDeviceMeshShaderFeaturesNV
-VkPhysicalDeviceMultiDrawFeaturesEXT
-VkPhysicalDeviceMutableDescriptorTypeFeaturesVALVE
-VkPhysicalDevicePageableDeviceLocalMemoryFeaturesEXT
-VkPhysicalDevicePerformanceQueryFeaturesKHR
-VkPhysicalDevicePipelineExecutablePropertiesFeaturesKHR
-VkPhysicalDevicePipelinePropertiesFeaturesEXT
-VkPhysicalDevicePortabilitySubsetFeaturesKHR
-VkPhysicalDevicePresentIdFeaturesKHR
-VkPhysicalDevicePresentWaitFeaturesKHR
-VkPhysicalDevicePrimitiveTopologyListRestartFeaturesEXT
-VkPhysicalDevicePrimitivesGeneratedQueryFeaturesEXT
-VkPhysicalDeviceProvokingVertexFeaturesEXT
-VkPhysicalDeviceRGBA10X6FormatsFeaturesEXT
-VkPhysicalDeviceRasterizationOrderAttachmentAccessFeaturesARM
-VkPhysicalDeviceRayQueryFeaturesKHR
-VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR
-VkPhysicalDeviceRayTracingMotionBlurFeaturesNV
-VkPhysicalDeviceRayTracingPipelineFeaturesKHR
-VkPhysicalDeviceRepresentativeFragmentTestFeaturesNV
-VkPhysicalDeviceRobustness2FeaturesEXT
-VkPhysicalDeviceShaderAtomicFloat2FeaturesEXT
-VkPhysicalDeviceShaderAtomicFloatFeaturesEXT
-VkPhysicalDeviceShaderClockFeaturesKHR
-VkPhysicalDeviceShaderEarlyAndLateFragmentTestsFeaturesAMD
-VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT
-VkPhysicalDeviceShaderImageFootprintFeaturesNV
-VkPhysicalDeviceShaderIntegerFunctions2FeaturesINTEL
-VkPhysicalDeviceShaderSMBuiltinsFeaturesNV
-VkPhysicalDeviceShaderSubgroupUniformControlFlowFeaturesKHR
-VkPhysicalDeviceShadingRateImageFeaturesNV
-VkPhysicalDeviceSubpassMergeFeedbackFeaturesEXT
-VkPhysicalDeviceSubpassShadingFeaturesHUAWEI
-VkPhysicalDeviceTexelBufferAlignmentFeaturesEXT
-VkPhysicalDeviceTransformFeedbackFeaturesEXT
-VkPhysicalDeviceVertexAttributeDivisorFeaturesEXT
-VkPhysicalDeviceVertexInputDynamicStateFeaturesEXT
-VkPhysicalDeviceWorkgroupMemoryExplicitLayoutFeaturesKHR
-VkPhysicalDeviceYcbcr2Plane444FormatsFeaturesEXT
-VkPhysicalDeviceYcbcrImageArraysFeaturesEXT
-VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures
-
-*/
 
     bool Engine::checkDeviceExtension(int deviceIdx, std::string_view deviceExtension)
     {
@@ -653,20 +553,15 @@ VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures
     }
 
 #define OG_STRUCT(struct_name, struct_t, struct_type_e) \
-    static bool checkVkPropFeatStructure(struct_t * propFeatStruct, std::string_view propFeat, vkRequirements::reqOperator op, std::string_view value) \
+    static bool checkFeatureMember(struct_t * featureStruct, std::string_view feature) \
     {
-
-#define OG_MEMBER(memberName) \
-        if (propFeat == #memberName) { return checkMember(propFeatStruct->memberName, op, value); }
-
+#define OG_MEMBER(member_name) \
+        if (feature == #member_name) { return featureStruct->member_name == VK_TRUE; }
 #define OG_MEMBER_ELSE(struct_name) \
-        throw Ex(fmt::format("Invalid feature {} for struct_name.", propFeat));
-
+        throw Ex(fmt::format("Invalid feature '{}' for struct_name.", feature));
 #define OG_STRUCT_END() \
     }
-
 #include "../inc/features_mac.h"
-
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
@@ -674,98 +569,92 @@ VkPhysicalDeviceZeroInitializeWorkgroupMemoryFeatures
 
 
 #define OG_STRUCT(struct_name, struct_t, struct_type_e) \
-    static bool checkVkPropFeatStructure(struct_t * propFeatStruct, std::string_view propFeat, vkRequirements::reqOperator op, std::string_view value) \
+    static bool setFeatureMember(struct_t * featureStruct, std::string_view feature) \
     {
-
-#define OG_MEMBER(memberName) \
-        if (propFeat == #memberName) { return checkMember(propFeatStruct->memberName, op, value); }
-
+#define OG_MEMBER(member_name) \
+        if (feature == #member_name) { featureStruct->member_name = VK_TRUE; return; }
 #define OG_MEMBER_ELSE(struct_name) \
-        throw Ex(fmt::format("Invalid property {} for struct_name.", propFeat));
-
+        throw Ex(fmt::format("Invalid feature '{}' for struct_name.", feature));
 #define OG_STRUCT_END() \
     }
+#include "../inc/features_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
 
+    bool Engine::checkFeature(VkStructureType sType, void * struc, std::string_view feature)
+    {
+        switch (sType)
+        {
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+        case struct_type_e: return checkFeatureMember(static_cast<struct_t *>(struc), feature);
+#define OG_MEMBER(memberName)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END() \
+        default: throw Ex(fmt::format("Invalid feature structure type {}.", sType));
+#include "../inc/features_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
+        }
+    }
+
+    void Engine::setFeature(VkStructureType sType, void * struc, std::string_view feature)
+    {
+        switch (sType)
+        {
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+        case struct_type_e: setFeatureMember(static_cast<struct_t *>(struc), feature);
+#define OG_MEMBER(memberName)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END() \
+        default: throw Ex(fmt::format("Invalid feature structure type {}.", sType));
+#include "../inc/features_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
+        }
+    }
+
+
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+    static bool checkPropertiesMember(struct_t * propertyStruct, std::string_view property, vkRequirements::reqOperator op, std::string_view value) \
+    {
+#define OG_MEMBER(member_name) \
+        if (property == #member_name) { return checkMember(propertyStruct->member_name, op, value); }
+#define OG_MEMBER_ELSE(struct_name) \
+        throw Ex(fmt::format("Invalid property '{}' for struct_name.", property));
+#define OG_STRUCT_END() \
+    }
 #include "../inc/properties_mac.h"
-
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
 #undef OG_STRUCT
 
 
-    bool Engine::checkFeature(int deviceIdx, std::string_view provider, std::string_view feature)
+    bool Engine::checkProperty(VkStructureType sType, void * struc, std::string_view property,
+                               vkRequirements::reqOperator op, std::string_view value)
     {
-        // If we haven't made our device yet, check against available features.
-        // Otherwise, check against what we declared to make the device.
-        std::map<std::string_view, void *> & features =
-            vkInstance == nullptr ? availableDeviceFeatures[deviceIdx] : utilizedDeviceFeatures[deviceIdx];
-
-        auto it = features.find(provider);
-        if (it == features.end())
-            { return false; }
-
-        bool pass = false;
-        if (it->first == "vulkan_1_0")
+        switch (sType)
         {
-            pass = checkVkPropFeatStructure(static_cast<VkPhysicalDeviceFeatures *>(it->second), feature, vkRequirements::reqOperator::eq, "true");
+#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
+        case struct_type_e: return checkPropertyMember(static_cast<struct_t *>(struc), property);
+#define OG_MEMBER(memberName)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END() \
+        default: throw Ex(fmt::format("Invalid property structure type {}.", sType));
+#include "../inc/properties_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT
         }
-        else
-        {
-            VkStructureType structType = static_cast<VkBaseOutStructure *>(it->second)->sType;
-            switch (structType)
-            {
- #define CHECK_FEAT(enumName, structName)                                                   \
-            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_##enumName##_FEATURES:                   \
-                pass = checkVkPropFeatStructure(                                            \
-                    static_cast<VkPhysicalDevice##structName##Features *>(it->second),      \
-                    feature, vkRequirements::reqOperator::eq, "true")
-
-            CHECK_FEAT(VULKAN_1_1, Vulkan11);
-            CHECK_FEAT(VULKAN_1_2, Vulkan12);
-            CHECK_FEAT(VULKAN_1_3, Vulkan13);
-            // TODO: Many many many other extensions
-#undef CHECK_FEAT
-            }
-        }
-
-        return pass;
     }
 
-    bool Engine::checkProperty(int deviceIdx, std::string_view provider, std::string_view property, vkRequirements::reqOperator op, std::string_view value)
-    {
-        // If we haven't made our device yet, check against available features.
-        // Otherwise, check against what we declared to make the device.
-        std::map<std::string_view, void *> & properties = availableDeviceProperties[deviceIdx];
-
-        auto it = properties.find(provider);
-        if (it == properties.end())
-            { return false; }
-
-        bool pass = false;
-        if (it->first == "vulkan_1_0")
-        {
-            pass = checkVkPropFeatStructure(static_cast<VkPhysicalDeviceProperties *>(it->second), property, op, value);
-        }
-        else
-        {
-            VkStructureType structType = static_cast<VkBaseOutStructure *>(it->second)->sType;
-            switch (structType)
-            {
- #define CHECK_PROP(enumName, structName)                                                   \
-            case VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_##enumName##_PROPERTIES:                 \
-                pass = checkVkPropFeatStructure(                                            \
-                    static_cast<VkPhysicalDevice##structName##Properties *>(it->second),    \
-                    property, op, value);
-            CHECK_PROP(VULKAN_1_1, Vulkan11);
-            CHECK_PROP(VULKAN_1_2, Vulkan12);
-            CHECK_PROP(VULKAN_1_3, Vulkan13);
-#undef CHECK_PROP
-            }
-        }
-
-        return pass;
-    }
 }
 
 /*

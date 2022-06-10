@@ -138,29 +138,29 @@
             */
             queueFamilyGroups: [{
                     name: gcacat
-                    queues: [{ include: [graphisc_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [compute_bit]   exclude: [graphisc_bit]                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [transfer_bit]  exclude: [graphisc_bit compute_bit]     requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queues: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [compute_bit]   exclude: [graphics_bit]                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [transfer_bit]  exclude: [graphics_bit compute_bit]     requires: 1, desires: 2, priorities: [1.0, 0.4] }
                     ]
                 }, {
                     name: gacat
-                    queues: [{ include: [graphisc_bit]  exclude: [compute_bit],                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [compute_bit]   exclude: [graphisc_bit],                requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [transfer_bit]  exclude: [graphisc_bit compute_bit],    requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queues: [{ include: [graphics_bit]  exclude: [compute_bit],                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [compute_bit]   exclude: [graphics_bit],                requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [transfer_bit]  exclude: [graphics_bit compute_bit],    requires: 1, desires: 2, priorities: [1.0, 0.4] }
                     ]
                 }, {
                     name: gcat
-                    queues: [{ include: [graphisc_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [transfer_bit] exclude: [graphisc_bit compute_bit]      requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queues: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [transfer_bit] exclude: [graphics_bit compute_bit]      requires: 1, desires: 2, priorities: [1.0, 0.4] }
                     ]
                 }, {
                     name: gac
-                    queues: [{ include: [graphisc_bit] exclude: [compute_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [compute_bit] exclude: [graphisc_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    queues: [{ include: [graphics_bit] exclude: [compute_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                             { include: [compute_bit] exclude: [graphics_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
                     ]
                 }, {
                     name: gct
-                    queues: [{ include: [graphisc_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    queues: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
                     ]
                 }
             ]
