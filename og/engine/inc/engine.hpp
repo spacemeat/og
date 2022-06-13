@@ -11,7 +11,7 @@
 #include "../../gen/inc/og.hpp"
 #include "except.hpp"
 #include "utils.hpp"
-
+#include "vkPhysDevice.hpp"
 
 namespace og
 {
@@ -46,6 +46,9 @@ namespace og
         Engine(std::string configPath);
         ~Engine();
 
+        engine::engineConfig const & get_config() { return config; }
+        engine::appConfig const & get_appConfig() { return appConfig; }
+
         void init();
         void shutdown();
     private:
@@ -59,17 +62,25 @@ namespace og
         void initVkInstance();
         void destroyVkInstance();
 
-        void initVkDevices();
+    public:
+        std::vector<std::string_view> const & get_utilizedExtensions() { return utilizedExtensions; }
+        std::vector<std::string_view> const & get_utilizedLayers() { return utilizedLayers; }
+
+    private:
+        void initPhysVkDevices();
+        void computeBestProfileGroupDevices(int groupIdx);
+        void assignDevices(std::string_view groupName, int numDevices);
+        void createAllVkDevices();
+
+        void destroyAllVkDevices();
+        void destroyVkDevice(int deviceIdx);
 
         void waitForIdleVkDevice();
 
+    public:
         bool checkVulkan(std::string_view vulkanVersion);
         bool checkExtension(std::string_view extension);
         bool checkLayer(std::string_view layer);
-        bool checkDeviceExtension(int deviceIdx, std::string_view deviceExtension);
-        bool checkQueueTypes(int deviceIdx, VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);
-        bool checkFeature(int deviceIdx, std::string_view provider, std::string_view feature);
-        bool checkProperty(int deviceIdx, std::string_view provider, std::string_view property, vkRequirements::reqOperator op, std::string_view value);
 
     private:
         hu::Trove configTrove;
@@ -83,8 +94,25 @@ namespace og
         std::vector<VkExtensionProperties> availableExtensions;
         std::vector<VkLayerProperties> availableLayers;
 
+        std::vector<std::string_view> utilizedExtensions;
+        std::vector<std::string_view> utilizedLayers;
+
         VkInstance vkInstance;
 
+        std::vector<PhysVkDevice> devices;
+
+        struct DevProfileGroupAssignment
+        {
+            int groupIdx;
+            // vector of [phIdx, profileIdx, vector of [queue family index, queue count, priorities]]
+            std::vector<std::tuple<int, int, std::vector<std::tuple<uint32_t, uint32_t, std::vector<float>>>>> deviceProfileIdxs;
+            int winningDeviceIdx;
+        };
+
+        // vector of [groupIdx, vector of [phIdx, profileIdx], winningPhysIdx]
+        std::vector<DevProfileGroupAssignment> deviceAssignments;
+
+        /*
         // vector zips with physical devices
         std::vector<std::vector<VkExtensionProperties>> availableDeviceExtensions;
         // vector zips with physical devices
@@ -120,6 +148,7 @@ namespace og
 
         // maps profileGroup name to [physical device index, profile index]
         std::map<std::string_view, std::tuple<int, int>> selectedPhysDeviceProfiles;
+        */
     };
 
     extern std::optional<Engine> e;

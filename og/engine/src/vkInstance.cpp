@@ -186,23 +186,37 @@ namespace og
     {
         // If we haven't made our vkInstance yet, check against available extensions.
         // Otherwise, check against what we declared to make the vkInstance.
-        std::vector<VkExtensionProperties> & availExts =
-            vkInstance == nullptr ? availableExtensions : utilizedExtensions;
+        if (vkInstance == nullptr)
+        {
+            auto aeit = std::find_if(begin(availableExtensions), end(availableExtensions),
+                [& extension](auto && elem) { return elem.extensionName == extension; });
+            return aeit != availableExtensions.end();
 
-        auto aeit = std::find_if(begin(availExts), end(availExts),
-            [& extension](auto && elem) { return elem.extensionName == extension; });
-        return aeit != availExts.end();
+        }
+        else
+        {
+            auto aeit = std::find_if(begin(utilizedExtensions), end(utilizedExtensions),
+                [& extension](auto && elem) { return elem == extension; });
+            return aeit != utilizedExtensions.end();
+        }
     }
 
     bool Engine::checkLayer(std::string_view layerName)
     {
         // If we haven't made our vkInstance yet, check against available layers.
         // Otherwise, check against what we declared to make the vkInstance.
-        std::vector<VkLayerProperties> & availLayers =
-            vkInstance == nullptr ? availableLayers : utilizedLayers;
+        if (vkInstance == nullptr)
+        {
+            auto aeit = std::find_if(begin(availableLayers), end(availableLayers),
+                [& layerName](auto && elem) { return elem.layerName == layerName; });
+            return aeit != availableLayers.end();
 
-        auto alit = std::find_if(begin(availLayers), end(availLayers),
-            [& layerName](auto && elem) { return elem.layerName == layerName; });
-        return alit != availLayers.end();
+        }
+        else
+        {
+            auto aeit = std::find_if(begin(utilizedLayers), end(utilizedLayers),
+                [& layerName](auto && elem) { return elem == layerName; });
+            return aeit != utilizedLayers.end();
+        }
     }
 }

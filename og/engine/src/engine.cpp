@@ -44,12 +44,44 @@ namespace og
 
         app->initViews();
 
-        initVkDevices();
+        initPhysVkDevices();
+
+        std::vector<std::tuple<std::string_view, int>> deviceSchedule;
+
+        for (auto const & work : appConfig.get_works())
+        {
+            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            {
+                deviceSchedule.emplace_back(groupName, needed);
+            }
+        }
+
+        for (auto const & work : appConfig.get_works())
+        {
+            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            {
+                deviceSchedule.emplace_back(groupName, wanted - needed);
+            }
+        }
+
+        for (auto const & [groupName, _] : deviceSchedule)
+        {
+            computeBestProfileGroupDevices(groupName);
+        }
+
+        for (auto const & [groupName, numDevices] : deviceSchedule)
+        {
+            assignDevices(groupName, numDevices);
+        }
+
     }
 
     void Engine::shutdown()
     {
         if (vkInstance)
-            { destroyVkInstance(); }
+        {
+            destroyAllVkDevices();
+            destroyVkInstance();
+        }
     }
 }
