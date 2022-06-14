@@ -521,12 +521,12 @@ namespace og
         uint32_t selectedQueueFamilyGroup = -1;
         QueueFamilyComposition qfiAllocs;
         auto const & queueFamilyGroups = group.get_queueFamilyGroups();
-        for (uint32_t qfgi = 0; qfgi < queueFamilyGroups.size(); ++qfgi)
+        for (uint32_t qfGroupIdx = 0; qfGroupIdx < queueFamilyGroups.size(); ++qfGroupIdx)
         {
+            auto const & qfGroup = queueFamilyGroups[qfGroupIdx];
             bool groupFail = false;
 
             // Populate a list of qfis that match the queue spec for each queue.
-            auto const & qfGroup = queueFamilyGroups[qfgi];
             auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qfGroup.get_queues().size());
             for (uint32_t queueIdx = 0; queueIdx < qfGroup.get_queues().size(); ++queueIdx)
             {
@@ -535,10 +535,12 @@ namespace og
                 for (int devQfi = 0; devQfi < availableQueueFamilies.size(); ++devQfi)
                 {
                     auto const & devQueueFamily = availableQueueFamilies[devQfi];
-                    if (((queue.get_include().has_value() &&
-                          *queue.get_include() & devQueueFamily.queueFlags) == queue.get_include()) &&
-                        ((queue.get_exclude().has_value() &&
-                          *queue.get_exclude() & devQueueFamily.queueFlags) == 0) &&
+                    if ((queue.get_include().has_value()
+                         ? (*queue.get_include() & devQueueFamily.queueFlags) == queue.get_include()
+                         : true) &&
+                        (queue.get_exclude().has_value()
+                         ? (*queue.get_exclude() & devQueueFamily.queueFlags) == 0
+                         : true) &&
                         queue.get_requires() <= devQueueFamily.queueCount)
                     {
                         selectable.push_back(devQfi);
@@ -549,7 +551,7 @@ namespace og
             }
 
             if (groupFail)
-                { log(fmt::format("Queue family group {} - no match.", qfgi)); continue; }
+                { log(fmt::format("Queue family group {} - no match.", qfGroupIdx)); continue; }
 
             // Now find the best unique qfi assignment for each queue. If there is not one, go to next group.
 
@@ -631,7 +633,7 @@ namespace og
 
             if (winningCombo != -1)
             {
-                selectedQueueFamilyGroup = qfgi;
+                selectedQueueFamilyGroup = qfGroupIdx;
                 for (int q = 0; q < numQs; ++q)
                 {
                     auto qfi = results[winningCombo * numQs + q];
