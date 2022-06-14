@@ -46,13 +46,28 @@ namespace og
 
         initPhysVkDevices();
 
-        std::vector<std::tuple<std::string_view, int>> deviceSchedule;
+        // vec of [groupIdx, numDevices]
+        std::vector<std::tuple<int, int>> deviceSchedule;
+
+        log("Rounding up device profile groups.");
+        auto const & groups = config.get_vkDeviceProfileGroups();
+
+        auto getGroup = [&](std::string_view groupName)
+        {
+            auto groupIt = find_if(begin(groups), end(groups),
+                                   [& groupName](auto & a){ return a.get_name() == groupName; });
+            if (groupIt == end(groups))
+                { throw Ex(fmt::format("Invalid vkDeviceProfileGroups group name '{}'", groupName)); }
+
+            return groupIt - begin(groups);
+        };
 
         for (auto const & work : appConfig.get_works())
         {
             for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
             {
-                deviceSchedule.emplace_back(groupName, needed);
+                auto groupIdx = getGroup(groupName);
+                deviceSchedule.emplace_back(groupIdx, needed);
             }
         }
 
@@ -60,20 +75,25 @@ namespace og
         {
             for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
             {
-                deviceSchedule.emplace_back(groupName, wanted - needed);
+                auto groupIdx = getGroup(groupName);
+                deviceSchedule.emplace_back(groupIdx, wanted - needed);
             }
         }
 
-        for (auto const & [groupName, _] : deviceSchedule)
+        log("Scoring devices for profile groups.");
+        for (auto const & [groupIdx, _] : deviceSchedule)
         {
-            computeBestProfileGroupDevices(groupName);
+            computeBestProfileGroupDevices(groupIdx);
         }
 
-        for (auto const & [groupName, numDevices] : deviceSchedule)
+        log("Assigning winning devices to profile groups.");
+        for (auto const & [groupIdx, numDevices] : deviceSchedule)
         {
-            assignDevices(groupName, numDevices);
+            assignDevices(groupIdx, numDevices);
         }
 
+        log("Creating devices.");
+        createAllVkDevices();
     }
 
     void Engine::shutdown()

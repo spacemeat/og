@@ -31,6 +31,7 @@ namespace og
         bool needsMet = false;
     };
 
+
     class Engine
     {
     public:
@@ -69,7 +70,7 @@ namespace og
     private:
         void initPhysVkDevices();
         void computeBestProfileGroupDevices(int groupIdx);
-        void assignDevices(std::string_view groupName, int numDevices);
+        void assignDevices(int groupIdx, int numDevices);
         void createAllVkDevices();
 
         void destroyAllVkDevices();
@@ -101,17 +102,12 @@ namespace og
 
         std::vector<PhysVkDevice> devices;
 
-        struct DevProfileGroupAssignment
-        {
-            int groupIdx;
-            // vector of [phIdx, profileIdx, vector of [queue family index, queue count, priorities]]
-            std::vector<std::tuple<int, int, std::vector<std::tuple<uint32_t, uint32_t, std::vector<float>>>>> deviceProfileIdxs;
-            int winningDeviceIdx;
-        };
+    public:
 
         // vector of [groupIdx, vector of [phIdx, profileIdx], winningPhysIdx]
+        // matches 1-1 with groups
         std::vector<DevProfileGroupAssignment> deviceAssignments;
-
+    private:
         /*
         // vector zips with physical devices
         std::vector<std::vector<VkExtensionProperties>> availableDeviceExtensions;
