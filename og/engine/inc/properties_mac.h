@@ -56,9 +56,13 @@ OG_MEMBER(limits.maxFragmentOutputAttachments)
 OG_MEMBER(limits.maxFragmentDualSrcAttachments)
 OG_MEMBER(limits.maxFragmentCombinedOutputResources)
 OG_MEMBER(limits.maxComputeSharedMemorySize)
-//uint32_t              maxComputeWorkGroupCount[3]
+OG_MEMBER(limits.maxComputeWorkGroupCount[0])
+OG_MEMBER(limits.maxComputeWorkGroupCount[1])
+OG_MEMBER(limits.maxComputeWorkGroupCount[2])
 OG_MEMBER(limits.maxComputeWorkGroupInvocations)
-//uint32_t              maxComputeWorkGroupSize[3]
+OG_MEMBER(limits.maxComputeWorkGroupSize[0])
+OG_MEMBER(limits.maxComputeWorkGroupSize[1])
+OG_MEMBER(limits.maxComputeWorkGroupSize[2])
 OG_MEMBER(limits.subPixelPrecisionBits)
 OG_MEMBER(limits.subTexelPrecisionBits)
 OG_MEMBER(limits.mipmapPrecisionBits)
@@ -67,8 +71,10 @@ OG_MEMBER(limits.maxDrawIndirectCount)
 OG_MEMBER(limits.maxSamplerLodBias)
 OG_MEMBER(limits.maxSamplerAnisotropy)
 OG_MEMBER(limits.maxViewports)
-//uint32_t              maxViewportDimensions[2]
-//float                 viewportBoundsRange[2]
+OG_MEMBER(limits.maxViewportDimensions[0])
+OG_MEMBER(limits.maxViewportDimensions[1])
+OG_MEMBER(limits.viewportBoundsRange[0])
+OG_MEMBER(limits.viewportBoundsRange[1])
 OG_MEMBER(limits.viewportSubPixelBits)
 OG_MEMBER(limits.minMemoryMapAlignment)
 OG_MEMBER(limits.minTexelBufferOffsetAlignment)
@@ -101,8 +107,10 @@ OG_MEMBER(limits.maxClipDistances)
 OG_MEMBER(limits.maxCullDistances)
 OG_MEMBER(limits.maxCombinedClipAndCullDistances)
 OG_MEMBER(limits.discreteQueuePriorities)
-//float                 pointSizeRange[2]
-//float                 lineWidthRange[2]
+OG_MEMBER(limits.pointSizeRange[0])
+OG_MEMBER(limits.pointSizeRange[1])
+OG_MEMBER(limits.lineWidthRange[0])
+OG_MEMBER(limits.lineWidthRange[1])
 OG_MEMBER(limits.pointSizeGranularity)
 OG_MEMBER(limits.lineWidthGranularity)
 OG_MEMBER(limits.strictLines)
@@ -119,9 +127,9 @@ OG_MEMBER_ELSE(vulkan_1_0)
 OG_STRUCT_END()
 
 OG_STRUCT(vulkan_1_1, VkPhysicalDeviceVulkan11Properties, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES)
-//uint8_t                    deviceUUID[VK_UUID_SIZE]
-//uint8_t                    driverUUID[VK_UUID_SIZE]
-//uint8_t                    deviceLUID[VK_LUID_SIZE]
+OG_MEMBER(deviceUUID)
+OG_MEMBER(driverUUID)
+OG_MEMBER(deviceLUID)
 OG_MEMBER(deviceNodeMask)
 OG_MEMBER(deviceLUIDValid)
 OG_MEMBER(subgroupSize)
@@ -139,8 +147,8 @@ OG_STRUCT_END()
 
 OG_STRUCT(vulkan_1_2, VkPhysicalDeviceVulkan12Properties, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES)
 OG_MEMBER(driverID)
-//char                                 driverName[VK_MAX_DRIVER_NAME_SIZE]
-//char                                 driverInfo[VK_MAX_DRIVER_INFO_SIZE]
+OG_MEMBER(driverName)
+OG_MEMBER(driverInfo)
 OG_MEMBER(conformanceVersion.major)
 OG_MEMBER(conformanceVersion.minor)
 OG_MEMBER(conformanceVersion.subminor)
@@ -244,3 +252,5 @@ OG_MEMBER(uniformTexelBufferOffsetSingleTexelAlignment)
 OG_MEMBER(maxBufferSize)
 OG_MEMBER_ELSE(vulkan_1_3)
 OG_STRUCT_END()
+
+// ... TOD: many more extension properties

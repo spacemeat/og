@@ -1,3 +1,5 @@
+#pragma once
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -11,6 +13,7 @@ namespace og
     {
         uint32_t qfi;
         uint32_t count;
+        VkDeviceQueueCreateFlags flags;
         std::vector<float> priorities;
     };
 
@@ -65,13 +68,11 @@ namespace og
 
         std::vector<VkQueueFamilyProperties> availableQueueFamilies;
 
-        // vector of [profileGroupName, profileIdx]
-        //std::vector<std::tuple<std::string_view, int>> profileGroupBestMatches;
         bool isAssignedToDeviceProfileGroup = false;
 
         int groupIdx = -1;
         int profileIdx = -1;
-        VkDevice device;
+        VkDevice device = nullptr;
 
         std::vector<std::string_view> utilizedDeviceExtensions;
         VkPhysicalDeviceFeatures2 utilizedDeviceFeatures;
