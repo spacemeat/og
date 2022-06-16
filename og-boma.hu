@@ -22,9 +22,10 @@
             enumFlags: true
             enums: {
                 logTags: [
-                    error, warn
+                    error, warn, info, verbose
                     status, assetDb, featureDb, tableau
-                    vulkan, validation
+                    vulkan,
+                    general, validation, performance
 
                     [graphics [error warn vulkan validation]]
                 ]
@@ -48,6 +49,7 @@
             }
             listener: {
                 interests: logTags
+                apathies: logTags
                 logPath: stringView     // 'stderr' and 'stdout' are special
                 colors: { type: optional of: {
                         type: unorderedMap of: [logParts, stringView] } }
@@ -140,6 +142,8 @@
                 name: stringView
                 profiles: { type: vector of: vkInstanceProfile }
                 desires: { type: optional of: criteria }
+                debugUtilsMessengers: { type: vector of: debugUtilsMessenger_t }
+                validationFeatures: { type: optional of: validationFeatures_t }
             }
             vkInstanceProfile: {
                 name: stringView
@@ -194,6 +198,14 @@
                 desires: { type: int default: 1 }
                 flags: { type: VkDeviceQueueCreateFlags default: 0 }
                 priorities: { type: vector of: float }
+            }
+            debugUtilsMessenger_t: {
+                severity: VkDebugUtilsMessageSeverityFlagBitsEXT
+                type: VkDebugUtilsMessageTypeFlagBitsEXT
+            }
+            validationFeatures_t: {
+                enabled: { type: vector of: VkValidationFeatureEnableEXT }
+                disabled: { type: vector of: VkValidationFeatureDisableEXT }
             }
         }
     }

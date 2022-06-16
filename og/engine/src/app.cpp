@@ -19,13 +19,11 @@ namespace og
 
     App::~App()
     {
-
     }
 
     void App::init()
     {
         log("app init");
-
         e->init();
     }
 

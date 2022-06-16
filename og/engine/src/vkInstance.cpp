@@ -2,6 +2,68 @@
 #include "../../logger/inc/logger.hpp"
 #include "../inc/app.hpp"
 
+template <class T>
+auto toNum(T t) { return static_cast<std::underlying_type_t<T>>(t); }
+
+template <class T>
+auto toEnum(std::underlying_type_t<T> n) { return static_cast<T>(n); }
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT * pCallbackData,
+    void * pUserData)
+{
+    auto logTags = toNum(og::logger::logTags::vulkan) |
+                   toNum(og::logger::logTags::validation);
+    if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
+        { logTags |= toNum(og::logger::logTags::verbose); }
+    if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+        { logTags |= toNum(og::logger::logTags::info); }
+    if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+        { logTags |= toNum(og::logger::logTags::warn); }
+    if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+        { logTags |= toNum(og::logger::logTags::error); }
+
+    if (messageType & VkDebugUtilsMessageTypeFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)
+        { logTags |= toNum(og::logger::logTags::general); }
+    if (messageType & VkDebugUtilsMessageTypeFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
+        { logTags |= toNum(og::logger::logTags::validation); }
+    if (messageType & VkDebugUtilsMessageTypeFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
+        { logTags |= toNum(og::logger::logTags::performance); }
+
+    if (pCallbackData->messageIdNumber != 0)
+    {
+        og::log(toEnum<og::logger::logTags>(logTags), fmt::format("Vk: {} #{}: {}",
+            pCallbackData->pMessageIdName, pCallbackData->messageIdNumber,
+            pCallbackData->pMessage));
+    }
+    else
+    {
+        og::log(toEnum<og::logger::logTags>(logTags), fmt::format("Vk: {}: {}",
+            pCallbackData->pMessageIdName, pCallbackData->pMessage));
+    }
+    // TODO: labels in queues and command buffers, and objects
+
+    return VK_FALSE;
+}
+
+
+static VkDebugUtilsMessengerCreateInfoEXT makeDebugMessengerCreateInfo(
+    og::vkRequirements::debugUtilsMessenger_t const & cfg)
+{
+    return VkDebugUtilsMessengerCreateInfoEXT
+    {
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .flags = 0,
+        .messageSeverity = static_cast<VkDebugUtilsMessageSeverityFlagsEXT>(cfg.get_severity()),
+        .messageType = static_cast<VkDebugUtilsMessageTypeFlagsEXT>(cfg.get_type()),
+        .pfnUserCallback = debugCallback
+    };
+}
+
+
 namespace og
 {
     void Engine::initVkInstance()
@@ -54,7 +116,8 @@ namespace og
         if (pgit == end(profileGroups))
             { throw Ex(fmt::format("Could not find a vkInstance profile group named '{}'", groupName)); }
 
-        auto const & profiles = pgit->get_profiles();
+        auto const & profileGroup = * pgit;
+        auto const & profiles = profileGroup.get_profiles();
         int profileIdx = -1;
         for (int i = 0; i < profiles.size(); ++i)
         {
@@ -144,6 +207,35 @@ namespace og
         for (auto & re : requiredLayers)
             { log(fmt::format("using layer: {}", re)); }
 
+        void * createInfo_pNext = nullptr;
+        // debug messengers specifically for vkCreateInstance/vkDestroyInstance
+        std::vector<VkDebugUtilsMessengerCreateInfoEXT> dbgMsgrs(profileGroup.get_debugUtilsMessengers().size());
+        for (int i = 0; i < dbgMsgrs.size(); ++i)
+        {
+            auto const & cfg = profileGroup.get_debugUtilsMessengers()[i];
+            dbgMsgrs[i] = std::move(makeDebugMessengerCreateInfo(cfg));
+            dbgMsgrs[i].pNext = nullptr;
+            if (i > 0)
+                { dbgMsgrs[i - 1].pNext = & dbgMsgrs[i]; }
+        }
+        if (dbgMsgrs.size() > 0)
+            { createInfo_pNext = & dbgMsgrs[0]; }
+
+        std::optional<VkValidationFeaturesEXT> valFeats;
+        auto const & valFeatCfg = profileGroup.get_validationFeatures();
+        if (valFeatCfg.has_value())
+        {
+            valFeats = VkValidationFeaturesEXT {
+                .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+                .pNext = createInfo_pNext,
+                .enabledValidationFeatureCount = static_cast<uint32_t>(valFeatCfg->get_enabled().size()),
+                .pEnabledValidationFeatures = valFeatCfg->get_enabled().data(),
+                .disabledValidationFeatureCount = static_cast<uint32_t>(valFeatCfg->get_disabled().size()),
+                .pDisabledValidationFeatures = valFeatCfg->get_disabled().data()
+            };
+            createInfo_pNext = & (* valFeats);
+        }
+
         VkApplicationInfo vai {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pApplicationName = appName.data(),
@@ -158,6 +250,7 @@ namespace og
 
         VkInstanceCreateInfo vici {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pNext = createInfo_pNext,
             .pApplicationInfo = & vai,
             .enabledLayerCount = static_cast<uint32_t>(requiredLayers.size()),
             .ppEnabledLayerNames = requiredLayers.data(),
@@ -167,12 +260,33 @@ namespace og
 
         VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
         log("vulkan instance created.");
+
+        createDebugMessengers(dbgMsgrs);
     }
 
     void Engine::destroyVkInstance()
     {
         vkDestroyInstance(vkInstance, nullptr);
         vkInstance = nullptr;
+    }
+
+    void Engine::createDebugMessengers(std::vector<VkDebugUtilsMessengerCreateInfoEXT> const & dbgMsgrs)
+    {
+        vkDebugMessengers.resize(dbgMsgrs.size());
+        auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(vkInstance, "vkCreateDebugUtilsMessengerEXT");
+        for (int i = 0; i < dbgMsgrs.size(); ++i)
+        {
+            VKR(func(vkInstance, & dbgMsgrs[i], nullptr, & vkDebugMessengers[i]));
+        }
+    }
+
+    void Engine::destroyDebugMessengers()
+    {
+        auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(vkInstance, "vkDestroyDebugUtilsMessengerEXT");
+        for (int i = 0; i < vkDebugMessengers.size(); ++i)
+        {
+            func(vkInstance, vkDebugMessengers[vkDebugMessengers.size() - i - 1], nullptr);
+        }
     }
 
     bool Engine::checkVulkan(std::string_view vulkanVersionReq)

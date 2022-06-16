@@ -101,6 +101,7 @@ namespace og
         if (vkInstance)
         {
             destroyAllVkDevices();
+            destroyDebugMessengers();
             destroyVkInstance();
         }
     }

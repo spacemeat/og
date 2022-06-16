@@ -92,38 +92,46 @@ namespace og
         {
             auto const & genListener = config.get_listeners()[i];
             auto & listener = listeners[i];
-            if (static_cast<LogPartInt>(genListener.get_interests())
-              & static_cast<LogPartInt>(tags))
-            {
-                auto const & format = genListener.get_format();
-                auto fullMessage = fmt::format(format,
-                    fmt::arg("beg", listener.bgColorFormatted),
-                    fmt::arg("tc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::time)]),
-                    fmt::arg("mc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::message)]),
-                    fmt::arg("fic", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::file)]),
-                    fmt::arg("lc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::line)]),
-                    fmt::arg("cc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::col)]),
-                    fmt::arg("fnc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::fname)]),
-                    fmt::arg("end", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::end)]),
-                    fmt::arg("time", time_placeholder),
-                    fmt::arg("message", message),
-                    fmt::arg("file", loc.file_name()),
-                    fmt::arg("line", loc.line()),
-                    fmt::arg("col", loc.column()),
-                    fmt::arg("fname", loc.function_name()));
 
-                if (listener.usingStdout)
-                {
-                    std::cout << fullMessage;
-                }
-                else if (listener.usingStderr)
-                {
-                    std::cerr << fullMessage;
-                }
-                else
-                {
-                    (* listener.logFile) << fullMessage;
-                }
+            if ((static_cast<LogPartInt>(genListener.get_interests())
+               & static_cast<LogPartInt>(tags)) == 0)
+                { continue; }
+
+            if (static_cast<LogPartInt>(genListener.get_apathies()) != 0)
+            {
+                if ((static_cast<LogPartInt>(genListener.get_apathies())
+                    & static_cast<LogPartInt>(tags)) != 0)
+                    { continue; }
+            }
+
+            auto const & format = genListener.get_format();
+            auto fullMessage = fmt::format(format,
+                fmt::arg("beg", listener.bgColorFormatted),
+                fmt::arg("tc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::time)]),
+                fmt::arg("mc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::message)]),
+                fmt::arg("fic", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::file)]),
+                fmt::arg("lc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::line)]),
+                fmt::arg("cc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::col)]),
+                fmt::arg("fnc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::fname)]),
+                fmt::arg("end", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::end)]),
+                fmt::arg("time", time_placeholder),
+                fmt::arg("message", message),
+                fmt::arg("file", loc.file_name()),
+                fmt::arg("line", loc.line()),
+                fmt::arg("col", loc.column()),
+                fmt::arg("fname", loc.function_name()));
+
+            if (listener.usingStdout)
+            {
+                std::cout << fullMessage;
+            }
+            else if (listener.usingStderr)
+            {
+                std::cerr << fullMessage;
+            }
+            else
+            {
+                (* listener.logFile) << fullMessage;
             }
         }
     }

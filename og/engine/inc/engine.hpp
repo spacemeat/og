@@ -63,6 +63,9 @@ namespace og
         void initVkInstance();
         void destroyVkInstance();
 
+        void createDebugMessengers(std::vector<VkDebugUtilsMessengerCreateInfoEXT> const & dbgMsgrs);
+        void destroyDebugMessengers();
+
     public:
         std::vector<std::string_view> const & get_utilizedExtensions() { return utilizedExtensions; }
         std::vector<std::string_view> const & get_utilizedLayers() { return utilizedLayers; }
@@ -99,6 +102,7 @@ namespace og
         std::vector<std::string_view> utilizedLayers;
 
         VkInstance vkInstance;
+        std::vector<VkDebugUtilsMessengerEXT> vkDebugMessengers;
 
         std::vector<PhysVkDevice> devices;
 

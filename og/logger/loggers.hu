@@ -44,7 +44,8 @@
         }, {
             interests: [status,
                        assetDb, featureDb, tableau,
-                       vulkan, validation]
+                       vulkan]
+            apathies: [warn, error]
             logPath: stdout
             colors: {
                 time:       midGray

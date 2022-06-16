@@ -399,7 +399,7 @@ namespace og
         vkGetPhysicalDeviceProperties2(phdev, & properties);
         availablePropertiesIndexable.push_back({properties.sType, & properties.properties});
         propertyProviderIndexMap["vulkan_1_0"] = 0;
-        log(". features: ");
+        log(". properties: ");
         reportProps(& properties.properties);
 
         next = properties.pNext;
