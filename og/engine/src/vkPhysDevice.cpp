@@ -557,6 +557,9 @@ namespace og
             if (noGood == false)
             {
                 selectedProfileIdx = profileIdx;
+
+                log(fmt::format(". Best suitable profile found: {} (profile #{})",
+                    profile.get_name(), selectedProfileIdx));
                 break;
             }
         }
@@ -711,6 +714,9 @@ namespace og
                         QueueFamilyAlloc {qfi, numQueues, flags, std::move(ctdPriorities)});
                 }
                 // we found a winner, recorded the qfi data, now bail
+                log(fmt::format(". Best suitable queue family group found: {} (group #{})",
+                    queueFamilyGroups[selectedQueueFamilyGroup].get_name(),
+                    selectedQueueFamilyGroup));
                 break;
             }
         }

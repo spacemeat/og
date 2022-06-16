@@ -163,6 +163,11 @@ namespace og
         auto const & groupDesires = pgit->get_desires();
         auto const & profileDesires = profile.get_desires();
 
+        auto const & vulkanVersionStr = profile.get_requires().get_vulkanVersion();
+        auto vkVersion = vulkanVersionStr.has_value()
+                       ? version_t {* vulkanVersionStr}.bits
+                       : VK_API_VERSION_1_3;
+
         std::vector<char const *> requiredExtensions;
         std::vector<char const *> requiredLayers;
 
@@ -245,7 +250,7 @@ namespace og
             .engineVersion = VK_MAKE_API_VERSION(
                 0, Engine::version[0], Engine::version[1], Engine::version[2]
             ),
-            .apiVersion = VK_API_VERSION_1_3    // TODO: enable downlevel targeting?
+            .apiVersion = vkVersion
         };
 
         VkInstanceCreateInfo vici {
