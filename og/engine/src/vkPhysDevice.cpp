@@ -10,10 +10,12 @@ using namespace std::literals::string_view_literals;
 
 // I'll bet you have an opinion about macros.
 
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
 static void reportFeatures(struct_t * propFeatStruct)                                               \
 {                                                                                                   \
-    og::log(fmt::format(". . {}", #struct_name));
+    og::log(fmt::format(". . {}", #provider_name));
+#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
+OG_STRUCT(provider_name, struct_t, sType)
 #define OG_MEMBER(member_name)                                                                      \
         if (propFeatStruct->member_name == VK_TRUE)                                                 \
             { og::log(fmt::format(". . . {}", #member_name)); }
@@ -24,6 +26,7 @@ static void reportFeatures(struct_t * propFeatStruct)                           
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
 
 
@@ -32,8 +35,10 @@ static void reportFeatures(void * struc)
     auto structType = static_cast<VkBaseOutStructure *>(struc)->sType;
     switch(structType)
     {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
-    case struct_type_e: reportFeatures(static_cast<struct_t *>(struc)); break;
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    case sType: reportFeatures(static_cast<struct_t *>(struc)); break;
+#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
+OG_STRUCT(provider_name, struct_t, sType)
 #define OG_MEMBER(memberName)
 #define OG_MEMBER_ELSE(struct_name)
 #define OG_STRUCT_END()
@@ -41,15 +46,18 @@ static void reportFeatures(void * struc)
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
     }
 }
 
 
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
 static void reportProps(struct_t * propFeatStruct)                                                  \
 {                                                                                                   \
-    og::log(fmt::format(". . {}", #struct_name));
+    og::log(fmt::format(". . {}", #provider_name));
+#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
+OG_STRUCT(provider_name, struct_t, sType)
 #define OG_MEMBER(member_name)                                                                      \
         og::log(fmt::format(". . . {}: {}", #member_name, propFeatStruct->member_name));
 #define OG_MEMBER_ELSE(struct_name)
@@ -59,6 +67,7 @@ static void reportProps(struct_t * propFeatStruct)                              
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
 
 static void reportProps(void * struc)
@@ -66,8 +75,10 @@ static void reportProps(void * struc)
     VkStructureType structType = static_cast<VkBaseOutStructure *>(struc)->sType;
     switch(structType)
     {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e) \
-    case struct_type_e: reportProps(static_cast<struct_t *>(struc)); break;
+#define OG_STRUCT(provider_name, struct_t, sType) \
+    case sType: reportProps(static_cast<struct_t *>(struc)); break;
+#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
+OG_STRUCT(provider_name, struct_t, sType)
 #define OG_MEMBER(member_name)
 #define OG_MEMBER_ELSE(struct_name)
 #define OG_STRUCT_END()
@@ -75,6 +86,7 @@ static void reportProps(void * struc)
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
     default: og::log(fmt::format("Unknown property structure type '{}'", structType));
     }
@@ -92,12 +104,13 @@ static void cloneAndResetDeviceFeatures(VkPhysicalDeviceFeatures2 const & src,
         VkStructureType structType = static_cast<VkBaseOutStructure *>(next)->sType;
         switch(structType)
         {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
-        case struct_type_e:                                                                         \
-            dst.sType = struct_type_e;                                                              \
-            dst.pNext = new struct_t { struct_type_e };                                             \
-            dstIndexable.emplace_back(struct_type_e, next);                                         \
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+        case sType:                                                                         \
+            dst.sType = sType;                                                              \
+            dst.pNext = new struct_t { sType };                                             \
+            dstIndexable.emplace_back(sType, next);                                         \
             break;
+#define OG_STRUCT_BASE(provider_name, struct_t, sType)
 #define OG_MEMBER(member_name)
 #define OG_MEMBER_ELSE(struct_name)
 #define OG_STRUCT_END()
@@ -105,6 +118,7 @@ static void cloneAndResetDeviceFeatures(VkPhysicalDeviceFeatures2 const & src,
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
         }
     }
@@ -112,8 +126,10 @@ static void cloneAndResetDeviceFeatures(VkPhysicalDeviceFeatures2 const & src,
 
 static VkStructureType providerToStructureType(std::string_view provider)
 {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
-    if (provider == #struct_name) { return struct_type_e; }
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    if (provider == #provider_name) { return sType; }
+#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
+OG_STRUCT(provider_name, struct_t, sType)
 #define OG_MEMBER(member_name)
 #define OG_MEMBER_ELSE(struct_name)
 #define OG_STRUCT_END()
@@ -121,16 +137,19 @@ static VkStructureType providerToStructureType(std::string_view provider)
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
-    throw og::Ex(fmt::format("Unknown extension '{}'.", provider));
+    throw og::Ex(fmt::format("Unknown provider '{}'.", provider));
 }
 
 static std::string_view structureTypeToProvider(VkStructureType sType)
 {
     switch (sType)
     {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
-    case struct_type_e: return #struct_name##sv;
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    case sType: return #provider_name##sv;
+#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
+OG_STRUCT(provider_name, struct_t, sType)
 #define OG_MEMBER(member_name)
 #define OG_MEMBER_ELSE(struct_name)
 #define OG_STRUCT_END()
@@ -138,6 +157,7 @@ static std::string_view structureTypeToProvider(VkStructureType sType)
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
         // TODO: stringize sType
     default: throw og::Ex(fmt::format("No known provider for structure type '{}'.", sType));
@@ -222,7 +242,7 @@ static bool checkMember(char member[VK_MAX_DRIVER_NAME_SIZE],
     return op != og::vkRequirements::reqOperator::ne;
 }
 
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
 static bool checkFeatureMember(struct_t * featureStruct, std::string_view feature)                  \
 {
 #define OG_MEMBER(member_name) \
@@ -235,14 +255,15 @@ static bool checkFeatureMember(struct_t * featureStruct, std::string_view featur
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
 
 static bool checkFeature(VkStructureType sType, void * struc, std::string_view feature)
 {
     switch (sType)
     {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
-    case struct_type_e: return checkFeatureMember(static_cast<struct_t *>(struc), feature);
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    case sType: return checkFeatureMember(static_cast<struct_t *>(struc), feature);
 #define OG_MEMBER(memberName)
 #define OG_MEMBER_ELSE(struct_name)
 #define OG_STRUCT_END()
@@ -250,12 +271,13 @@ static bool checkFeature(VkStructureType sType, void * struc, std::string_view f
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
     default: throw og::Ex(fmt::format("Invalid feature structure type {}.", sType));
     }
 }
 
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
 static void setFeatureMember(struct_t * featureStruct, std::string_view feature)                    \
 {
 #define OG_MEMBER(member_name)                                                                      \
@@ -268,14 +290,15 @@ static void setFeatureMember(struct_t * featureStruct, std::string_view feature)
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
 
 static void setFeature(VkStructureType sType, void * struc, std::string_view feature)
 {
     switch (sType)
     {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
-    case struct_type_e: setFeatureMember(static_cast<struct_t *>(struc), feature);
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    case sType: setFeatureMember(static_cast<struct_t *>(struc), feature);
 #define OG_MEMBER(memberName)
 #define OG_MEMBER_ELSE(struct_name)
 #define OG_STRUCT_END()
@@ -283,13 +306,14 @@ static void setFeature(VkStructureType sType, void * struc, std::string_view fea
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
     default: throw og::Ex(fmt::format("Invalid feature structure type {}.", sType));
     }
 }
 
 
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
 static bool checkPropertiesMember(struct_t * propertyStruct, std::string_view property,             \
                                   og::vkRequirements::reqOperator op, std::string_view value)       \
 {
@@ -303,6 +327,7 @@ static bool checkPropertiesMember(struct_t * propertyStruct, std::string_view pr
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
 
 
@@ -311,8 +336,8 @@ static bool checkProperty(VkStructureType sType, void * struc, std::string_view 
 {
     switch (sType)
     {
-#define OG_STRUCT(struct_name, struct_t, struct_type_e)                                             \
-    case struct_type_e:                                                                             \
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    case sType:                                                                             \
         return checkPropertiesMember(static_cast<struct_t *>(struc), property, op, value);
 #define OG_MEMBER(memberName)
 #define OG_MEMBER_ELSE(struct_name)
@@ -321,10 +346,62 @@ static bool checkProperty(VkStructureType sType, void * struc, std::string_view 
 #undef OG_STRUCT_END
 #undef OG_MEMBER_ELSE
 #undef OG_MEMBER
+#undef OG_STRUCT_BASE
 #undef OG_STRUCT
     default: throw og::Ex(fmt::format("Invalid property structure type {}.", sType));
     }
 }
+
+
+
+static void constructFullFeaturesStructs(VkPhysicalDeviceFeatures2 & features)
+{
+    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    void ** ppNext = & features.pNext;
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    {   \
+        if (sType != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2) \
+        { \
+            auto * newPThing = new struct_t { sType };                                              \
+            * ppNext = newPThing;   \
+            ppNext = & newPThing->pNext;    \
+        } \
+    }
+#define OG_MEMBER(memberName)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END()
+#include "../inc/features_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT_BASE
+#undef OG_STRUCT
+}
+
+static void constructFullPropertiesStructs(VkPhysicalDeviceProperties2 & properties)
+{
+    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    void ** ppNext = & properties.pNext;
+#define OG_STRUCT(provider_name, struct_t, sType)                                             \
+    {   \
+        if (sType != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2) \
+        { \
+            auto * newPThing = new struct_t { sType };                                              \
+            * ppNext = newPThing;   \
+            ppNext = & newPThing->pNext;    \
+        } \
+    }
+#define OG_MEMBER(memberName)
+#define OG_MEMBER_ELSE(struct_name)
+#define OG_STRUCT_END()
+#include "../inc/properties_mac.h"
+#undef OG_STRUCT_END
+#undef OG_MEMBER_ELSE
+#undef OG_MEMBER
+#undef OG_STRUCT_BASE
+#undef OG_STRUCT
+}
+
 
 
 namespace og
@@ -373,7 +450,7 @@ namespace og
 
         // get features for physical device
         auto & features = availableDeviceFeatures;
-        features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        constructFullFeaturesStructs(features);
         vkGetPhysicalDeviceFeatures2(phdev, & features);
         availableFeaturesIndexable.push_back({features.sType, & features.features});
         featureProviderIndexMap["vulkan_1_0"] = 0;
@@ -395,7 +472,7 @@ namespace og
         }
 
         auto & properties = availableDeviceProperties;
-        properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+        constructFullPropertiesStructs(properties);
         vkGetPhysicalDeviceProperties2(phdev, & properties);
         availablePropertiesIndexable.push_back({properties.sType, & properties.properties});
         propertyProviderIndexMap["vulkan_1_0"] = 0;
@@ -418,17 +495,23 @@ namespace og
 
         // report queue families
         uint32_t qfCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(phdev, & qfCount, nullptr);
-        std::vector<VkQueueFamilyProperties> & availableQfs = availableQueueFamilies;
+        vkGetPhysicalDeviceQueueFamilyProperties2(phdev, & qfCount, nullptr);
+        std::vector<VkQueueFamilyProperties2> & availableQfs = availableQueueFamilies;
         availableQfs.resize(qfCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(phdev, & qfCount, availableQfs.data());
+        for (auto & qfp2 : availableQfs)
+        {
+            qfp2.sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2;
+            qfp2.pNext = nullptr;
+        }
+        // TODO: constructFullQueueFamilyStructs(availableQfs);
+        vkGetPhysicalDeviceQueueFamilyProperties2(phdev, & qfCount, availableQfs.data());
 
         log(". queue families:");
         for (auto const & qf : availableQfs)
         {
             std::ostringstream ss;
-            ss << HumonFormat(qf.queueFlags);
-            log(fmt::format(". . {} - {} queues", ss.str(), qf.queueCount));
+            ss << HumonFormat(qf.queueFamilyProperties.queueFlags);
+            log(fmt::format(". . {} - {} queues", ss.str(), qf.queueFamilyProperties.queueCount));
         }
     }
 
@@ -445,12 +528,15 @@ namespace og
         {
             auto & device = devices[devIdx];
             auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
-            int profileIdx = device.findBestProfileIdx(groupIdx, profileGroups[groupIdx]);
             suitability.physicalDeviceIdx = devIdx;
+            suitability.profileCritera.resize(profileGroups.size());
+            int profileIdx = device.findBestProfileIdx(groupIdx, profileGroups[groupIdx], suitability);
             suitability.bestProfileIdx = profileIdx;
             if (profileIdx >= 0)
             {
-                auto && [queueFamilyGroupIdx, queueFamilyAlloc] = device.findBestQueueFamilyAllocation(groupIdx, profileGroups[groupIdx]);
+                suitability.queueFamilies.init(...);
+                auto && [queueFamilyGroupIdx, queueFamilyAlloc] =
+                    device.findBestQueueFamilyAllocation(groupIdx, profileGroups[groupIdx]);
                 suitability.bestQueueFamilyGroupIdx = queueFamilyGroupIdx;
                 if (queueFamilyGroupIdx >= 0)
                 {
@@ -461,7 +547,7 @@ namespace og
         deviceAssignmentGroup.hasBeenComputed = true;
     }
 
-    int PhysVkDevice::findBestProfileIdx(int groupIdx, engine::physicalVkDeviceProfileGroup const & group)
+    int PhysVkDevice::findBestProfileIdx(int groupIdx, engine::physicalVkDeviceProfileGroup const & group, PhysicalDeviceSuitability & suitability)
     {
         bool reportAll = false;
 
@@ -473,6 +559,19 @@ namespace og
         {
             auto const & profile = profiles[profileIdx];
             bool noGood = false;
+
+            // Get all required and desired providers. This lets us build the structure chains
+            // we care about for querying (and later, creation if this is the device provile
+            // we wind up using).
+            std::vector<std::string_view> providers;
+            if (group.requires.has_value())
+            {
+
+            }
+
+            auto & profileSpecificCriteria = suitability.profileCritera[profileIdx];
+            profileSpecificCriteria.features.init(providers);
+            profileSpecificCriteria.properties.init(providers);
 
             log(fmt::format(". . Checking device profile '{}'.", profile.get_name()));
 
@@ -588,21 +687,21 @@ namespace og
             bool groupFail = false;
 
             // Populate a list of qfis that match the queue spec for each queue.
-            auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qfGroup.get_queues().size());
-            for (uint32_t queueIdx = 0; queueIdx < qfGroup.get_queues().size(); ++queueIdx)
+            auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qfGroup.get_queueFamilies().size());
+            for (uint32_t queueIdx = 0; queueIdx < qfGroup.get_queueFamilies().size(); ++queueIdx)
             {
-                auto const & queue = qfGroup.get_queues()[queueIdx];
+                auto const & queue = qfGroup.get_queueFamilies()[queueIdx];
                 auto & selectable = selectableQueueFamilyIndices[queueIdx];
                 for (int devQfi = 0; devQfi < availableQueueFamilies.size(); ++devQfi)
                 {
                     auto const & devQueueFamily = availableQueueFamilies[devQfi];
                     if ((queue.get_include().has_value()
-                         ? ((* queue.get_include()) & devQueueFamily.queueFlags) == queue.get_include()
+                         ? ((* queue.get_include()) & devQueueFamily.queueFamilyProperties.queueFlags) == queue.get_include()
                          : true) &&
                         (queue.get_exclude().has_value()
-                         ? ((* queue.get_exclude()) & devQueueFamily.queueFlags) == 0
+                         ? ((* queue.get_exclude()) & devQueueFamily.queueFamilyProperties.queueFlags) == 0
                          : true) &&
-                        queue.get_requires() <= devQueueFamily.queueCount)
+                        queue.get_requires() <= devQueueFamily.queueFamilyProperties.queueCount)
                     {
                         selectable.push_back(devQfi);
                     }
@@ -676,8 +775,8 @@ namespace og
                 for (int q = 0; q < numQs; ++q)
                 {
                     auto cs0 = results[combo * numQs + q];
-                    auto count = availableQueueFamilies[cs0].queueCount;
-                    auto numQueuesDesired = qfGroup.get_queues()[q].get_desires();
+                    auto count = availableQueueFamilies[cs0].queueFamilyProperties.queueCount;
+                    auto numQueuesDesired = qfGroup.get_queueFamilies()[q].get_desires();
                     auto score = std::min(count, static_cast<uint32_t>(numQueuesDesired));
                     totalScore *= score;
                 }
@@ -698,8 +797,8 @@ namespace og
                 for (int q = 0; q < numQs; ++q)
                 {
                     auto qfi = results[winningCombo * numQs + q];
-                    auto count = availableQueueFamilies[qfi].queueCount;
-                    auto const & queueConfig = qfGroup.get_queues()[q];
+                    auto count = availableQueueFamilies[qfi].queueFamilyProperties.queueCount;
+                    auto const & queueConfig = qfGroup.get_queueFamilies()[q];
                     auto numQueuesDesired = queueConfig.get_desires();
                     auto numQueues = std::min(count, static_cast<uint32_t>(numQueuesDesired));
                     auto flags = queueConfig.get_flags();
@@ -838,11 +937,6 @@ namespace og
                         }
                     }
                 }
-                else
-                {
-                    // no provider by that name; next provider pls
-                    continue;
-                }
             }
         };
 
@@ -858,7 +952,6 @@ namespace og
 
         for (auto & re : requiredDeviceExtensions)
             { log(fmt::format("  using device extension: {}", re)); }
-
 
         log(". using features: ");
         auto & features = utilizedDeviceFeatures;
@@ -956,7 +1049,7 @@ namespace og
             {
                 queueTypesAvailable = static_cast<VkQueueFlagBits>(
                     static_cast<uenum_t>(queueTypesAvailable) |
-                    static_cast<uenum_t>(qfProps.queueFlags));
+                    static_cast<uenum_t>(qfProps.queueFamilyProperties.queueFlags));
             }
         }
         else
@@ -965,7 +1058,7 @@ namespace og
             {
                 queueTypesAvailable = static_cast<VkQueueFlagBits>(
                     static_cast<uenum_t>(queueTypesAvailable) |
-                    static_cast<uenum_t>(availableQueueFamilies[qfProps.qfi].queueFlags));
+                    static_cast<uenum_t>(availableQueueFamilies[qfProps.qfi].queueFamilyProperties.queueFlags));
             }
         }
 

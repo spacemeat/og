@@ -153,6 +153,7 @@
             physicalVkDeviceProfileGroup: {
                 name: stringView
                 profiles: { type: vector of: physicalVkDeviceProfile }
+                requires: { type: optional of: criteria }
                 desires: { type: optional of: criteria }
                 queueFamilyGroups: { type: vector of: queueFamilyGroup }
             }
@@ -189,7 +190,7 @@
             }
             queueFamilyGroup: {
                 name: stringView
-                queues: { type: vector of: queueFamilyProperties }
+                queueFamilies: { type: vector of: queueFamilyProperties }
             }
             queueFamilyProperties: {
                 include: { type: optional of: VkQueueFlagBits }
@@ -197,6 +198,15 @@
                 requires: { type: int default: 1 }
                 desires: { type: int default: 1 }
                 flags: { type: VkDeviceQueueCreateFlags default: 0 }
+                // VK_NV_device_diagnostic_checkpoints::VkQueueFamilyCheckpointPropertiesNV
+                //checkpointExecutionStages: { type: optional of: VkPipelineStageFlagBits }
+                // with VK_NV_device_diagnostic_checkpoints enabled,
+                // VK_KHR_synchronization2::VkQueueFamilyCheckpointProperties2NV
+                //qcheckpointExecutionStages2: { type: optional of: VkPipelineStageFlags2 }
+                // VK_KHR_video_queue::VkQueueFamilyQueryResultStatusProperties2KHR
+                //queryResultStatusSupport: { type: optional of: bool }
+                // VK_KHR_video_queue::VkVideoQueueFamilyProperties2KHR
+                //videoCodecOperation: { type: optional of: VkVideoCodecOperationFlagBitsKHR }
                 priorities: { type: vector of: float }
             }
             debugUtilsMessenger_t: {

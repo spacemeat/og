@@ -1,4 +1,4 @@
-OG_STRUCT(vulkan_1_0, VkPhysicalDeviceProperties, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2)
+OG_STRUCT_BASE(vulkan_1_0, VkPhysicalDeviceProperties, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2)
 OG_MEMBER(apiVersion)
 OG_MEMBER(driverVersion)
 OG_MEMBER(vendorID)

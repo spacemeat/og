@@ -1,0 +1,22 @@
+OG_STRUCT_BASE(vulkan_1_0, VkQueueFamilyProperties, VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2)
+OG_MEMBER(queueFlags)
+OG_MEMBER(queueCount)
+OG_MEMBER(timestampValidBits)
+OG_MEMBER(minImageTransferGranularity)
+
+OG_STRUCT(synchronization2, VkQueueFamilyCheckpointProperties2NV, VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_2_NV)
+OG_MEMBER(checkpointExecutionStageMask)
+
+OG_STRUCT(device_diagnostic_checkpoints, VkQueueFamilyCheckpointPropertiesNV, VK_STRUCTURE_TYPE_QUEUE_FAMILY_CHECKPOINT_PROPERTIES_NV)
+OG_MEMBER(checkpointExecutionStageMask)
+
+OG_STRUCT(global_priority, VkQueueFamilyGlobalPriorityPropertiesKHR, VK_STRUCTURE_TYPE_QUEUE_FAMILY_GLOBAL_PRIORITY_PROPERTIES_KHR)
+OG_MEMBER(priorityCount)
+OG_MEMBER(priorities)
+
+// NOTE: These are in vulkan beta
+//OG_STRUCT(video_queue_query, VkQueueFamilyQueryResultStatusProperties2KHR, VK_STRUCTURE_TYPE_QUEUE_FAMILY_QUERY_RESULT_STATUS_PROPERTIES_2_KHR)
+//OG_MEMBER(queryResultStatusSupport)
+
+//OG_STRUCT(video_queue, VkVideoQueueFamilyProperties2KHR, VK_STRUCTURE_TYPE_VIDEO_QUEUE_FAMILY_PROPERTIES_2_KHR)
+//OG_MEMBER(videoCodecOperations)

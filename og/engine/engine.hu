@@ -9,21 +9,31 @@
             profiles: [ {
                     name: v1.3
                     requires: {
-                        vulkanVersion: 1.2
+                        vulkanVersion: 1.3
                         extensions: [
-                            //VK_KHR_get_physical_device_properties2
                         ]
                         layers: [
-                            VK_LAYER_KHRONOS_validation
                         ]
                     }
                     desires: {
                         extensions: [
-                            VK_EXT_debug_utils
                         ]
                         layers: [
-                            VK_LAYER_KHRONOS_synchronization2
-                            //VK_LAYER_MESA_device_select
+                        ]
+                    }
+                }, {
+                    name: v1.2
+                    requires: {
+                        vulkanVersion: 1.2
+                        extensions: [
+                        ]
+                        layers: [
+                        ]
+                    }
+                    desires: {
+                        extensions: [
+                        ]
+                        layers: [
                         ]
                     }
                 }, {
@@ -31,20 +41,35 @@
                     requires: {
                         vulkanVersion: 1.1
                         extensions: [
-                            VK_EXT_debug_utils
                         ]
                         layers: [
-                            VK_LAYER_KHRONOS_validation
                         ]
                     }
                     desires: {
                         layers: [
-                            VK_LAYER_MESA_device_select
+                        ]
+                    }
+                }, {
+                    name: v1.0
+                    requires: {
+                        vulkanVersion: 1.0
+                        extensions: [
+                            VK_KHR_get_physical_device_properties2
+                        ]
+                        layers: [
                         ]
                     }
                 }
             ]
-            desires: { }
+            desires: {
+                extensions: [
+                    VK_EXT_debug_utils
+                ]
+                layers: [
+                    VK_LAYER_KHRONOS_validation
+                    VK_LAYER_KHRONOS_synchronization2
+                ]
+            }
             debugUtilsMessengers: [{
                     severity: [verbose_bit, info_bit, warning_bit, error_bit]
                     type: [general_bit, validation_bit, performance_bit]
@@ -63,7 +88,7 @@
                     requires: {
                         vulkanVersion: 1.3
                         extensions: [
-                            VK_KHR_get_physical_device_properties2
+                            //VK_KHR_get_physical_device_properties2
                         ]
                         layers: []
                     }
@@ -71,6 +96,14 @@
                     name: v1.1
                     requires: {
                         vulkanVersion: 1.1
+                    }
+                }, {
+                    name: v1.0
+                    requires: {
+                        vulkanVersion: 1.0
+                        extensions: [
+                            VK_KHR_get_physical_device_properties2
+                        ]
                     }
                 }
             ]
@@ -121,6 +154,18 @@
                     desires: {
                     }
                 }, {
+                    name: highPerf-1.2
+                    requires: {
+                        vulkanVersion: 1.2
+                        deviceExtensions: [VK_KHR_synchronization2]
+                        queueTypesIncluded: [compute_bit graphics_bit]
+                        proerties: {
+                            vulkan_1_0: [[deviceType eq discrete_gpu]]
+                        }
+                    }
+                    desires: {
+                    }
+                }, {
                     name: feeb
                     requires: {
                         vulkanVersion: 1.0
@@ -133,6 +178,9 @@
                     }
                 }
             ]
+            requires: {
+                deviceExtensions: [VK_KHR_swapchain]
+            }
             desires: {
             }
             /* Each group specs a combination of queue families. The first group that
@@ -153,29 +201,29 @@
             */
             queueFamilyGroups: [{
                     name: gcacat
-                    queues: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [compute_bit]   exclude: [graphics_bit]                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [transfer_bit]  exclude: [graphics_bit compute_bit]     requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                                    { include: [compute_bit]   exclude: [graphics_bit]                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                                    { include: [transfer_bit]  exclude: [graphics_bit compute_bit]     requires: 1, desires: 2, priorities: [1.0, 0.4] }
                     ]
                 }, {
                     name: gacat
-                    queues: [{ include: [graphics_bit]  exclude: [compute_bit],                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [compute_bit]   exclude: [graphics_bit],                requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [transfer_bit]  exclude: [graphics_bit compute_bit],    requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queueFamilies: [{ include: [graphics_bit]  exclude: [compute_bit],                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                                    { include: [compute_bit]   exclude: [graphics_bit],                requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                                    { include: [transfer_bit]  exclude: [graphics_bit compute_bit],    requires: 1, desires: 2, priorities: [1.0, 0.4] }
                     ]
                 }, {
                     name: gcat
-                    queues: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [transfer_bit] exclude: [graphics_bit compute_bit]      requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                                    { include: [transfer_bit] exclude: [graphics_bit compute_bit]      requires: 1, desires: 2, priorities: [1.0, 0.4] }
                     ]
                 }, {
                     name: gac
-                    queues: [{ include: [graphics_bit] exclude: [compute_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [compute_bit] exclude: [graphics_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    queueFamilies: [{ include: [graphics_bit] exclude: [compute_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                                    { include: [compute_bit] exclude: [graphics_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
                     ]
                 }, {
                     name: gct
-                    queues: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
                     ]
                 }
             ]
@@ -208,12 +256,12 @@
             desires: { }
             queueFamilies: [{
                     name: cat
-                    queues: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                             { include: [transfer_bit]  exclude: [compute_bit]  requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queueFamilies: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                                    { include: [transfer_bit]  exclude: [compute_bit]  requires: 1, desires: 2, priorities: [1.0, 0.4] }
                     ]
                 }, {
                     name: c
-                    queues: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    queueFamilies: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
                     ]
                 }
             ]

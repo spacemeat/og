@@ -1,4 +1,4 @@
-OG_STRUCT(vulkan_1_0, VkPhysicalDeviceFeatures, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2)
+OG_STRUCT_BASE(vulkan_1_0, VkPhysicalDeviceFeatures, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2)
 OG_MEMBER(robustBufferAccess)
 OG_MEMBER(fullDrawIndexUint32)
 OG_MEMBER(imageCubeArray)
