@@ -8,6 +8,7 @@
     defaultConstructible: true
     genDir:                 $baseDir/$namespaceForFs/gen
     sharedCodeGenDir:       $baseDir/$sharedCodeNamespaceForFs/gen
+    enumIsScoped:   true
 
     --logger: {
         namespace: og.logger
