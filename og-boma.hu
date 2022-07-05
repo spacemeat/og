@@ -161,7 +161,7 @@
             physicalVkDeviceProfile: {
                 name: stringView
                 enabled: { type: bool default: true }
-                requires: criteria
+                requires: { type: optional of: criteria }
                 desires: { type: optional of: criteria }
             }
         }

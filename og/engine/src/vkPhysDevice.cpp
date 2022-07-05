@@ -8,402 +8,6 @@
 
 using namespace std::literals::string_view_literals;
 
-// I'll bet you have an opinion about macros.
-
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-static void reportFeatures(struct_t * propFeatStruct)                                               \
-{                                                                                                   \
-    og::log(fmt::format(". . {}", #provider_name));
-#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
-OG_STRUCT(provider_name, struct_t, sType)
-#define OG_MEMBER(member_name)                                                                      \
-        if (propFeatStruct->member_name == VK_TRUE)                                                 \
-            { og::log(fmt::format(". . . {}", #member_name)); }
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()                                                                             \
-}
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-
-
-static void reportFeatures(void * struc)
-{
-    auto structType = static_cast<VkBaseOutStructure *>(struc)->sType;
-    switch(structType)
-    {
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    case sType: reportFeatures(static_cast<struct_t *>(struc)); break;
-#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
-OG_STRUCT(provider_name, struct_t, sType)
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-    }
-}
-
-
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-static void reportProps(struct_t * propFeatStruct)                                                  \
-{                                                                                                   \
-    og::log(fmt::format(". . {}", #provider_name));
-#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
-OG_STRUCT(provider_name, struct_t, sType)
-#define OG_MEMBER(member_name)                                                                      \
-        og::log(fmt::format(". . . {}: {}", #member_name, propFeatStruct->member_name));
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()                                                                             \
-}
-#include "../inc/properties_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-
-static void reportProps(void * struc)
-{
-    VkStructureType structType = static_cast<VkBaseOutStructure *>(struc)->sType;
-    switch(structType)
-    {
-#define OG_STRUCT(provider_name, struct_t, sType) \
-    case sType: reportProps(static_cast<struct_t *>(struc)); break;
-#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
-OG_STRUCT(provider_name, struct_t, sType)
-#define OG_MEMBER(member_name)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/properties_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-    default: og::log(fmt::format("Unknown property structure type '{}'", structType));
-    }
-}
-
-static void cloneAndResetDeviceFeatures(VkPhysicalDeviceFeatures2 const & src,
-    VkPhysicalDeviceFeatures2 & dst, std::vector<std::tuple<VkStructureType,
-    void *>> & dstIndexable)
-{
-    dst.features = src.features;
-    dst.pNext = nullptr;
-    void * next = src.pNext;
-    while (next != nullptr)
-    {
-        VkStructureType structType = static_cast<VkBaseOutStructure *>(next)->sType;
-        switch(structType)
-        {
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-        case sType:                                                                         \
-            dst.sType = sType;                                                              \
-            dst.pNext = new struct_t { sType };                                             \
-            dstIndexable.emplace_back(sType, next);                                         \
-            break;
-#define OG_STRUCT_BASE(provider_name, struct_t, sType)
-#define OG_MEMBER(member_name)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-        }
-    }
-}
-
-static VkStructureType providerToStructureType(std::string_view provider)
-{
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    if (provider == #provider_name) { return sType; }
-#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
-OG_STRUCT(provider_name, struct_t, sType)
-#define OG_MEMBER(member_name)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-    throw og::Ex(fmt::format("Unknown provider '{}'.", provider));
-}
-
-static std::string_view structureTypeToProvider(VkStructureType sType)
-{
-    switch (sType)
-    {
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    case sType: return #provider_name##sv;
-#define OG_STRUCT_BASE(provider_name, struct_t, sType)                                             \
-OG_STRUCT(provider_name, struct_t, sType)
-#define OG_MEMBER(member_name)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-        // TODO: stringize sType
-    default: throw og::Ex(fmt::format("No known provider for structure type '{}'.", sType));
-    }
-}
-
-
-template <class T>
-static bool checkMember(T const & member, og::vkRequirements::reqOperator op,
-                        std::string_view value)
-{
-    auto const & valueConv = hu::val<T>::extract(value);
-    if constexpr(std::is_enum_v<T>)
-    {
-        if (op == og::vkRequirements::reqOperator::has)
-            { return (member & valueConv) == member; }
-        if (op == og::vkRequirements::reqOperator::eq)
-            { return member == valueConv; }
-        if (op == og::vkRequirements::reqOperator::ne)
-            { return member != valueConv; }
-        throw og::Ex(fmt::format("Invalid operator {}.", op));
-    }
-    else
-    {
-        return og::obeysInequality(member, valueConv, op);
-    }
-}
-
-static bool checkMember(VkBool32 const & member, og::vkRequirements::reqOperator op,
-                        std::string_view value)
-{
-    if (op != og::vkRequirements::reqOperator::eq &&
-        op != og::vkRequirements::reqOperator::ne)
-        { throw og::Ex(fmt::format("Invalid operator {}.", op)); }
-    if (value == "true")
-        { return member == (op == og::vkRequirements::reqOperator::eq ? VK_TRUE : VK_FALSE); }
-    if (value == "false")
-        { return member == (op == og::vkRequirements::reqOperator::ne ? VK_TRUE : VK_FALSE); }
-    throw og::Ex(fmt::format("Invalid operator {}.", op));
-}
-
-
-static bool checkMember(uint8_t member[VK_UUID_SIZE], og::vkRequirements::reqOperator op,
-    std::string_view value)
-{
-    if (op != og::vkRequirements::reqOperator::eq && op != og::vkRequirements::reqOperator::ne)
-        { throw og::Ex(fmt::format("Invalid operator {}.", op)); }
-
-    if (value.size() != VK_UUID_SIZE * 2)
-        { throw og::Ex("Invalid format for uint8_t[VK_UUID_SIZE]."); }
-
-    // specially reading long hex string to match
-    for (int i = 0; i < VK_UUID_SIZE; ++i)
-    {
-        auto toHex = [& value](char c)
-        {
-            if      (c >= '0' && c <= '9') { return c -= '0'; }
-            else if (c >= 'A' && c <= 'F') { return c -= 'A'; }
-            else if (c >= 'a' && c <= 'f') { return c -= 'F'; }
-            else { throw og::Ex("Invalid format for uint8_t[VK_UUID_SIZE]."); }
-        };
-
-        auto h = toHex(value[i * 2]);
-        auto l = toHex(value[i * 2 + 1]);
-        auto val = (h << 4) + l;
-        if (val != static_cast<int>(member[i]))
-            { return op == og::vkRequirements::reqOperator::ne; }
-    }
-
-    return op != og::vkRequirements::reqOperator::ne;
-}
-
-static bool checkMember(char member[VK_MAX_DRIVER_NAME_SIZE],
-                        og::vkRequirements::reqOperator op, std::string_view value)
-{
-    if (op != og::vkRequirements::reqOperator::eq && op != og::vkRequirements::reqOperator::ne)
-        { throw og::Ex(fmt::format("Invalid operator {}.", op)); }
-
-    if (std::string_view(member) != value)
-        { return op == og::vkRequirements::reqOperator::ne; }
-
-    return op != og::vkRequirements::reqOperator::ne;
-}
-
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-static bool checkFeatureMember(struct_t * featureStruct, std::string_view feature)                  \
-{
-#define OG_MEMBER(member_name) \
-    if (feature == #member_name) { return featureStruct->member_name == VK_TRUE; }
-#define OG_MEMBER_ELSE(struct_name) \
-    throw og::Ex(fmt::format("Invalid feature '{}' for struct_name.", feature));
-#define OG_STRUCT_END() \
-}
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-
-static bool checkFeature(VkStructureType sType, void * struc, std::string_view feature)
-{
-    switch (sType)
-    {
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    case sType: return checkFeatureMember(static_cast<struct_t *>(struc), feature);
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-    default: throw og::Ex(fmt::format("Invalid feature structure type {}.", sType));
-    }
-}
-
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-static void setFeatureMember(struct_t * featureStruct, std::string_view feature)                    \
-{
-#define OG_MEMBER(member_name)                                                                      \
-    if (feature == #member_name) { featureStruct->member_name = VK_TRUE; return; }
-#define OG_MEMBER_ELSE(struct_name)                                                                 \
-    throw og::Ex(fmt::format("Invalid feature '{}' for struct_name.", feature));
-#define OG_STRUCT_END()                                                                             \
-}
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-
-static void setFeature(VkStructureType sType, void * struc, std::string_view feature)
-{
-    switch (sType)
-    {
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    case sType: setFeatureMember(static_cast<struct_t *>(struc), feature);
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-    default: throw og::Ex(fmt::format("Invalid feature structure type {}.", sType));
-    }
-}
-
-
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-static bool checkPropertiesMember(struct_t * propertyStruct, std::string_view property,             \
-                                  og::vkRequirements::reqOperator op, std::string_view value)       \
-{
-#define OG_MEMBER(member_name)                                                                      \
-    if (property == #member_name) { return checkMember(propertyStruct->member_name, op, value); }
-#define OG_MEMBER_ELSE(struct_name)                                                                 \
-    throw og::Ex(fmt::format("Invalid property '{}' for struct_name.", property));
-#define OG_STRUCT_END()                                                                             \
-}
-#include "../inc/properties_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-
-
-static bool checkProperty(VkStructureType sType, void * struc, std::string_view property,
-                          og::vkRequirements::reqOperator op, std::string_view value)
-{
-    switch (sType)
-    {
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    case sType:                                                                             \
-        return checkPropertiesMember(static_cast<struct_t *>(struc), property, op, value);
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/properties_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-    default: throw og::Ex(fmt::format("Invalid property structure type {}.", sType));
-    }
-}
-
-
-
-static void constructFullFeaturesStructs(VkPhysicalDeviceFeatures2 & features)
-{
-    features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    void ** ppNext = & features.pNext;
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    {   \
-        if (sType != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2) \
-        { \
-            auto * newPThing = new struct_t { sType };                                              \
-            * ppNext = newPThing;   \
-            ppNext = & newPThing->pNext;    \
-        } \
-    }
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/features_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-}
-
-static void constructFullPropertiesStructs(VkPhysicalDeviceProperties2 & properties)
-{
-    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-    void ** ppNext = & properties.pNext;
-#define OG_STRUCT(provider_name, struct_t, sType)                                             \
-    {   \
-        if (sType != VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2) \
-        { \
-            auto * newPThing = new struct_t { sType };                                              \
-            * ppNext = newPThing;   \
-            ppNext = & newPThing->pNext;    \
-        } \
-    }
-#define OG_MEMBER(memberName)
-#define OG_MEMBER_ELSE(struct_name)
-#define OG_STRUCT_END()
-#include "../inc/properties_mac.h"
-#undef OG_STRUCT_END
-#undef OG_MEMBER_ELSE
-#undef OG_MEMBER
-#undef OG_STRUCT_BASE
-#undef OG_STRUCT
-}
-
-
-
 namespace og
 {
     PhysVkDevice::PhysVkDevice()
@@ -560,42 +164,73 @@ namespace og
             auto const & profile = profiles[profileIdx];
             bool noGood = false;
 
+            auto & profileSpecificCriteria = suitability.profileCritera[profileIdx];
+
             // Get all required and desired providers. This lets us build the structure chains
             // we care about for querying (and later, creation if this is the device provile
             // we wind up using).
-            std::vector<std::string_view> providers;
-            if (group.requires.has_value())
+            std::vector<std::string_view> featureProviders;
+            std::vector<std::string_view> propertyProviders;
+            auto getFeaturesAndProperties = [& featureProviders, & propertyProviders](std::optional<og::vkRequirements::criteria> const & criteria)
             {
+                if (criteria.has_value())
+                {
+                    auto const & features = criteria->get_features();
+                    for (auto const & [key, _] : features)
+                        { featureProviders.push_back(key); }
+                    auto const & properties = criteria->get_properties();
+                    for (auto const & [key, _] : properties)
+                        { propertyProviders.push_back(key); }
+                }
+            };
 
-            }
+            getFeaturesAndProperties(group.get_requires());
+            getFeaturesAndProperties(group.get_desires());
+            getFeaturesAndProperties(profile.get_requires());
+            getFeaturesAndProperties(profile.get_desires());
 
-            auto & profileSpecificCriteria = suitability.profileCritera[profileIdx];
-            profileSpecificCriteria.features.init(providers);
-            profileSpecificCriteria.properties.init(providers);
+            profileSpecificCriteria.features.init(featureProviders);
+            profileSpecificCriteria.properties.init(propertyProviders);
+
+            // now actually fill in the structures from the physical device
+            vkGetPhysicalDeviceFeatures2(physicalDevice, & profileSpecificCriteria.features.mainStruct);
+            vkGetPhysicalDeviceProperties2(physicalDevice, & profileSpecificCriteria.properties.mainStruct);
+
+            // now check the results
 
             log(fmt::format(". . Checking device profile '{}'.", profile.get_name()));
 
-            // NOTE: these will check against SELECTED extensions, layers, etc from instance creation.
-            auto const & vulkanVersion = profile.get_requires().get_vulkanVersion();
-            if (vulkanVersion.has_value())
+            auto check = [& noGood](std::optional<og::vkRequirements::criteria> const & criteria)
             {
-                if (e->checkVulkan(* vulkanVersion) == false)
-                    { noGood = true; log(". . Vulkan version '{}' reqirement not met."); if (! reportAll) { break; } }
-            }
+                // NOTE: these will check against SELECTED extensions, layers, etc
+                // from instance creation.
+                if (criteria.has_value())
+                {
+                    auto const & vulkanVersion =  criteria->get_vulkanVersion();
+                    if (vulkanVersion.has_value())
+                    {
+                        if (e->checkVulkan(* vulkanVersion) == false)
+                            { noGood = true; log(". . Vulkan version '{}' reqirement not met."); if (! reportAll) { break; } }
+                    }
 
-            auto const & extensions = profile.get_requires().get_extensions();
-            for (auto const & extension : extensions)
-            {
-                if (e->checkExtension(extension) == false)
-                    { noGood = true; log(fmt::format(". . Extension '{}' reqirement not met.", extension)); if (! reportAll) { break; } }
-            }
+                    auto const & extensions = criteria->get_extensions();
+                    for (auto const & extension : extensions)
+                    {
+                        if (e->checkExtension(extension) == false)
+                            { noGood = true; log(fmt::format(". . Extension '{}' reqirement not met.", extension)); if (! reportAll) { break; } }
+                    }
 
-            auto const & layers = profile.get_requires().get_layers();
-            for (auto const & layer : layers)
-            {
-                if (e->checkLayer(layer) == false)
-                    { noGood = true; log(fmt::format(". . Layer '{}' reqirement not met.", layer)); if (! reportAll) { break; } }
-            }
+                    auto const & layers = criteria->get_layers();
+                    for (auto const & layer : layers)
+                    {
+                        if (e->checkLayer(layer) == false)
+                            { noGood = true; log(fmt::format(". . Layer '{}' reqirement not met.", layer)); if (! reportAll) { break; } }
+                    }
+                }
+            };
+
+            check(group.get_requires());
+            check(profile.get_requires());
 
             // These will check against AVAILABLE device extensions, queueTypes, and features.
 
