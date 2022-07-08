@@ -124,7 +124,7 @@
                         deviceExtensions: [VK_KHR_swapchain]
                         queueTypesIncluded: [compute_bit graphics_bit]
                         features: {
-                        //    vulkan_1_1: [multiview]
+                            vulkan_1_1: [multiview]
                         }
                         properties: {
                             vulkan_1_0: [[deviceType eq discrete_gpu]
@@ -133,7 +133,7 @@
                                          [limits_maxComputeWorkGroupCount_1 lt 0]
                                          [limits_maxComputeWorkGroupCount_2 gt 0]
                                         ]
-                        //    vulkan_1_1: [[maxMultiviewViewCount ge 2]]
+                            vulkan_1_1: [[maxMultiviewViewCount ge 2]]
                         }
                     }
                     desires: {
@@ -199,7 +199,144 @@
                a minimum number of queues for the priority set (requires > 1), which selects
                a priority profile for that number of queues.
             */
-            queueFamilyGroups: [{
+            queueFamilyProfiles: [ {
+                    name: gcacat
+                    // these come order-independent
+                    queueFamilies: [ {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has grphics_bit]
+                                                 [queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                    global_priority: [[priorityCount ge 2]]
+                                }
+                            }
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                            maxQueueCount: 8
+                            globalPriority: high
+                        }, {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags hasnot grphics_bit]
+                                                 [queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }, {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags hasnot grphics_bit]
+                                                 [queueFlags hasnot compute_bit]
+                                                 [queueFlags has transfer_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 2
+                            priorities: [1.0, 0.8]
+                        }
+                    ]
+                }, {
+                    name: gacat
+                    queueFamilies: [ {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has grphics_bit]
+                                                 [queueFlags hasnot compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }, {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags hasnot grphics_bit]
+                                                 [queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }, {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags hasnot grphics_bit]
+                                                 [queueFlags hasnot compute_bit]
+                                                 [queueFlags has transfer_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 2
+                            priorities: [1.0, 0.8]
+                        }
+                    ]
+                }, {
+                    name: gcat
+                    queueFamilies: [ {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has grphics_bit]
+                                                 [queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }, {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has transfer_bit]
+                                                 [queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }
+                    ]
+                }, {
+                    name: gac
+                    queueFamilies: [ {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has grphics_bit]
+                                                 [queueFlags hasnot compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }, {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags hasnot grphics_bit]
+                                                 [queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }
+                    ]
+                }, {
+                    name: gct
+                    queueFamilies: [ {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has grphics_bit]
+                                                 [queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }
+                    ]
+                }
+            ]/*
+            queueFamilyGroups: [ {
                     name: gcacat
                     queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
                                     { include: [compute_bit]   exclude: [graphics_bit]                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
@@ -226,7 +363,7 @@
                     queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
                     ]
                 }
-            ]
+            ]*/
         }, {
             name: computeDevices
             profiles: [ {
@@ -254,17 +391,44 @@
                 }
             ]
             desires: { }
-            queueFamilies: [{
+            queueFamiliesProfiles: { {
                     name: cat
-                    queueFamilies: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                                    { include: [transfer_bit]  exclude: [compute_bit]  requires: 1, desires: 2, priorities: [1.0, 0.4] }
+                    queueFamilies: [ {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }, {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags hasnot compute_bit]
+                                                 [queueFlags has transfer_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }
                     ]
                 }, {
                     name: c
-                    queueFamilies: [{ include: [compute_bit]                           requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
+                    queueFamilies: [ {
+                            requires: {
+                                queueFamilyProperties: {
+                                    vulkan_1_0: [[queueFlags has compute_bit]
+                                                 [queueCount ge 1]]
+                                }
+                            }
+                            maxQueueCount: 8
+                            priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
+                        }
                     ]
                 }
-            ]
+            }
         }
     ]
 }

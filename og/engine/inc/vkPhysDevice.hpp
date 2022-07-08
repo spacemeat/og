@@ -34,12 +34,15 @@ namespace og
         uint32_t physicalDeviceIdx;
         // one for each profile
         std::vector<ProfileSpecificCriteria> profileCritera;
-        VkQueueFamilies queueFamilies;
+        // one for each queue family on the physical device
+        // (once we've chosen the best profile idx)
+        std::vector<VkQueueFamilies> queueFamilies;
         uint32_t bestProfileIdx;
         uint32_t bestQueueFamilyGroupIdx;
         QueueFamilyComposition queueFamilyComposition;
     };
 
+    // One of these is stored per physical device group
     struct DevProfileGroupAssignment
     {
         int groupIdx = -1;
@@ -77,6 +80,9 @@ namespace og
         VkPhysicalDeviceProperties2 availableDeviceProperties;
         std::vector<std::tuple<VkStructureType, void *>> availablePropertiesIndexable;
 
+        // This is adjacent to the QF properties stored in a PhysicalDeviceSuitability.
+        // That looks for chain structures; this only needs to consider queue types, so
+        // we just get the basic structs.
         std::vector<VkQueueFamilyProperties2> availableQueueFamilies;
 
         bool isAssignedToDeviceProfileGroup = false;

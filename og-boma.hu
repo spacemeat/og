@@ -136,33 +136,44 @@
                 version: stringView
                 vkInstanceProfileGroups: { type: vector of: vkInstanceProfileGroup }
                 useVkInstanceProfileGroup: stringView
-                vkInstanceDesires: { type: optional of: criteria }
+                vkInstanceDesires: { type: optional of: instanceCriteria }
                 vkDeviceProfileGroups: { type: vector of: physicalVkDeviceProfileGroup }
             }
             vkInstanceProfileGroup: {
                 name: stringView
                 profiles: { type: vector of: vkInstanceProfile }
-                desires: { type: optional of: criteria }
+                desires: { type: optional of: instanceCriteria }
                 debugUtilsMessengers: { type: vector of: debugUtilsMessenger_t }
                 validationFeatures: { type: optional of: validationFeatures_t }
             }
             vkInstanceProfile: {
                 name: stringView
-                requires: criteria
-                desires: { type: optional of: criteria }
+                requires: instanceCriteria
+                desires: { type: optional of: instanceCriteria }
             }
-            physicalVkDeviceProfileGroup: {
+            /*physicalVkDeviceProfileGroup: {
                 name: stringView
                 profiles: { type: vector of: physicalVkDeviceProfile }
                 requires: { type: optional of: criteria }
                 desires: { type: optional of: criteria }
+                queueFamiliesProfiles: { type: vector of: queueFamiliesProfile }
                 queueFamilyGroups: { type: vector of: queueFamilyGroup }
-            }
+            }*/
             physicalVkDeviceProfile: {
                 name: stringView
                 enabled: { type: bool default: true }
-                requires: { type: optional of: criteria }
-                desires: { type: optional of: criteria }
+                requires: { type: optional of: deviceCriteria }
+                desires: { type: optional of: deviceCriteria }
+            }
+            queueFamiliesProfile: {
+                name: stringView
+                queueFamilies: { type: vector of: queueFamilyProperties }
+            }
+            queueFamilyProperties: {
+                requires: { type: optional of: queueFamilyCriteria }
+                flags: { type: VkDeviceQueueCreateFlags default: 0 }
+                priorities: { type: vector of: float }
+                globalPriority: { type: optional of: VkQueueGlobalPriorityKHR }
             }
         }
     }
@@ -176,10 +187,15 @@
         enumFlags: false
 
         enums: {
-            reqOperator: [in, nin, eq, ne, lt, gt, le, ge, has]
+            reqOperator: [in, nin, eq, ne, lt, gt, le, ge, has, hasnot]
         }
         types: {
-            criteria: {
+            instanceCriteria: {
+                vulkanVersion: { type: optional of: stringView }
+                extensions: { type: vector of: stringView }
+                layers: { type: vector of: stringView }
+            }
+            deviceCriteria: {
                 vulkanVersion: { type: optional of: stringView }
                 extensions: { type: vector of: stringView }
                 layers: { type: vector of: stringView }
@@ -189,11 +205,17 @@
                 features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
                 properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
             }
+            queueFamilyCriteria: {
+                features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
+                properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
+                queueFamilyProperties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
+            }
+            /*
             queueFamilyGroup: {
                 name: stringView
-                queueFamilies: { type: vector of: queueFamilyProperties }
+                queueFamilies: { type: vector of: queueFamilyGroupProperties }
             }
-            queueFamilyProperties: {
+            queueFamilyGroupProperties: {
                 include: { type: optional of: VkQueueFlagBits }
                 exclude: { type: optional of: VkQueueFlagBits }
                 requires: { type: int default: 1 }
@@ -210,6 +232,7 @@
                 //videoCodecOperation: { type: optional of: VkVideoCodecOperationFlagBitsKHR }
                 priorities: { type: vector of: float }
             }
+            */
             debugUtilsMessenger_t: {
                 severity: VkDebugUtilsMessageSeverityFlagBitsEXT
                 type: VkDebugUtilsMessageTypeFlagBitsEXT

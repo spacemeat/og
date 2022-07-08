@@ -52,6 +52,7 @@ namespace og
         for (auto const & elem : availableDes)
             { log(fmt::format(". available device extension: {} v{}", elem.extensionName, elem.specVersion)); }
 
+        /*
         // get features for physical device
         auto & features = availableDeviceFeatures;
         constructFullFeaturesStructs(features);
@@ -117,6 +118,7 @@ namespace og
             ss << HumonFormat(qf.queueFamilyProperties.queueFlags);
             log(fmt::format(". . {} - {} queues", ss.str(), qf.queueFamilyProperties.queueCount));
         }
+        */
     }
 
     void Engine::computeBestProfileGroupDevices(int groupIdx)
@@ -138,7 +140,41 @@ namespace og
             suitability.bestProfileIdx = profileIdx;
             if (profileIdx >= 0)
             {
-                suitability.queueFamilies.init(...);
+                std::vector<std::string_view> featureProviders;
+                std::vector<std::string_view> propertyProviders;
+                std::vector<std::string_view> queueFamilyPropertyProviders;
+                auto getQueueFamilyProperties = [& queueFamilyPropertyProviders](auto const & criteria)
+                {
+                    if (criteria.has_value())
+                    {
+                        auto const & features = criteria->get_features();
+                        for (auto const & [key, _] : features)
+                            { featureProviders.push_back(key); }
+                        auto const & properties = criteria->get_properties();
+                        for (auto const & [key, _] : properties)
+                            { propertyProviders.push_back(key); }
+                        auto const & queueFamilyProperties = criteria->get_queueFamilyProperties();
+                        for (auto const & [key, _] : queueFamilyProperties)
+                            { queueFamilyPropertyProviders.push_back(key); }
+                    }
+                };
+
+                uint32_t devQueueFamilyCount = device.availableQueueFamilies.size();
+                vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, nullptr);
+                std::vector<VkQueueFamilyProperties2> qfPropsVect(devQueueFamilyCount);
+                suitability.queueFamilies.resize(devQueueFamilyCount);
+                for (int i = 0; i < devQueueFamilyCount; ++i)
+                {
+                    suitability.queueFamilies[i] = { VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 };
+                    suitability.queueFamilies[i].init(queueFamilyPropertyProviders);
+                    qfPropsVect[i] = suitability.queueFamilies[i].mainStruct;
+                }
+                vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, device.availableQueueFamilies.data());
+                for (int i = 0; i < devQueueFamilyCount; ++i)
+                {
+                    suitability.queueFamilies[i].mainStruct = qfPropsVect[i];
+                }
+
                 auto && [queueFamilyGroupIdx, queueFamilyAlloc] =
                     device.findBestQueueFamilyAllocation(groupIdx, profileGroups[groupIdx]);
                 suitability.bestQueueFamilyGroupIdx = queueFamilyGroupIdx;
@@ -151,9 +187,25 @@ namespace og
         deviceAssignmentGroup.hasBeenComputed = true;
     }
 
+    // Check profiles one by one until the device can meet the profile's requirements.
+    // That's the best profile the device can do; the device with the best profile idx
+    // will win.
     int PhysVkDevice::findBestProfileIdx(int groupIdx, engine::physicalVkDeviceProfileGroup const & group, PhysicalDeviceSuitability & suitability)
     {
-        bool reportAll = false;
+        bool reportAll = true;
+
+        if (availableQueueFamilies.size() == 0)
+        {
+            // This is adjacent to the QF properties stored in a PhysicalDeviceSuitability.
+            // That looks for chain structures; this only needs to consider queue types, so
+            // we just get the basic structs.
+            uint32_t devQueueFamilyCount = 0;
+            vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, & devQueueFamilyCount, nullptr);
+            availableQueueFamilies.resize(devQueueFamilyCount);
+            for (int i = 0; i < devQueueFamilyCount; ++i)
+                { availableQueueFamilies[i] = { VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 }; }
+            vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, & devQueueFamilyCount, availableQueueFamilies.data());
+        }
 
         auto const & groupName = group.get_name();
         auto const & profiles = group.get_profiles();
@@ -171,7 +223,7 @@ namespace og
             // we wind up using).
             std::vector<std::string_view> featureProviders;
             std::vector<std::string_view> propertyProviders;
-            auto getFeaturesAndProperties = [& featureProviders, & propertyProviders](std::optional<og::vkRequirements::criteria> const & criteria)
+            auto getFeaturesAndProperties = [& featureProviders, & propertyProviders](auto const & criteria)
             {
                 if (criteria.has_value())
                 {
@@ -200,7 +252,7 @@ namespace og
 
             log(fmt::format(". . Checking device profile '{}'.", profile.get_name()));
 
-            auto check = [& noGood](std::optional<og::vkRequirements::criteria> const & criteria)
+            auto check = [& noGood, & reportAll](auto const & criteria)
             {
                 // NOTE: these will check against SELECTED extensions, layers, etc
                 // from instance creation.
@@ -210,21 +262,21 @@ namespace og
                     if (vulkanVersion.has_value())
                     {
                         if (e->checkVulkan(* vulkanVersion) == false)
-                            { noGood = true; log(". . Vulkan version '{}' reqirement not met."); if (! reportAll) { break; } }
+                            { noGood = true; log(". . Vulkan version '{}' reqirement not met."); if (! reportAll) { return; } }
                     }
 
                     auto const & extensions = criteria->get_extensions();
                     for (auto const & extension : extensions)
                     {
                         if (e->checkExtension(extension) == false)
-                            { noGood = true; log(fmt::format(". . Extension '{}' reqirement not met.", extension)); if (! reportAll) { break; } }
+                            { noGood = true; log(fmt::format(". . Extension '{}' reqirement not met.", extension)); if (! reportAll) { return; } }
                     }
 
                     auto const & layers = criteria->get_layers();
                     for (auto const & layer : layers)
                     {
                         if (e->checkLayer(layer) == false)
-                            { noGood = true; log(fmt::format(". . Layer '{}' reqirement not met.", layer)); if (! reportAll) { break; } }
+                            { noGood = true; log(fmt::format(". . Layer '{}' reqirement not met.", layer)); if (! reportAll) { return; } }
                     }
                 }
             };
@@ -234,15 +286,15 @@ namespace og
 
             // These will check against AVAILABLE device extensions, queueTypes, and features.
 
-            auto const & deviceExtensions = profile.get_requires().get_deviceExtensions();
+            auto const & deviceExtensions = profile.get_requires()->get_deviceExtensions();
             for (auto const & deviceExtension : deviceExtensions)
             {
                 if (checkDeviceExtension(deviceExtension) == false)
                     { noGood = true; log(fmt::format(". . Device extension '{}' reqirement not met.", deviceExtension)); if (! reportAll) { break; } }
             }
 
-            auto const & queueTypesInc = profile.get_requires().get_queueTypesIncluded();
-            auto const & queueTypesExc = profile.get_requires().get_queueTypesExcluded();
+            auto const & queueTypesInc = profile.get_requires()->get_queueTypesIncluded();
+            auto const & queueTypesExc = profile.get_requires()->get_queueTypesExcluded();
             if (checkQueueTypes(
                 queueTypesInc.has_value() ? * queueTypesInc : static_cast<VkQueueFlagBits>(0),
                 queueTypesExc.has_value() ? * queueTypesExc : static_cast<VkQueueFlagBits>(0))
@@ -250,42 +302,27 @@ namespace og
                 { noGood = true; log(". . Queue types reqirement not met."); if (! reportAll) { break; } }
 
 
-            auto const & featuresMap = profile.get_requires().get_features();
+            auto const & featuresMap = profile.get_requires()->get_features();
             for (auto const & [provider, features] : featuresMap)
             {
-                auto const & availableFeatureMap = featureProviderIndexMap;
-                if (auto it = availableFeatureMap.find(provider);
-                    it != availableFeatureMap.end())
+                for (auto const & feature : features)
                 {
-                    auto const [sType, strucAvail] = availableFeaturesIndexable[it->second];
-
-                    for (auto const & feature : features)
-                    {
-                        if (checkFeature(sType, strucAvail, feature) == false)
-                            { noGood = true; log(fmt::format(". . Feature '{}' reqirement not met.", feature)); if (! reportAll) { break; } }
-                    }
+                    if (profileSpecificCriteria.features.check(provider, feature)
+                        == false)
+                        { noGood = true; log(". . feature reqirement not met."); if (! reportAll) { break; } }
                 }
-                else
-                    { noGood = true; log(fmt::format(". . Feature provider '{}' not found.", provider)); if (! reportAll) { break; } }
             }
 
-            auto const & propertiesMap = profile.get_requires().get_properties();
+
+            auto const & propertiesMap = profile.get_requires()->get_properties();
             for (auto const & [provider, properties] : propertiesMap)
             {
-                auto const & availablePropertyMap = propertyProviderIndexMap;
-                if (auto it = availablePropertyMap.find(provider);
-                    it != availablePropertyMap.end())
+                for (auto const & [property, op, value] : properties)
                 {
-                    auto const [sType, strucAvail] = availablePropertiesIndexable[it->second];
-
-                    for (auto const & [property, op, value] : properties)
-                    {
-                        if (checkProperty(sType, strucAvail, property, op, value) == false)
-                            { noGood = true; log(fmt::format(". . Property '{}' reqirement not met.", property)); if (! reportAll) { break; } }
-                    }
+                    if (profileSpecificCriteria.properties.check(provider, property, op, value)
+                        == false)
+                        { noGood = true; log(". . property reqirement not met."); if (! reportAll) { break; } }
                 }
-                else
-                    { noGood = true; log(fmt::format(". . Property provider '{}' not found.", provider)); if (! reportAll) { break; } }
             }
 
             if (noGood == false)
