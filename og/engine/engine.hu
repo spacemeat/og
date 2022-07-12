@@ -113,7 +113,7 @@
 
     // selects which above profile group to use
     useVkInstanceProfileGroup: debug
-    vkInstanceDesires: { criteria: [VK_KHR_multiview in extensions] }
+    vkInstanceDesires: { extensions: [] }
 
     vkDeviceProfileGroups: [ {
             name: graphicsDevices
@@ -199,11 +199,14 @@
                a minimum number of queues for the priority set (requires > 1), which selects
                a priority profile for that number of queues.
             */
-            queueFamilyProfiles: [ {
+            queueFamiliesProfiles: [ {
                     name: gcacat
                     // these come order-independent
                     queueFamilies: [ {
                             requires: {
+                                features: {
+                                    global_priority_query: [globalPriorityQuery]
+                                }
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
                                                  [queueFlags has compute_bit]
@@ -335,35 +338,7 @@
                         }
                     ]
                 }
-            ]/*
-            queueFamilyGroups: [ {
-                    name: gcacat
-                    queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                                    { include: [compute_bit]   exclude: [graphics_bit]                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                                    { include: [transfer_bit]  exclude: [graphics_bit compute_bit]     requires: 1, desires: 2, priorities: [1.0, 0.4] }
-                    ]
-                }, {
-                    name: gacat
-                    queueFamilies: [{ include: [graphics_bit]  exclude: [compute_bit],                 requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                                    { include: [compute_bit]   exclude: [graphics_bit],                requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                                    { include: [transfer_bit]  exclude: [graphics_bit compute_bit],    requires: 1, desires: 2, priorities: [1.0, 0.4] }
-                    ]
-                }, {
-                    name: gcat
-                    queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                                    { include: [transfer_bit] exclude: [graphics_bit compute_bit]      requires: 1, desires: 2, priorities: [1.0, 0.4] }
-                    ]
-                }, {
-                    name: gac
-                    queueFamilies: [{ include: [graphics_bit] exclude: [compute_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                                    { include: [compute_bit] exclude: [graphics_bit]                   requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                    ]
-                }, {
-                    name: gct
-                    queueFamilies: [{ include: [graphics_bit, compute_bit]                             requires: 1, desires: 8, priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4] }
-                    ]
-                }
-            ]*/
+            ]
         }, {
             name: computeDevices
             profiles: [ {

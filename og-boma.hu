@@ -151,14 +151,13 @@
                 requires: instanceCriteria
                 desires: { type: optional of: instanceCriteria }
             }
-            /*physicalVkDeviceProfileGroup: {
+            physicalVkDeviceProfileGroup: {
                 name: stringView
                 profiles: { type: vector of: physicalVkDeviceProfile }
-                requires: { type: optional of: criteria }
-                desires: { type: optional of: criteria }
+                requires: { type: optional of: deviceCriteria }
+                desires: { type: optional of: deviceCriteria }
                 queueFamiliesProfiles: { type: vector of: queueFamiliesProfile }
-                queueFamilyGroups: { type: vector of: queueFamilyGroup }
-            }*/
+            }
             physicalVkDeviceProfile: {
                 name: stringView
                 enabled: { type: bool default: true }
@@ -173,6 +172,7 @@
                 requires: { type: optional of: queueFamilyCriteria }
                 flags: { type: VkDeviceQueueCreateFlags default: 0 }
                 priorities: { type: vector of: float }
+                maxQueueCount: uint32_t
                 globalPriority: { type: optional of: VkQueueGlobalPriorityKHR }
             }
         }
@@ -210,29 +210,6 @@
                 properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
                 queueFamilyProperties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
             }
-            /*
-            queueFamilyGroup: {
-                name: stringView
-                queueFamilies: { type: vector of: queueFamilyGroupProperties }
-            }
-            queueFamilyGroupProperties: {
-                include: { type: optional of: VkQueueFlagBits }
-                exclude: { type: optional of: VkQueueFlagBits }
-                requires: { type: int default: 1 }
-                desires: { type: int default: 1 }
-                flags: { type: VkDeviceQueueCreateFlags default: 0 }
-                // VK_NV_device_diagnostic_checkpoints::VkQueueFamilyCheckpointPropertiesNV
-                //checkpointExecutionStages: { type: optional of: VkPipelineStageFlagBits }
-                // with VK_NV_device_diagnostic_checkpoints enabled,
-                // VK_KHR_synchronization2::VkQueueFamilyCheckpointProperties2NV
-                //qcheckpointExecutionStages2: { type: optional of: VkPipelineStageFlags2 }
-                // VK_KHR_video_queue::VkQueueFamilyQueryResultStatusProperties2KHR
-                //queryResultStatusSupport: { type: optional of: bool }
-                // VK_KHR_video_queue::VkVideoQueueFamilyProperties2KHR
-                //videoCodecOperation: { type: optional of: VkVideoCodecOperationFlagBitsKHR }
-                priorities: { type: vector of: float }
-            }
-            */
             debugUtilsMessenger_t: {
                 severity: VkDebugUtilsMessageSeverityFlagBitsEXT
                 type: VkDebugUtilsMessageTypeFlagBitsEXT

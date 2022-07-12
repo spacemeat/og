@@ -1,4 +1,4 @@
-#include "gen/inc/criteria.hpp"
+#include "gen/inc/instanceCriteria.hpp"
 
 int main()
 {

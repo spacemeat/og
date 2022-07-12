@@ -171,7 +171,7 @@ namespace og
         std::vector<char const *> requiredExtensions;
         std::vector<char const *> requiredLayers;
 
-        auto requireExtsAndLayers = [&](og::vkRequirements::criteria const & criteria)
+        auto requireExtsAndLayers = [&](og::vkRequirements::instanceCriteria const & criteria)
         {
             for (auto const & extension : criteria.get_extensions())
             {

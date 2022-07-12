@@ -16,6 +16,7 @@ namespace og
         uint32_t count;
         VkDeviceQueueCreateFlags flags;
         std::vector<float> priorities;
+        std::optional<VkQueueGlobalPriorityKHR> globalPriority;
     };
 
     struct QueueFamilyComposition
@@ -59,7 +60,7 @@ namespace og
         PhysVkDevice();
         void init(int physicalDeviceIdx, VkPhysicalDevice phdev);
         int findBestProfileIdx(int groupIdx, engine::physicalVkDeviceProfileGroup const & profileGroup, PhysicalDeviceSuitability & suitability);
-        std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, engine::physicalVkDeviceProfileGroup const & group);
+        std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, engine::physicalVkDeviceProfileGroup const & group, int profileIdx);
 
         bool checkDeviceExtension(std::string_view deviceExtension);
         bool checkQueueTypes(VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);
@@ -92,7 +93,7 @@ namespace og
         VkDevice device = nullptr;
 
         std::vector<std::string_view> utilizedDeviceExtensions;
-        VkPhysicalDeviceFeatures2 utilizedDeviceFeatures;
+        VkFeatures utilizedDeviceFeatures;
         std::vector<std::tuple<VkStructureType, void *>> utilizedFeaturesIndexable;
         QueueFamilyComposition utilizedQueueFamilies;
     };

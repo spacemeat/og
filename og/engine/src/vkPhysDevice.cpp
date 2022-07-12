@@ -51,79 +51,11 @@ namespace og
 
         for (auto const & elem : availableDes)
             { log(fmt::format(". available device extension: {} v{}", elem.extensionName, elem.specVersion)); }
-
-        /*
-        // get features for physical device
-        auto & features = availableDeviceFeatures;
-        constructFullFeaturesStructs(features);
-        vkGetPhysicalDeviceFeatures2(phdev, & features);
-        availableFeaturesIndexable.push_back({features.sType, & features.features});
-        featureProviderIndexMap["vulkan_1_0"] = 0;
-        log(". features: ");
-        reportFeatures(& features.features);
-
-        void * next = features.pNext;
-        while (next != nullptr)
-        {
-            auto sType = static_cast<VkBaseOutStructure *>(next)->sType;
-
-            availableFeaturesIndexable.push_back({sType, next});
-            auto const provider = structureTypeToProvider(sType);
-            featureProviderIndexMap[provider] = availableFeaturesIndexable.size();
-
-            reportFeatures(next);
-
-            next = static_cast<VkBaseOutStructure *>(next)->pNext;
-        }
-
-        auto & properties = availableDeviceProperties;
-        constructFullPropertiesStructs(properties);
-        vkGetPhysicalDeviceProperties2(phdev, & properties);
-        availablePropertiesIndexable.push_back({properties.sType, & properties.properties});
-        propertyProviderIndexMap["vulkan_1_0"] = 0;
-        log(". properties: ");
-        reportProps(& properties.properties);
-
-        next = properties.pNext;
-        while (next != nullptr)
-        {
-            auto sType = static_cast<VkBaseOutStructure *>(next)->sType;
-
-            availablePropertiesIndexable.push_back({sType, next});
-            auto const provider = structureTypeToProvider(sType);
-            propertyProviderIndexMap[provider] = availablePropertiesIndexable.size();
-
-            reportProps(next);
-
-            next = static_cast<VkBaseOutStructure *>(next)->pNext;
-        }
-
-        // report queue families
-        uint32_t qfCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties2(phdev, & qfCount, nullptr);
-        std::vector<VkQueueFamilyProperties2> & availableQfs = availableQueueFamilies;
-        availableQfs.resize(qfCount);
-        for (auto & qfp2 : availableQfs)
-        {
-            qfp2.sType = VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2;
-            qfp2.pNext = nullptr;
-        }
-        // TODO: constructFullQueueFamilyStructs(availableQfs);
-        vkGetPhysicalDeviceQueueFamilyProperties2(phdev, & qfCount, availableQfs.data());
-
-        log(". queue families:");
-        for (auto const & qf : availableQfs)
-        {
-            std::ostringstream ss;
-            ss << HumonFormat(qf.queueFamilyProperties.queueFlags);
-            log(fmt::format(". . {} - {} queues", ss.str(), qf.queueFamilyProperties.queueCount));
-        }
-        */
     }
 
     void Engine::computeBestProfileGroupDevices(int groupIdx)
     {
-        auto const & profileGroups = config.get_vkDeviceProfileGroups();
+        auto const & profileGroups_c = config.get_vkDeviceProfileGroups();
         auto & deviceAssignmentGroup = deviceAssignments[groupIdx];
         if (deviceAssignmentGroup.hasBeenComputed)
             { return; }
@@ -135,15 +67,15 @@ namespace og
             auto & device = devices[devIdx];
             auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
             suitability.physicalDeviceIdx = devIdx;
-            suitability.profileCritera.resize(profileGroups.size());
-            int profileIdx = device.findBestProfileIdx(groupIdx, profileGroups[groupIdx], suitability);
+            suitability.profileCritera.resize(profileGroups_c.size());
+            int profileIdx = device.findBestProfileIdx(groupIdx, profileGroups_c[groupIdx], suitability);
             suitability.bestProfileIdx = profileIdx;
             if (profileIdx >= 0)
             {
                 std::vector<std::string_view> featureProviders;
                 std::vector<std::string_view> propertyProviders;
                 std::vector<std::string_view> queueFamilyPropertyProviders;
-                auto getQueueFamilyProperties = [& queueFamilyPropertyProviders](auto const & criteria)
+                auto getQueueFamilyProperties = [& featureProviders, & propertyProviders, & queueFamilyPropertyProviders](auto const & criteria)
                 {
                     if (criteria.has_value())
                     {
@@ -176,7 +108,7 @@ namespace og
                 }
 
                 auto && [queueFamilyGroupIdx, queueFamilyAlloc] =
-                    device.findBestQueueFamilyAllocation(groupIdx, profileGroups[groupIdx]);
+                    device.findBestQueueFamilyAllocation(groupIdx, profileGroups_c[groupIdx], profileIdx);
                 suitability.bestQueueFamilyGroupIdx = queueFamilyGroupIdx;
                 if (queueFamilyGroupIdx >= 0)
                 {
@@ -214,6 +146,9 @@ namespace og
         for (int profileIdx = 0; profileIdx < profiles.size(); ++profileIdx)
         {
             auto const & profile = profiles[profileIdx];
+            if (profile.get_enabled() == false)
+                { continue; }
+
             bool noGood = false;
 
             auto & profileSpecificCriteria = suitability.profileCritera[profileIdx];
@@ -347,33 +282,75 @@ namespace og
 
     std::tuple<int, QueueFamilyComposition>
         PhysVkDevice::findBestQueueFamilyAllocation(int groupIdx,
-            engine::physicalVkDeviceProfileGroup const & group)
+            engine::physicalVkDeviceProfileGroup const & group_c,
+            int profileIdx)
     {
+        bool reportAll = true;
+
+        log(fmt::format("findBestQueueFamilyAllocation(group={groupIdx}, profile={})", groupIdx, profileIdx));
+
         // Find the best matching queue family group.
-        uint32_t selectedQueueFamilyGroup = -1;
+        uint32_t selectedQueueFamilyProfileIdx = -1;
         QueueFamilyComposition qfiAllocs;
-        auto const & queueFamilyGroups = group.get_queueFamilyGroups();
-        for (uint32_t qfGroupIdx = 0; qfGroupIdx < queueFamilyGroups.size(); ++qfGroupIdx)
+        auto const & qfsProfiles_c = group_c.get_queueFamiliesProfiles();
+        auto & deviceAssignmentGroup = e->deviceAssignments[groupIdx];
+        auto & suitability = deviceAssignmentGroup.deviceSuitabilities[physicalDeviceIdx];
+        auto & profileSpecificCriteria = suitability.profileCritera[profileIdx];
+        auto & suitabilityQfs = suitability.queueFamilies;
+        for (uint32_t qfProfileIdx_c = 0; qfProfileIdx_c < qfsProfiles_c.size(); ++qfProfileIdx_c)
         {
-            auto const & qfGroup = queueFamilyGroups[qfGroupIdx];
+            auto const & qfProfile_c = qfsProfiles_c[qfProfileIdx_c];
             bool groupFail = false;
 
             // Populate a list of qfis that match the queue spec for each queue.
-            auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qfGroup.get_queueFamilies().size());
-            for (uint32_t queueIdx = 0; queueIdx < qfGroup.get_queueFamilies().size(); ++queueIdx)
+            auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qfProfile_c.get_queueFamilies().size());
+            auto const & qfs_c = qfProfile_c.get_queueFamilies();
+            for (uint32_t qfIdx_c = 0; qfIdx_c < qfProfile_c.get_queueFamilies().size(); ++qfIdx_c)
             {
-                auto const & queue = qfGroup.get_queueFamilies()[queueIdx];
-                auto & selectable = selectableQueueFamilyIndices[queueIdx];
-                for (int devQfi = 0; devQfi < availableQueueFamilies.size(); ++devQfi)
+                auto const & qf_c = qfs_c[qfIdx_c];
+                auto & selectable = selectableQueueFamilyIndices[qfIdx_c];
+                for (int devQfi = 0; devQfi < suitabilityQfs.size(); ++devQfi)
                 {
-                    auto const & devQueueFamily = availableQueueFamilies[devQfi];
-                    if ((queue.get_include().has_value()
-                         ? ((* queue.get_include()) & devQueueFamily.queueFamilyProperties.queueFlags) == queue.get_include()
-                         : true) &&
-                        (queue.get_exclude().has_value()
-                         ? ((* queue.get_exclude()) & devQueueFamily.queueFamilyProperties.queueFlags) == 0
-                         : true) &&
-                        queue.get_requires() <= devQueueFamily.queueFamilyProperties.queueCount)
+                    auto const & devQueueFamily = suitabilityQfs[devQfi];
+                    bool noGood = false;
+
+                    if (qf_c.get_requires().has_value())
+                    {
+                        auto const & featuresMap_c = qf_c.get_requires()->get_features();
+                        for (auto const & [provider_c, features_c] : featuresMap_c)
+                        {
+                            for (auto const & feature_c : features_c)
+                            {
+                                if (profileSpecificCriteria.features.check(provider_c, feature_c)
+                                    == false)
+                                    { noGood = true; log(". . feature reqirement not met."); if (! reportAll) { break; } }
+                            }
+                        }
+
+                        auto const & propertiesMap_c = qf_c.get_requires()->get_properties();
+                        for (auto const & [provider_c, properties_c] : propertiesMap_c)
+                        {
+                            for (auto const & [property_c, op_c, value_c] : properties_c)
+                            {
+                                if (profileSpecificCriteria.properties.check(provider_c, property_c, op_c, value_c)
+                                    == false)
+                                    { noGood = true; log(". . property reqirement not met."); if (! reportAll) { break; } }
+                            }
+                        }
+
+                        auto const & qfPropertiesMap_c = qf_c.get_requires()->get_queueFamilyProperties();
+                        for (auto const & [provider_c, properties_c] : propertiesMap_c)
+                        {
+                            for (auto const & [property_c, op_c, value_c] : properties_c)
+                            {
+                                if (suitability.queueFamilies[devQfi].check(provider_c, property_c, op_c, value_c)
+                                    == false)
+                                    { noGood = true; log(". . property reqirement not met."); if (! reportAll) { break; } }
+                            }
+                        }
+                    }
+
+                    if (noGood == false)
                     {
                         selectable.push_back(devQfi);
                     }
@@ -383,7 +360,7 @@ namespace og
             }
 
             if (groupFail)
-                { log(fmt::format("Queue family group {} - no match.", qfGroupIdx)); continue; }
+                { log(fmt::format("Queue family group {} - no match.", qfProfileIdx_c)); continue; }
 
             // Now find the best unique qfi assignment for each queue. If there is not one, go to next group.
 
@@ -447,8 +424,8 @@ namespace og
                 for (int q = 0; q < numQs; ++q)
                 {
                     auto cs0 = results[combo * numQs + q];
-                    auto count = availableQueueFamilies[cs0].queueFamilyProperties.queueCount;
-                    auto numQueuesDesired = qfGroup.get_queueFamilies()[q].get_desires();
+                    auto count = suitabilityQfs[cs0].mainStruct.queueFamilyProperties.queueCount;
+                    auto numQueuesDesired = qfProfile_c.get_queueFamilies()[q].get_maxQueueCount();
                     auto score = std::min(count, static_cast<uint32_t>(numQueuesDesired));
                     totalScore *= score;
                 }
@@ -465,53 +442,53 @@ namespace og
 
             if (winningCombo != -1)
             {
-                selectedQueueFamilyGroup = qfGroupIdx;
+                selectedQueueFamilyProfileIdx = qfProfileIdx_c;
                 for (int q = 0; q < numQs; ++q)
                 {
                     auto qfi = results[winningCombo * numQs + q];
-                    auto count = availableQueueFamilies[qfi].queueFamilyProperties.queueCount;
-                    auto const & queueConfig = qfGroup.get_queueFamilies()[q];
-                    auto numQueuesDesired = queueConfig.get_desires();
+                    auto count = suitabilityQfs[qfi].mainStruct.queueFamilyProperties.queueCount;
+                    auto const & qf_c = qfProfile_c.get_queueFamilies()[q];
+                    auto numQueuesDesired = qf_c.get_maxQueueCount();
                     auto numQueues = std::min(count, static_cast<uint32_t>(numQueuesDesired));
-                    auto flags = queueConfig.get_flags();
+                    auto flags = qf_c.get_flags();
 
                     std::vector<float> ctdPriorities(numQueues);
-                    auto const & cfgPriorites = queueConfig.get_priorities();
+                    auto const & priorities_c = qf_c.get_priorities();
                     for (int i = 0; i < numQueues; ++i)
                     {
-                        ctdPriorities[i] = cfgPriorites[i % (cfgPriorites.size())];
+                        ctdPriorities[i] = priorities_c[i % (priorities_c.size())];
                     }
                     qfiAllocs.queueFamilies.emplace_back(
-                        QueueFamilyAlloc {qfi, numQueues, flags, std::move(ctdPriorities)});
+                        QueueFamilyAlloc {qfi, numQueues, flags, std::move(ctdPriorities), qf_c.get_globalPriority()});
                 }
                 // we found a winner, recorded the qfi data, now bail
                 log(fmt::format(". Best suitable queue family group found: {} (group #{})",
-                    queueFamilyGroups[selectedQueueFamilyGroup].get_name(),
-                    selectedQueueFamilyGroup));
+                    qfsProfiles_c[selectedQueueFamilyProfileIdx].get_name(),
+                    selectedQueueFamilyProfileIdx));
                 break;
             }
         }
 
-        if (selectedQueueFamilyGroup == -1)
+        if (selectedQueueFamilyProfileIdx == -1)
         {
-            log(fmt::format(". Could not find a suitable queue family combination for profile group '{}'.", group.get_name()));
+            log(fmt::format(". Could not find a suitable queue family combination for profile group '{}'.", group_c.get_name()));
             // Not necessarily an error; a given profile group may just be a nice-to-have (require 0 devices).
             return {-1, {}};
         }
 
-        return {selectedQueueFamilyGroup, qfiAllocs};
+        return {selectedQueueFamilyProfileIdx, qfiAllocs};
     }
 
 
     void Engine::assignDevices(int groupIdx, int numDevices)
     {
-        auto const & profileGroups = get_config().get_vkDeviceProfileGroups();
-        auto const & group = profileGroups[groupIdx];
-        auto & assignment = deviceAssignments[groupIdx];  // NOT the assignment index!
+        auto const & profileGroups_c = get_config().get_vkDeviceProfileGroups();
+        auto const & group_c = profileGroups_c[groupIdx];
+        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];  // NOT the assignment index!
 
         for (int numAssignments = 0; numAssignments < numDevices; ++numAssignments)
         {
-            int bestProfileIdx = group.get_profiles().size();
+            int bestProfileIdx = group_c.get_profiles().size();
             int bestDeviceIdx = -1;
 
             for (int devIdx = 0; devIdx < devices.size(); ++devIdx)
@@ -521,7 +498,7 @@ namespace og
                 if (device.isAssignedToDeviceProfileGroup)
                     { continue; }
 
-                auto & suitability = assignment.deviceSuitabilities[devIdx];
+                auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
                 if (suitability.bestProfileIdx == -1 ||
                     suitability.bestQueueFamilyGroupIdx == -1)
                     { continue; }
@@ -540,7 +517,7 @@ namespace og
             device.isAssignedToDeviceProfileGroup = true;
             device.groupIdx = groupIdx;
             device.profileIdx = bestProfileIdx;
-            assignment.winningDeviceIdxs.push_back(bestDeviceIdx);
+            deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
         }
     }
 
@@ -561,70 +538,66 @@ namespace og
             return;
         }
 
-        auto const & group = e->get_config().get_vkDeviceProfileGroups()[groupIdx];
-        auto const & groupDesires = group.get_desires();
-        auto const & profile = group.get_profiles()[profileIdx];
-        auto const & profileDesires = profile.get_desires();
+        auto const & group_c = e->get_config().get_vkDeviceProfileGroups()[groupIdx];
+        auto const & groupDesires_c = group_c.get_desires();
+        auto const & profile_c = group_c.get_profiles()[profileIdx];
+
+
+        auto const & profileDesires_c = profile_c.get_desires();
 
         std::vector<char const *> requiredDeviceExtensions;
         std::vector<char const *> requiredLayers;
 
-        utilizedDeviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-        cloneAndResetDeviceFeatures(availableDeviceFeatures, utilizedDeviceFeatures, utilizedFeaturesIndexable);
+        //utilizedDeviceFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+        //cloneAndResetDeviceFeatures(availableDeviceFeatures, utilizedDeviceFeatures, utilizedFeaturesIndexable);
+        auto const & assignment = e->deviceAssignments[groupIdx];
+        auto const & suitability = assignment.deviceSuitabilities[physicalDeviceIdx];
+        auto const & profileCriteria = suitability.profileCritera[suitability.bestProfileIdx];
+        utilizedDeviceFeatures = profileCriteria.features.copyAndReset();
 
-        auto requireExtsAndLayersEtc = [&](og::vkRequirements::criteria const & criteria)
+        auto requireExtsAndLayersEtc = [&](auto const & criteria_c)
         {
+            if (criteria_c.has_value() == false)
+                { return; }
+
             // remaking the layers from instance creation
-            for (auto const & layerName : criteria.get_layers())
+            for (auto const & layerName_c : criteria_c->get_layers())
             {
                 auto it = std::find_if(begin(e->get_utilizedLayers()), end(e->get_utilizedLayers()),
-                    [& layerName](auto && ae){ return layerName == ae; } );
+                    [& layerName_c](auto && ae){ return layerName_c == ae; } );
                 if (it != end(e->get_utilizedLayers()))
                     { requiredLayers.push_back(it->data()); }
             }
-            for (auto const & deviceExtension : criteria.get_deviceExtensions())
+            for (auto const & deviceExtension_c : criteria_c->get_deviceExtensions())
             {
                 auto it = std::find_if(begin(availableDeviceExtensions), end(availableDeviceExtensions),
-                    [& deviceExtension](auto && ae){ return deviceExtension == ae.extensionName; } );
+                    [& deviceExtension_c](auto && ae){ return deviceExtension_c == ae.extensionName; } );
                 if (it != end(availableDeviceExtensions))
                 {
                     utilizedDeviceExtensions.push_back(it->extensionName);
                     requiredDeviceExtensions.push_back(it->extensionName);
                 }
             }
-            for (auto const & [provider, features] : criteria.get_features())
+            for (auto const & [provider_c, features_c] : criteria_c->get_features())
             {
-                auto const & availableFeatureMap = featureProviderIndexMap;
-                if (auto it = availableFeatureMap.find(provider);
-                    it != availableFeatureMap.end())
+                for (auto const & feature_c : features_c)
                 {
-                    auto const & [sType, strucAvail] = availableFeaturesIndexable[it->second];
-                    auto const & [_, strucUsing] = utilizedFeaturesIndexable[it->second];
-
-                    for (auto const & feature : features)
-                    {
-                        if (checkFeature(sType, strucAvail, feature))
-                        {
-                            setFeature(sType, strucUsing, feature);
-                        }
-                    }
+                    if (profileCriteria.features.check(provider_c, feature_c))
+                        { utilizedDeviceFeatures.set(provider_c, feature_c, VK_TRUE); }
                 }
             }
         };
 
-        if (groupDesires.has_value())
-            { requireExtsAndLayersEtc(* groupDesires); }
-
-        if (profileDesires.has_value())
-            { requireExtsAndLayersEtc(* profileDesires); }
-
-        requireExtsAndLayersEtc(profile.get_requires());
+        requireExtsAndLayersEtc(groupDesires_c);
+        requireExtsAndLayersEtc(profileDesires_c);
+        requireExtsAndLayersEtc(profile_c.get_requires());
 
         utilizedQueueFamilies = e->deviceAssignments[groupIdx].deviceSuitabilities[physicalDeviceIdx].queueFamilyComposition;
 
         for (auto & re : requiredDeviceExtensions)
             { log(fmt::format("  using device extension: {}", re)); }
 
+        /*
         log(". using features: ");
         auto & features = utilizedDeviceFeatures;
         reportFeatures(& features.features);
@@ -634,6 +607,7 @@ namespace og
             reportFeatures(next);
             next = static_cast<VkBaseOutStructure *>(next)->pNext;
         }
+        */
 
         log(". using queue families: ");
         for (auto const & queueFam : utilizedQueueFamilies.queueFamilies)
@@ -645,11 +619,20 @@ namespace og
         auto dqcis = std::vector<VkDeviceQueueCreateInfo>(utilizedQueueFamilies.queueFamilies.size());
         for (int i = 0; i < utilizedQueueFamilies.queueFamilies.size(); ++i)
         {
-            auto const & [qfi, count, flags, priorities] = utilizedQueueFamilies.queueFamilies[i];
+            auto const & [qfi, count, flags, priorities, globalPriority] = utilizedQueueFamilies.queueFamilies[i];
+
+            void * pNext = NULL;
+            VkDeviceQueueGlobalPriorityCreateInfoKHR globalPriorityStruct = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR, NULL, VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR };
+            if (globalPriority.has_value())
+            {
+                pNext = & globalPriorityStruct;
+                globalPriorityStruct.globalPriority = * globalPriority;
+            }
+
             dqcis[i] =
             {
                 .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .pNext = nullptr, // TODO: VkDeviceQueueGlobalPriorityCreateInfoKHR eventually
+                .pNext = pNext,
                 .flags = flags,
                 .queueFamilyIndex = qfi,
                 .queueCount = count,
@@ -668,7 +651,7 @@ namespace og
             .ppEnabledLayerNames = requiredLayers.data(),
             .enabledExtensionCount = static_cast<uint32_t>(requiredDeviceExtensions.size()),
             .ppEnabledExtensionNames = requiredDeviceExtensions.data(),
-            .pEnabledFeatures = nullptr
+            .pEnabledFeatures = NULL
         };
 
         VKR(vkCreateDevice(physicalDevice, & dci, nullptr, & device));

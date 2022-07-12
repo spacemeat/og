@@ -52,6 +52,12 @@ namespace og
         log("Rounding up device profile groups.");
         auto const & groups = config.get_vkDeviceProfileGroups();
 
+        {
+            std::stringstream oss;
+            oss << HumonFormat(groups);
+            log(fmt::format("{}", oss.str()));
+        }
+
         auto getGroup = [&](std::string_view groupName)
         {
             auto groupIt = find_if(begin(groups), end(groups),
