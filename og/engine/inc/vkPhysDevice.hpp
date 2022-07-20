@@ -68,8 +68,8 @@ namespace og
         void createVkDevice();
         void destroyVkDevice();
 
-        int physicalDeviceIdx;
-        VkPhysicalDevice physicalDevice;
+        int physicalDeviceIdx = -1;
+        VkPhysicalDevice physicalDevice = nullptr;
 
         std::vector<VkExtensionProperties> availableDeviceExtensions;
 

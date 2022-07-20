@@ -119,6 +119,7 @@
             name: graphicsDevices
             profiles: [ {
                     name: baller
+                    //enabled: true
                     requires: {
                         vulkanVersion: 1.3
                         deviceExtensions: [VK_KHR_swapchain]
@@ -147,7 +148,7 @@
                     requires: {
                         vulkanVersion: 1.3
                         queueTypesIncluded: [compute_bit graphics_bit]
-                        proerties: {
+                        properties: {
                             vulkan_1_0: [[deviceType eq discrete_gpu]]
                         }
                     }
@@ -159,7 +160,7 @@
                         vulkanVersion: 1.2
                         deviceExtensions: [VK_KHR_synchronization2]
                         queueTypesIncluded: [compute_bit graphics_bit]
-                        proerties: {
+                        properties: {
                             vulkan_1_0: [[deviceType eq discrete_gpu]]
                         }
                     }
@@ -169,12 +170,7 @@
                     name: feeb
                     requires: {
                         vulkanVersion: 1.0
-                        extensions: [VK_KHR_get_physical_device_properties2]
-                        deviceExtensions: [VK_KHR_multiview]
                         queueTypesIncluded: [compute_bit graphics_bit]
-                        properties: {
-                            multiview: [[maxMultiviewViewCount ge 2]]
-                        }
                     }
                 }
             ]
@@ -366,7 +362,7 @@
                 }
             ]
             desires: { }
-            queueFamiliesProfiles: { {
+            queueFamiliesProfiles: [ {
                     name: cat
                     queueFamilies: [ {
                             requires: {
@@ -403,7 +399,7 @@
                         }
                     ]
                 }
-            }
+            ]
         }
     ]
 }

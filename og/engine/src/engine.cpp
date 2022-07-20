@@ -53,9 +53,9 @@ namespace og
         auto const & groups = config.get_vkDeviceProfileGroups();
 
         {
-            std::stringstream oss;
-            oss << HumonFormat(groups);
-            log(fmt::format("{}", oss.str()));
+            //std::stringstream oss;
+            //oss << HumonFormat(groups);
+            //log(fmt::format("{}", oss.str()));
         }
 
         auto getGroup = [&](std::string_view groupName)
