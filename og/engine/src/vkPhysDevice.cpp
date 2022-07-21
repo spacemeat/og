@@ -104,7 +104,6 @@ namespace og
                 suitability.queueFamilies.resize(devQueueFamilyCount);
                 for (int i = 0; i < devQueueFamilyCount; ++i)
                 {
-                    suitability.queueFamilies[i] = { VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 };
                     suitability.queueFamilies[i].init(queueFamilyPropertyProviders);
                     qfPropsVect[i] = suitability.queueFamilies[i].mainStruct;
                 }
@@ -202,21 +201,21 @@ namespace og
                     if (vulkanVersion_c.has_value())
                     {
                         if (e->checkVulkan(* vulkanVersion_c) == false)
-                            { noGood = true; log(". . . . Vulkan version '{}' reqirement not met."); if (! reportAll) { return; } }
+                            { noGood = true; log(". . . . Vulkan version '{}' requirement not met."); if (! reportAll) { return; } }
                     }
 
                     auto const & extensions_c = criteria_c->get_extensions();
                     for (auto const & extension_c : extensions_c)
                     {
                         if (e->checkExtension(extension_c) == false)
-                            { noGood = true; log(fmt::format(". . . . Extension '{}' reqirement not met.", extension_c)); if (! reportAll) { return; } }
+                            { noGood = true; log(fmt::format(". . . . Extension '{}' requirement not met.", extension_c)); if (! reportAll) { return; } }
                     }
 
                     auto const & layers_c = criteria_c->get_layers();
                     for (auto const & layer_c : layers_c)
                     {
                         if (e->checkLayer(layer_c) == false)
-                            { noGood = true; log(fmt::format(". . . . Layer '{}' reqirement not met.", layer_c)); if (! reportAll) { return; } }
+                            { noGood = true; log(fmt::format(". . . . Layer '{}' requirement not met.", layer_c)); if (! reportAll) { return; } }
                     }
                 }
             };
@@ -230,7 +229,7 @@ namespace og
             for (auto const & deviceExtension_c : deviceExtensions_c)
             {
                 if (checkDeviceExtension(deviceExtension_c) == false)
-                    { noGood = true; log(fmt::format(". . . . Device extension '{}' reqirement not met.", deviceExtension_c)); if (! reportAll) { break; } }
+                    { noGood = true; log(fmt::format(". . . . Device extension '{}' requirement not met.", deviceExtension_c)); if (! reportAll) { break; } }
             }
 
             auto const & queueTypesInc_c = profile_c.get_requires()->get_queueTypesIncluded();
@@ -239,7 +238,7 @@ namespace og
                 queueTypesInc_c.has_value() ? * queueTypesInc_c : static_cast<VkQueueFlagBits>(0),
                 queueTypesExc_c.has_value() ? * queueTypesExc_c : static_cast<VkQueueFlagBits>(0))
                 == false)
-                { noGood = true; log(". . . . Queue types reqirement not met."); if (! reportAll) { break; } }
+                { noGood = true; log(". . . . Queue types requirement not met."); if (! reportAll) { break; } }
 
 
             auto const & featuresMap_c = profile_c.get_requires()->get_features();
@@ -251,10 +250,10 @@ namespace og
                     {
                         if (profileSpecificCriteria.features.check(provider_c, feature_c)
                             == false)
-                            { noGood = true; log(fmt::format(". . . . reqirement not met: features / {} / {}", provider_c, feature_c)); if (! reportAll) { break; } }
+                            { noGood = true; log(fmt::format(". . . . requirement not met: features / {} / {}", provider_c, feature_c)); if (! reportAll) { break; } }
                     }
                     catch (std::runtime_error & e)
-                        { noGood = true; log(fmt::format(". . . . reqirement error: features / {} / {}: {}", provider_c, feature_c, e.what())); if (! reportAll) { break; } }
+                        { noGood = true; log(fmt::format(". . . . requirement error: features / {} / {}: {}", provider_c, feature_c, e.what())); if (! reportAll) { break; } }
                 }
             }
 
@@ -268,10 +267,10 @@ namespace og
                     {
                         if (profileSpecificCriteria.properties.check(provider_c, property_c, op_c, value_c)
                             == false)
-                            { noGood = true; log(fmt::format(". . . . reqirement not met: properties / {} / {}", provider_c, property_c)); if (! reportAll) { break; } }
+                            { noGood = true; log(fmt::format(". . . . requirement not met: properties / {} / {}", provider_c, property_c)); if (! reportAll) { break; } }
                     }
                     catch (std::runtime_error & e)
-                        { noGood = true; log(fmt::format(". . . . reqirement error: properties / {} / {}: {}", provider_c, property_c, e.what())); if (! reportAll) { break; } }
+                        { noGood = true; log(fmt::format(". . . . requirement error: properties / {} / {}: {}", provider_c, property_c, e.what())); if (! reportAll) { break; } }
                 }
             }
 
@@ -302,36 +301,48 @@ namespace og
     {
         bool reportAll = true;
 
-        log(fmt::format("findBestQueueFamilyAllocation(group={}, profile={})", groupIdx, profileIdx));
+        log(fmt::format(". . . findBestQueueFamilyAllocation(group={}, profile={})", groupIdx, profileIdx));
 
         // Find the best matching queue family group.
         uint32_t selectedQueueFamilyProfileIdx = -1;
         QueueFamilyComposition qfiAllocs;
-        auto const & qfsProfiles_c = group_c.get_queueFamiliesProfiles();
+        auto const & qvProfiles_c = group_c.get_queueVillageProfiles();
         auto & deviceAssignmentGroup = e->deviceAssignments[groupIdx];
         auto & suitability = deviceAssignmentGroup.deviceSuitabilities[physicalDeviceIdx];
         auto & profileSpecificCriteria = suitability.profileCritera[profileIdx];
         auto & suitabilityQfs = suitability.queueFamilies;
-        for (uint32_t qfProfileIdx_c = 0; qfProfileIdx_c < qfsProfiles_c.size(); ++qfProfileIdx_c)
+        for (uint32_t qvProfileIdx_c = 0; qvProfileIdx_c < qvProfiles_c.size(); ++qvProfileIdx_c)
         {
-            auto const & qfProfile_c = qfsProfiles_c[qfProfileIdx_c];
-            bool groupFail = false;
+            auto const & qvProfile_c = qvProfiles_c[qvProfileIdx_c];
 
-            // Populate a list of qfis that match the queue spec for each queue.
-            auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qfProfile_c.get_queueFamilies().size());
-            auto const & qfs_c = qfProfile_c.get_queueFamilies();
-            for (uint32_t qfIdx_c = 0; qfIdx_c < qfProfile_c.get_queueFamilies().size(); ++qfIdx_c)
+            log(fmt::format(". . . . checking qfprofile {} (index #{})", qvProfile_c.get_name(), qvProfileIdx_c));
+
+            auto const & qvillage_c = qvProfile_c.get_queueVillage();
+            if (suitabilityQfs.size() < qvillage_c.size())
             {
-                auto const & qf_c = qfs_c[qfIdx_c];
-                auto & selectable = selectableQueueFamilyIndices[qfIdx_c];
+                log(fmt::format(". . . . . Queue family profile {} - no match (too few queue families on device).", qvProfileIdx_c));
+                continue;
+            }
+
+            bool qfProfileFail = false;
+            // Populate a list of qfis that match the queue spec for each queue.
+            // For each queueFamily_c, a list of qfis that meet reqs.
+            auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qvillage_c.size());
+            for (uint32_t qfaIdx_c = 0; qfaIdx_c < qvillage_c.size(); ++qfaIdx_c)
+            {
+                log(fmt::format(". . . . . checking family {}", qfaIdx_c));
+
+                auto const & qfAttribs_c = qvillage_c[qfaIdx_c];
+                // starts empty; will collect each qfi that meets the requirements
+                auto & selectable = selectableQueueFamilyIndices[qfaIdx_c];
                 for (int devQfi = 0; devQfi < suitabilityQfs.size(); ++devQfi)
                 {
                     auto const & devQueueFamily = suitabilityQfs[devQfi];
                     bool noGood = false;
 
-                    if (qf_c.get_requires().has_value())
+                    if (qfAttribs_c.get_requires().has_value())
                     {
-                        auto const & featuresMap_c = qf_c.get_requires()->get_features();
+                        auto const & featuresMap_c = qfAttribs_c.get_requires()->get_features();
                         for (auto const & [provider_c, features_c] : featuresMap_c)
                         {
                             for (auto const & feature_c : features_c)
@@ -340,14 +351,14 @@ namespace og
                                 {
                                     if (profileSpecificCriteria.features.check(provider_c, feature_c)
                                         == false)
-                                        { noGood = true; log(fmt::format(". . reqirement not met: features / {} / {}", provider_c, feature_c)); if (! reportAll) { break; } }
+                                        { noGood = true; log(fmt::format(". . . . . . requirement not met: features / {} / {}", provider_c, feature_c)); if (! reportAll) { break; } }
                                 }
                                 catch (std::runtime_error & e)
-                                    { noGood = true; log(fmt::format(". . reqirement error: features / {} / {}: {}", provider_c, feature_c, e.what())); if (! reportAll) { break; } }
+                                    { noGood = true; log(fmt::format(". . . . . . requirement error: features / {} / {}: {}", provider_c, feature_c, e.what())); if (! reportAll) { break; } }
                             }
                         }
 
-                        auto const & propertiesMap_c = qf_c.get_requires()->get_properties();
+                        auto const & propertiesMap_c = qfAttribs_c.get_requires()->get_properties();
                         for (auto const & [provider_c, properties_c] : propertiesMap_c)
                         {
                             for (auto const & [property_c, op_c, value_c] : properties_c)
@@ -356,14 +367,14 @@ namespace og
                                 {
                                     if (profileSpecificCriteria.properties.check(provider_c, property_c, op_c, value_c)
                                         == false)
-                                        { noGood = true; log(fmt::format(". . reqirement not met: properties / {} / {}", provider_c, property_c)); if (! reportAll) { break; } }
+                                        { noGood = true; log(fmt::format(". . . . . . requirement not met: properties / {} / {}", provider_c, property_c)); if (! reportAll) { break; } }
                                 }
                                 catch (std::runtime_error & e)
-                                    { noGood = true; log(fmt::format(". . reqirement error: properties / {} / {}: {}", provider_c, property_c, e.what())); if (! reportAll) { break; } }
+                                    { noGood = true; log(fmt::format(". . . . . . requirement error: properties / {} / {}: {}", provider_c, property_c, e.what())); if (! reportAll) { break; } }
                             }
                         }
 
-                        auto const & qfPropertiesMap_c = qf_c.get_requires()->get_queueFamilyProperties();
+                        auto const & qfPropertiesMap_c = qfAttribs_c.get_requires()->get_queueFamilyProperties();
                         for (auto const & [provider_c, properties_c] : propertiesMap_c)
                         {
                             for (auto const & [property_c, op_c, value_c] : properties_c)
@@ -372,35 +383,48 @@ namespace og
                                 {
                                     if (suitability.queueFamilies[devQfi].check(provider_c, property_c, op_c, value_c)
                                         == false)
-                                        { noGood = true; log(fmt::format(". . reqirement not met: queue family properties / {} / {}", provider_c, property_c)); if (! reportAll) { break; } }
+                                        { noGood = true; log(fmt::format(". . . . . . requirement not met: queue family properties / {} / {}", provider_c, property_c)); if (! reportAll) { break; } }
                                 }
                                 catch (std::runtime_error & e)
-                                    { noGood = true; log(fmt::format(". . reqirement error: queue family properties / {} / {}: {}", provider_c, property_c, e.what())); if (! reportAll) { break; } }
+                                    { noGood = true; log(fmt::format(". . . . . . requirement error: queue family properties / {} / {}: {}", provider_c, property_c, e.what())); if (! reportAll) { break; } }
                             }
                         }
                     }
 
                     if (noGood == false)
                     {
+                        log(fmt::format(". . . . . . qf index {} is selectable", devQfi));
                         selectable.push_back(devQfi);
                     }
+                    else
+                    {
+                        log(fmt::format(". . . . . . qf index {} is not selectable", devQfi));
+                    }
                 }
+
                 if (selectable.size() == 0)
-                    { groupFail = true; }
+                    { qfProfileFail = true; }
             }
 
-            if (groupFail)
-                { log(fmt::format("Queue family group {} - no match.", qfProfileIdx_c)); continue; }
+            if (qfProfileFail)
+            {
+                log(fmt::format(". . . . . Queue family profile {} - no match.", qvProfileIdx_c));
+                continue;
+            }
 
-            // Now find the best unique qfi assignment for each queue. If there is not one, go to next group.
+            // Now find the best unique qfi assignment for each queue.
+            // If there is not one, go to next qfprofile.
+
+
 
             // Check this by building a vector of all combinations of qfi indices in selectableQueueFamilyIndices.
             // Some of these combinations will be invalid--for instance, an index can only be used once, so any
             // combination that has repeated indices will be an invalid combination. We store in the vector the
             // product of min(queues, desiredQueues) for each qfi. The combination with the highest desired queue
             // count is the most ideal selections of queue family indices.
+
             auto numCombos = std::accumulate(begin(selectableQueueFamilyIndices), end(selectableQueueFamilyIndices),
-                0, [](uint32_t b, auto & sub){ return static_cast<uint32_t>(sub.size()) + b; });
+                1, [](uint32_t b, auto & sub){ return static_cast<uint32_t>(sub.size()) * b; });
             auto comboScores = std::vector<uint32_t>(numCombos, 0);
 
             uint32_t numQs = selectableQueueFamilyIndices.size();
@@ -409,7 +433,7 @@ namespace og
             {
                 // for each q, determine the vertical repetition = the product of the remaining q counts
                 int vertStride = std::accumulate(next(begin(selectableQueueFamilyIndices), q), end(selectableQueueFamilyIndices),
-                    0, [](uint32_t b, auto & sub){ return static_cast<uint32_t>(sub.size()) + b; });
+                    1, [](uint32_t b, auto & sub){ return static_cast<uint32_t>(sub.size()) * b; });
                 int numSel = selectableQueueFamilyIndices[q].size();
                 int cycles = numCombos / vertStride / numSel;
 
@@ -455,7 +479,7 @@ namespace og
                 {
                     auto cs0 = results[combo * numQs + q];
                     auto count = suitabilityQfs[cs0].mainStruct.queueFamilyProperties.queueCount;
-                    auto numQueuesDesired = qfProfile_c.get_queueFamilies()[q].get_maxQueueCount();
+                    auto numQueuesDesired = qvProfile_c.get_queueVillage()[q].get_maxQueueCount();
                     auto score = std::min(count, static_cast<uint32_t>(numQueuesDesired));
                     totalScore *= score;
                 }
@@ -472,12 +496,12 @@ namespace og
 
             if (winningCombo != -1)
             {
-                selectedQueueFamilyProfileIdx = qfProfileIdx_c;
+                selectedQueueFamilyProfileIdx = qvProfileIdx_c;
                 for (int q = 0; q < numQs; ++q)
                 {
                     auto qfi = results[winningCombo * numQs + q];
                     auto count = suitabilityQfs[qfi].mainStruct.queueFamilyProperties.queueCount;
-                    auto const & qf_c = qfProfile_c.get_queueFamilies()[q];
+                    auto const & qf_c = qvProfile_c.get_queueVillage()[q];
                     auto numQueuesDesired = qf_c.get_maxQueueCount();
                     auto numQueues = std::min(count, static_cast<uint32_t>(numQueuesDesired));
                     auto flags = qf_c.get_flags();
@@ -493,7 +517,7 @@ namespace og
                 }
                 // we found a winner, recorded the qfi data, now bail
                 log(fmt::format(". Best suitable queue family group found: {} (group #{})",
-                    qfsProfiles_c[selectedQueueFamilyProfileIdx].get_name(),
+                    qvProfiles_c[selectedQueueFamilyProfileIdx].get_name(),
                     selectedQueueFamilyProfileIdx));
                 break;
             }

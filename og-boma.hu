@@ -156,7 +156,7 @@
                 profiles: { type: vector of: physicalVkDeviceProfile }
                 requires: { type: optional of: deviceCriteria }
                 desires: { type: optional of: deviceCriteria }
-                queueFamiliesProfiles: { type: vector of: queueFamiliesProfile }
+                queueVillageProfiles: { type: vector of: queueVillageProfile }
             }
             physicalVkDeviceProfile: {
                 name: stringView
@@ -164,11 +164,11 @@
                 requires: { type: optional of: deviceCriteria }
                 desires: { type: optional of: deviceCriteria }
             }
-            queueFamiliesProfile: {
+            queueVillageProfile: {
                 name: stringView
-                queueFamilies: { type: vector of: queueFamilyProperties }
+                queueVillage: { type: vector of: queueFamilyAttributes }
             }
-            queueFamilyProperties: {
+            queueFamilyAttributes: {
                 requires: { type: optional of: queueFamilyCriteria }
                 flags: { type: VkDeviceQueueCreateFlags default: 0 }
                 priorities: { type: vector of: float }

@@ -142,6 +142,9 @@
                             vulkan_1_2: [[haderSignedZeroInfNanPreserveFloat32 eq true]]
                             vulkan_1_3: [[minSubgroupSize ge 2]]
                         }
+                        features: {
+                            global_priority_query: [[globalPriorityQuery]]
+                        }
                     }
                 }, {
                     name: highPerf
@@ -195,10 +198,10 @@
                a minimum number of queues for the priority set (requires > 1), which selects
                a priority profile for that number of queues.
             */
-            queueFamiliesProfiles: [ {
+            queueVillageProfiles: [ {
                     name: gcacat
                     // these come order-independent
-                    queueFamilies: [ {
+                    queueVillage: [ {
                             requires: {
                                 features: {
                                     global_priority_query: [globalPriorityQuery]
@@ -207,6 +210,7 @@
                                     vulkan_1_0: [[queueFlags has grphics_bit]
                                                  [queueFlags has compute_bit]
                                                  [queueCount ge 1]]
+                                    //query_result_status: [[queryResultStatusSupport eq true]]
                                     global_priority: [[priorityCount ge 2]]
                                 }
                             }
@@ -238,7 +242,7 @@
                     ]
                 }, {
                     name: gacat
-                    queueFamilies: [ {
+                    queueVillage: [ {
                             requires: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
@@ -273,7 +277,7 @@
                     ]
                 }, {
                     name: gcat
-                    queueFamilies: [ {
+                    queueVillage: [ {
                             requires: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
@@ -297,7 +301,7 @@
                     ]
                 }, {
                     name: gac
-                    queueFamilies: [ {
+                    queueVillage: [ {
                             requires: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
@@ -321,7 +325,7 @@
                     ]
                 }, {
                     name: gct
-                    queueFamilies: [ {
+                    queueVillage: [ {
                             requires: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
@@ -362,9 +366,9 @@
                 }
             ]
             desires: { }
-            queueFamiliesProfiles: [ {
+            queueVillageProfiles: [ {
                     name: cat
-                    queueFamilies: [ {
+                    queueVillage: [ {
                             requires: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has compute_bit]
@@ -387,7 +391,7 @@
                     ]
                 }, {
                     name: c
-                    queueFamilies: [ {
+                    queueVillage: [ {
                             requires: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has compute_bit]
