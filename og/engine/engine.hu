@@ -131,7 +131,7 @@
                             vulkan_1_0: [[deviceType eq discrete_gpu]
                                          [limits_maxImageDimension2D ge 8192]
                                          [limits_maxComputeWorkGroupCount_0 gt 0]
-                                         [limits_maxComputeWorkGroupCount_1 lt 0]
+                                         [limits_maxComputeWorkGroupCount_1 gt 0]
                                          [limits_maxComputeWorkGroupCount_2 gt 0]
                                         ]
                             vulkan_1_1: [[maxMultiviewViewCount ge 2]]

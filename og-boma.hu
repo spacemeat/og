@@ -170,7 +170,7 @@
             }
             queueFamilyAttributes: {
                 requires: { type: optional of: queueFamilyCriteria }
-                flags: { type: VkDeviceQueueCreateFlags default: 0 }
+                flags: { type: VkDeviceQueueCreateFlagBits default: 0 }
                 priorities: { type: vector of: float }
                 maxQueueCount: uint32_t
                 globalPriority: { type: optional of: VkQueueGlobalPriorityKHR }

@@ -98,8 +98,11 @@ namespace og
                     }
                 };
 
-                uint32_t devQueueFamilyCount = device.availableQueueFamilies.size();
+                // TODO: Call queueFamilyPropertyProviders for each requirement
+
+                uint32_t devQueueFamilyCount = 0;
                 vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, nullptr);
+                assert(devQueueFamilyCount == device.availableQueueFamilies.size());
                 std::vector<VkQueueFamilyProperties2> qfPropsVect(devQueueFamilyCount);
                 suitability.queueFamilies.resize(devQueueFamilyCount);
                 for (int i = 0; i < devQueueFamilyCount; ++i)
@@ -107,7 +110,7 @@ namespace og
                     suitability.queueFamilies[i].init(queueFamilyPropertyProviders);
                     qfPropsVect[i] = suitability.queueFamilies[i].mainStruct;
                 }
-                vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, device.availableQueueFamilies.data());
+                vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, qfPropsVect.data());
                 for (int i = 0; i < devQueueFamilyCount; ++i)
                 {
                     suitability.queueFamilies[i].mainStruct = qfPropsVect[i];
@@ -304,8 +307,6 @@ namespace og
         log(fmt::format(". . . findBestQueueFamilyAllocation(group={}, profile={})", groupIdx, profileIdx));
 
         // Find the best matching queue family group.
-        uint32_t selectedQueueFamilyProfileIdx = -1;
-        QueueFamilyComposition qfiAllocs;
         auto const & qvProfiles_c = group_c.get_queueVillageProfiles();
         auto & deviceAssignmentGroup = e->deviceAssignments[groupIdx];
         auto & suitability = deviceAssignmentGroup.deviceSuitabilities[physicalDeviceIdx];
@@ -412,125 +413,134 @@ namespace og
                 continue;
             }
 
-            // Now find the best unique qfi assignment for each queue.
-            // If there is not one, go to next qfprofile.
-
-
-
-            // Check this by building a vector of all combinations of qfi indices in selectableQueueFamilyIndices.
-            // Some of these combinations will be invalid--for instance, an index can only be used once, so any
-            // combination that has repeated indices will be an invalid combination. We store in the vector the
-            // product of min(queues, desiredQueues) for each qfi. The combination with the highest desired queue
-            // count is the most ideal selections of queue family indices.
-
             auto numCombos = std::accumulate(begin(selectableQueueFamilyIndices), end(selectableQueueFamilyIndices),
                 1, [](uint32_t b, auto & sub){ return static_cast<uint32_t>(sub.size()) * b; });
             auto comboScores = std::vector<uint32_t>(numCombos, 0);
+            uint32_t winningScore = 0;
+            uint32_t winningCombo = -1;
 
-            uint32_t numQs = selectableQueueFamilyIndices.size();
-            std::vector<uint32_t> results(numQs * numCombos);
-            for (int q = 0; q < numQs; ++q)
+            // Now find the best unique qfi assignment for each queue.
+            // If there is not one, go to next qfprofile.
+
+            // This monsta lets us recurse to n dimensions to score up a village.
+            auto fn = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score) -> void
             {
-                // for each q, determine the vertical repetition = the product of the remaining q counts
-                int vertStride = std::accumulate(next(begin(selectableQueueFamilyIndices), q), end(selectableQueueFamilyIndices),
-                    1, [](uint32_t b, auto & sub){ return static_cast<uint32_t>(sub.size()) * b; });
-                int numSel = selectableQueueFamilyIndices[q].size();
-                int cycles = numCombos / vertStride / numSel;
-
-                for (int cycle = 0; cycle < cycles; ++cycle)
+                auto fn_int = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score, auto outer_fn) -> void
                 {
-                    for (int selection = 0; selection < numSel; ++selection)
+                    auto const & qfis = selectableQueueFamilyIndices[famIdx];
+                    for (auto const & qfi : qfis)
                     {
-                        int val = selectableQueueFamilyIndices[q][selection];
-                        for (int i = 0; i < vertStride; ++i)
+                        if (busyFamilies[qfi])
                         {
-                            int idx = cycle * numSel * vertStride * numQs
-                                            + selection * vertStride * numQs
-                                                        + i * numQs
-                                                            + q;
-                            results[idx] = val;
+                            score = 0;
+                        }
+                        else
+                        {
+                            auto numQueuesOnDevice = suitabilityQfs[qfi].mainStruct.queueFamilyProperties.queueCount;
+                            auto numQueuesDesired = qvProfile_c.get_queueVillage()[famIdx].get_maxQueueCount();
+                            score *= std::min(numQueuesOnDevice, numQueuesDesired);
+                        }
+                        busyFamilies[qfi] = true;
+
+                        if (famIdx + 1 == selectableQueueFamilyIndices.size())
+                        {
+                            comboScores[comboIdx] = score;
+                            if (score > winningScore)
+                            {
+                                winningScore = score;
+                                winningCombo = comboIdx;
+                                log(fmt::format("@ leading combo: {} score {}", winningCombo, winningScore));
+                            }
+                            comboIdx += 1;
+                        }
+                        else
+                        {
+                            outer_fn(famIdx + 1, busyFamilies & std::bitset<64> { 1ULL << qfi }, comboIdx, score, outer_fn);
                         }
                     }
-                }
-            }
+                };
 
-            // Now score each combo. Any with repeated qfis scores 0. The rest are scored by
-            // how well they match the desired queue counts, all multiplied together.
-            int bestScore = 0;
-            int winningCombo = -1;
-            for (int combo = 0; combo < numCombos; ++combo)
-            {
-                int totalScore = 1;
+                fn_int(famIdx, busyFamilies, comboIdx, score, fn_int);
+            };
 
-                // if any qfi is repeated, score remains zero
-                for (int q = 0; q < numQs; ++q)
-                {
-                    auto cs0 = results[combo * numQs + q];
-                    for (int q2 = q + 1; q2 < numQs; ++q2)
-                    {
-                        auto cs1 = results[combo * numQs + q2];
-                        if (cs0 == cs1)
-                            { goto nextComboPlease; }
-                    }
-                }
+            uint32_t comboIdx = 0;
+            fn(0, 0, comboIdx, 1);
 
-                // no repeats; now score based on required and desired queue counts
-                for (int q = 0; q < numQs; ++q)
-                {
-                    auto cs0 = results[combo * numQs + q];
-                    auto count = suitabilityQfs[cs0].mainStruct.queueFamilyProperties.queueCount;
-                    auto numQueuesDesired = qvProfile_c.get_queueVillage()[q].get_maxQueueCount();
-                    auto score = std::min(count, static_cast<uint32_t>(numQueuesDesired));
-                    totalScore *= score;
-                }
-
-                if (totalScore > bestScore)
-                {
-                    bestScore = totalScore;
-                    winningCombo = combo;
-                }
-
-                nextComboPlease:
-                continue;
-            }
+            QueueFamilyComposition qfiAllocs;
+            qfiAllocs.queueFamilies.resize(qvProfile_c.get_queueVillage().size());
 
             if (winningCombo != -1)
             {
-                selectedQueueFamilyProfileIdx = qvProfileIdx_c;
-                for (int q = 0; q < numQs; ++q)
-                {
-                    auto qfi = results[winningCombo * numQs + q];
-                    auto count = suitabilityQfs[qfi].mainStruct.queueFamilyProperties.queueCount;
-                    auto const & qf_c = qvProfile_c.get_queueVillage()[q];
-                    auto numQueuesDesired = qf_c.get_maxQueueCount();
-                    auto numQueues = std::min(count, static_cast<uint32_t>(numQueuesDesired));
-                    auto flags = qf_c.get_flags();
+                log(fmt::format("@ winning combo: {}", winningCombo));
 
-                    std::vector<float> ctdPriorities(numQueues);
+                bool done = false;
+                comboIdx = 0;
+                auto fn2 = [&](uint32_t famIdx, uint32_t & comboIdx) -> void
+                {
+                    auto fn2_int = [&](uint32_t famIdx, uint32_t & comboIdx, auto outer_fn2) -> void
+                    {
+                        auto const & qfis = selectableQueueFamilyIndices[famIdx];
+                        for (auto const & qfi : qfis)
+                        {
+                            if (done)
+                                { return; }
+
+                            qfiAllocs.queueFamilies[famIdx] = { qfi };
+
+                            if (famIdx + 1 == selectableQueueFamilyIndices.size())
+                            {
+                                if (comboIdx == winningCombo)
+                                {
+                                    done = true;
+                                    return;
+                                }
+
+                                comboIdx += 1;
+                            }
+                            else
+                            {
+                                outer_fn2(famIdx + 1, comboIdx, outer_fn2);
+                            }
+                        }
+                    };
+
+                    fn2_int(famIdx, comboIdx, fn2_int);
+                };
+
+                for (int allocIdx = 0; allocIdx < qfiAllocs.queueFamilies.size(); ++allocIdx)
+                {
+                    auto & alloc = qfiAllocs.queueFamilies[allocIdx];
+                    auto const & qf_c = qvProfile_c.get_queueVillage()[allocIdx];
+
+                    auto numQueuesOnDevice = suitabilityQfs[alloc.qfi].mainStruct.queueFamilyProperties.queueCount;
+                    auto numQueuesDesired = qf_c.get_maxQueueCount();
+                    alloc.count = std::min(numQueuesOnDevice, numQueuesDesired);
+                    alloc.flags = qf_c.get_flags();
+
+                    std::vector<float> ctdPriorities(alloc.count);
                     auto const & priorities_c = qf_c.get_priorities();
-                    for (int i = 0; i < numQueues; ++i)
+                    for (int i = 0; i < alloc.count; ++i)
                     {
                         ctdPriorities[i] = priorities_c[i % (priorities_c.size())];
                     }
-                    qfiAllocs.queueFamilies.emplace_back(
-                        QueueFamilyAlloc {qfi, numQueues, flags, std::move(ctdPriorities), qf_c.get_globalPriority()});
+                    alloc.priorities = std::move(ctdPriorities);
+                    alloc.globalPriority = qf_c.get_globalPriority();
                 }
+
                 // we found a winner, recorded the qfi data, now bail
-                log(fmt::format(". Best suitable queue family group found: {} (group #{})",
-                    qvProfiles_c[selectedQueueFamilyProfileIdx].get_name(),
-                    selectedQueueFamilyProfileIdx));
-                break;
+                log(fmt::format(". Best suitable queue family profile found: {} (profile #{})",
+                    qvProfiles_c[qvProfileIdx_c].get_name(),
+                    qvProfileIdx_c));
+
+                return {qvProfileIdx_c, qfiAllocs};
             }
+
+            // no winner; we move to the next village profile
         }
 
-        if (selectedQueueFamilyProfileIdx == -1)
-        {
-            log(fmt::format(". Could not find a suitable queue family combination for profile group '{}'.", group_c.get_name()));
-            // Not necessarily an error; a given profile group may just be a nice-to-have (require 0 devices).
-            return {-1, {}};
-        }
-
-        return {selectedQueueFamilyProfileIdx, qfiAllocs};
+        log(fmt::format(". Could not find a suitable queue family combination for profile group '{}'.", group_c.get_name()));
+        // Not necessarily an error; a given profile group may just be a nice-to-have (require 0 devices).
+        return {-1, {}};
     }
 
 
@@ -642,22 +652,10 @@ namespace og
         requireExtsAndLayersEtc(profileDesires_c);
         requireExtsAndLayersEtc(profile_c.get_requires());
 
-        utilizedQueueFamilies = e->deviceAssignments[groupIdx].deviceSuitabilities[physicalDeviceIdx].queueFamilyComposition;
+        utilizedQueueFamilies = suitability.queueFamilyComposition;
 
         for (auto & re : requiredDeviceExtensions)
             { log(fmt::format("  using device extension: {}", re)); }
-
-        /*
-        log(". using features: ");
-        auto & features = utilizedDeviceFeatures;
-        reportFeatures(& features.features);
-        void * next = features.pNext;
-        while (next != nullptr)
-        {
-            reportFeatures(next);
-            next = static_cast<VkBaseOutStructure *>(next)->pNext;
-        }
-        */
 
         log(". using queue families: ");
         for (auto const & queueFam : utilizedQueueFamilies.queueFamilies)
