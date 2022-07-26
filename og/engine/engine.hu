@@ -8,66 +8,30 @@
             name: debug
             profiles: [ {
                     name: v1.3
-                    requires: {
-                        vulkanVersion: 1.3
-                        extensions: [
-                        ]
-                        layers: [
-                        ]
-                    }
-                    desires: {
-                        extensions: [
-                        ]
-                        layers: [
-                        ]
-                    }
+                    vulkanVersion: 1.3
                 }, {
                     name: v1.2
-                    requires: {
-                        vulkanVersion: 1.2
-                        extensions: [
-                        ]
-                        layers: [
-                        ]
-                    }
-                    desires: {
-                        extensions: [
-                        ]
-                        layers: [
-                        ]
-                    }
+                    vulkanVersion: 1.2
                 }, {
                     name: v1.1
-                    requires: {
-                        vulkanVersion: 1.1
-                        extensions: [
-                        ]
-                        layers: [
-                        ]
-                    }
-                    desires: {
-                        layers: [
-                        ]
-                    }
+                    vulkanVersion: 1.1
                 }, {
                     name: v1.0
-                    requires: {
-                        vulkanVersion: 1.0
-                        extensions: [
-                            VK_KHR_get_physical_device_properties2
-                        ]
-                        layers: [
-                        ]
-                    }
+                    vulkanVersion: 1.0
+                    extensions: [
+                        VK_KHR_get_physical_device_properties2
+                    ]
                 }
             ]
-            desires: {
+            sharedCriteria: {
                 extensions: [
                     VK_EXT_debug_utils
                 ]
                 layers: [
-                    VK_LAYER_KHRONOS_validation
                     VK_LAYER_KHRONOS_synchronization2
+                ]
+                desiredLayers: [
+                    VK_LAYER_KHRONOS_validation
                 ]
             }
             debugUtilsMessengers: [{
@@ -85,103 +49,80 @@
             name: release
             profiles: [ {
                     name: v1.3
-                    requires: {
-                        vulkanVersion: 1.3
-                        extensions: [
-                            //VK_KHR_get_physical_device_properties2
-                        ]
-                        layers: []
-                    }
+                    vulkanVersion: 1.3
+                }, {
+                    name: v1.2
+                    vulkanVersion: 1.2
                 }, {
                     name: v1.1
-                    requires: {
-                        vulkanVersion: 1.1
-                    }
+                    vulkanVersion: 1.1
                 }, {
                     name: v1.0
-                    requires: {
-                        vulkanVersion: 1.0
-                        extensions: [
-                            VK_KHR_get_physical_device_properties2
-                        ]
-                    }
+                    vulkanVersion: 1.0
+                    extensions: [
+                        VK_KHR_get_physical_device_properties2
+                    ]
                 }
             ]
-            desires: { }
+            sharedCriteria: {
+                layers: [
+                    VK_LAYER_KHRONOS_synchronization2
+                ]
+            }
         }
     ]
 
     // selects which above profile group to use
-    useVkInstanceProfileGroup: debug
-    vkInstanceDesires: { extensions: [] }
+    useInstanceProfileGroup: debug
+    sharedInstanceCriteria: { extensions: [VK_KHR_surface] }
 
     vkDeviceProfileGroups: [ {
             name: graphicsDevices
             profiles: [ {
                     name: baller
                     //enabled: true
-                    requires: {
-                        vulkanVersion: 1.3
-                        deviceExtensions: [VK_KHR_swapchain]
-                        queueTypesIncluded: [compute_bit graphics_bit]
-                        features: {
-                            vulkan_1_1: [multiview]
-                        }
-                        properties: {
-                            vulkan_1_0: [[deviceType eq discrete_gpu]
-                                         [limits_maxImageDimension2D ge 8192]
-                                         [limits_maxComputeWorkGroupCount_0 gt 0]
-                                         [limits_maxComputeWorkGroupCount_1 gt 0]
-                                         [limits_maxComputeWorkGroupCount_2 gt 0]
-                                        ]
-                            vulkan_1_1: [[maxMultiviewViewCount ge 2]]
-                        }
+                    vulkanVersion: 1.3
+                    queueTypesIncluded: [compute_bit graphics_bit]
+                    features: {
+                        vulkan_1_1: [multiview]
                     }
-                    desires: {
-                        properties: {
-                            vulkan_1_2: [[haderSignedZeroInfNanPreserveFloat32 eq true]]
-                            vulkan_1_3: [[minSubgroupSize ge 2]]
-                        }
-                        features: {
+                    properties: {
+                        vulkan_1_0: [[deviceType eq discrete_gpu]
+                                        [limits_maxImageDimension2D ge 8192]
+                                        [limits_maxComputeWorkGroupCount_0 gt 0]
+                                        [limits_maxComputeWorkGroupCount_1 gt 0]
+                                        [limits_maxComputeWorkGroupCount_2 gt 0]
+                                    ]
+                        vulkan_1_1: [[maxMultiviewViewCount ge 2]]
+                    }
+                    desiredFeatures: {
                             global_priority_query: [[globalPriorityQuery]]
-                        }
                     }
                 }, {
                     name: highPerf
-                    requires: {
-                        vulkanVersion: 1.3
-                        queueTypesIncluded: [compute_bit graphics_bit]
-                        properties: {
-                            vulkan_1_0: [[deviceType eq discrete_gpu]]
-                        }
-                    }
-                    desires: {
+                    vulkanVersion: 1.3
+                    queueTypesIncluded: [compute_bit graphics_bit]
+                    properties: {
+                        vulkan_1_0: [[deviceType eq discrete_gpu]]
                     }
                 }, {
                     name: highPerf-1.2
-                    requires: {
-                        vulkanVersion: 1.2
-                        deviceExtensions: [VK_KHR_synchronization2]
-                        queueTypesIncluded: [compute_bit graphics_bit]
-                        properties: {
-                            vulkan_1_0: [[deviceType eq discrete_gpu]]
-                        }
-                    }
-                    desires: {
+                    vulkanVersion: 1.2
+                    deviceExtensions: [VK_KHR_synchronization2]
+                    queueTypesIncluded: [compute_bit graphics_bit]
+                    properties: {
+                        vulkan_1_0: [[deviceType eq discrete_gpu]]
                     }
                 }, {
                     name: feeb
-                    requires: {
-                        vulkanVersion: 1.0
-                        queueTypesIncluded: [compute_bit graphics_bit]
-                    }
+                    vulkanVersion: 1.0
+                    queueTypesIncluded: [compute_bit graphics_bit]
                 }
             ]
-            requires: {
+            sharedCriteria: {
                 deviceExtensions: [VK_KHR_swapchain]
             }
-            desires: {
-            }
+
             /* Each group specs a combination of queue families. The first group that
                matches the available queue family types and queue counts is selected.
                Each entry in the queues list denotes a uniqe queue family index available
@@ -202,7 +143,7 @@
                     name: gcacat
                     // these come order-independent
                     queueVillage: [ {
-                            requires: {
+                            criteria: {
                                 features: {
                                     global_priority_query: [globalPriorityQuery]
                                 }
@@ -218,7 +159,7 @@
                             maxQueueCount: 8
                             globalPriority: high
                         }, {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
                                                  [queueFlags has compute_bit]
@@ -228,7 +169,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
                                                  [queueFlags hasnot compute_bit]
@@ -243,7 +184,7 @@
                 }, {
                     name: gacat
                     queueVillage: [ {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
                                                  [queueFlags hasnot compute_bit]
@@ -253,7 +194,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
                                                  [queueFlags has compute_bit]
@@ -263,7 +204,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
                                                  [queueFlags hasnot compute_bit]
@@ -278,7 +219,7 @@
                 }, {
                     name: gcat
                     queueVillage: [ {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
                                                  [queueFlags has compute_bit]
@@ -288,7 +229,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has transfer_bit]
                                                  [queueFlags has compute_bit]
@@ -302,7 +243,7 @@
                 }, {
                     name: gac
                     queueVillage: [ {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
                                                  [queueFlags hasnot compute_bit]
@@ -312,7 +253,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
                                                  [queueFlags has compute_bit]
@@ -326,7 +267,7 @@
                 }, {
                     name: gct
                     queueVillage: [ {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
                                                  [queueFlags has compute_bit]
@@ -343,33 +284,26 @@
             name: computeDevices
             profiles: [ {
                     name: computeOnly
-                    requires: {
-                        queueTypesIncluded: [compute_bit]
-                        queueTypesExcluded: [graphics_bit]
-                        properties: {
-                            vulkan_1_0: [[deviceType eq discrete_gpu]]
-                        }
+                    queueTypesIncluded: [compute_bit]
+                    queueTypesExcluded: [graphics_bit]
+                    properties: {
+                        vulkan_1_0: [[deviceType eq discrete_gpu]]
                     }
                 }, {
                     name: highPerfGraphics
-                    requires: {
-                        queueTypesIncluded: [compute_bit graphics_bit]
-                        properties: {
-                            vulkan_1_0: [[deviceType eq discrete_gpu]]
-                        }
+                    queueTypesIncluded: [compute_bit graphics_bit]
+                    properties: {
+                        vulkan_1_0: [[deviceType eq discrete_gpu]]
                     }
                 }, {
                     name: any
-                    requires: {
-                        queueTypesIncluded: [compute_bit]
-                    }
+                    queueTypesIncluded: [compute_bit]
                 }
             ]
-            desires: { }
             queueVillageProfiles: [ {
                     name: cat
                     queueVillage: [ {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has compute_bit]
                                                  [queueCount ge 1]]
@@ -378,7 +312,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot compute_bit]
                                                  [queueFlags has transfer_bit]
@@ -392,7 +326,7 @@
                 }, {
                     name: c
                     queueVillage: [ {
-                            requires: {
+                            criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has compute_bit]
                                                  [queueCount ge 1]]

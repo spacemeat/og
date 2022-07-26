@@ -108,7 +108,7 @@ namespace og
         }
 
         // get best vkInstance profile in requested group
-        auto const & groupName = config.get_useVkInstanceProfileGroup();
+        auto const & groupName = config.get_useInstanceProfileGroup();
         auto const & profileGroups = config.get_vkInstanceProfileGroups();
         auto pgit = std::find_if(begin(profileGroups), end(profileGroups),
             [& groupName](auto && elem) { return elem.get_name() == groupName; } );
@@ -127,21 +127,21 @@ namespace og
             bool noGood = false;
 
             // NOTE: these will check against AVAILABLE extensions, layers, etc.
-            auto const & vulkanVersion = profile.get_requires().get_vulkanVersion();
+            auto const & vulkanVersion = profile.get_vulkanVersion();
             if (vulkanVersion.has_value())
             {
                 if (checkVulkan(* vulkanVersion) == false)
                     { noGood = true; log("Vulkan version {} reqirement not met."); break; }
             }
 
-            auto const & extensions = profile.get_requires().get_extensions();
+            auto const & extensions = profile.get_extensions();
             for (auto const & extension : extensions)
             {
                 if (checkExtension(extension) == false)
                     { noGood = true; log(fmt::format("Extension {} reqirement not met.", extension)); break; }
             }
 
-            auto const & layers = profile.get_requires().get_layers();
+            auto const & layers = profile.get_layers();
             for (auto const & layer : layers)
             {
                 if (checkLayer(layer) == false)
@@ -159,11 +159,10 @@ namespace og
             { throw Ex(fmt::format("Unable to meet selection criteria for any vkInstance profile in {}.", groupName)); }
 
         auto const & profile = profiles[profileIdx];
-        auto const & globalDesires = config.get_vkInstanceDesires();
-        auto const & groupDesires = pgit->get_desires();
-        auto const & profileDesires = profile.get_desires();
+        auto const & globalCriteria = config.get_sharedInstanceCriteria();
+        auto const & groupCriteria = pgit->get_sharedCriteria();
 
-        auto const & vulkanVersionStr = profile.get_requires().get_vulkanVersion();
+        auto const & vulkanVersionStr = profile.get_vulkanVersion();
         auto vkVersion = vulkanVersionStr.has_value()
                        ? version_t {* vulkanVersionStr}.bits
                        : VK_API_VERSION_1_3;
@@ -180,7 +179,21 @@ namespace og
                 if (it != end(availableExtensions))
                     { requiredExtensions.push_back(it->extensionName); }
             }
+            for (auto const & extension : criteria.get_desiredExtensions())
+            {
+                auto it = std::find_if(begin(availableExtensions), end(availableExtensions),
+                    [& extension](auto && ae){ return extension == ae.extensionName; } );
+                if (it != end(availableExtensions))
+                    { requiredExtensions.push_back(it->extensionName); }
+            }
             for (auto const & layer : criteria.get_layers())
+            {
+                auto it = std::find_if(begin(availableLayers), end(availableLayers),
+                    [& layer](auto && ae){ return layer == ae.layerName; } );
+                if (it != end(availableLayers))
+                    { requiredLayers.push_back(it->layerName); }
+            }
+            for (auto const & layer : criteria.get_desiredLayers())
             {
                 auto it = std::find_if(begin(availableLayers), end(availableLayers),
                     [& layer](auto && ae){ return layer == ae.layerName; } );
@@ -195,16 +208,13 @@ namespace og
             requiredExtensions.push_back(glfwExts[i]);
         }
 
-        if (globalDesires.has_value())
-            { requireExtsAndLayers(* globalDesires); }
+        if (globalCriteria.has_value())
+            { requireExtsAndLayers(* globalCriteria); }
 
-        if (groupDesires.has_value())
-            { requireExtsAndLayers(* groupDesires); }
+        if (groupCriteria.has_value())
+            { requireExtsAndLayers(* groupCriteria); }
 
-        if (profileDesires.has_value())
-            { requireExtsAndLayers(* profileDesires); }
-
-        requireExtsAndLayers(profile.get_requires());
+        requireExtsAndLayers(profile);
 
         for (auto & re : requiredExtensions)
             { log(fmt::format("using extension: {}", re)); }

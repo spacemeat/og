@@ -98,11 +98,8 @@ namespace og
                     }
                 };
 
-                // TODO: Call queueFamilyPropertyProviders for each requirement
-
                 uint32_t devQueueFamilyCount = 0;
                 vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, nullptr);
-                assert(devQueueFamilyCount == device.availableQueueFamilies.size());
                 std::vector<VkQueueFamilyProperties2> qfPropsVect(devQueueFamilyCount);
                 suitability.queueFamilies.resize(devQueueFamilyCount);
                 for (int i = 0; i < devQueueFamilyCount; ++i)
@@ -135,17 +132,19 @@ namespace og
     {
         bool reportAll = true;
 
-        if (availableQueueFamilies.size() == 0)
+        if (availableQueueTypes == 0)
         {
+
             // This is adjacent to the QF properties stored in a PhysicalDeviceSuitability.
             // That looks for chain structures; this only needs to consider queue types, so
             // we just get the basic structs.
             uint32_t devQueueFamilyCount = 0;
-            vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, & devQueueFamilyCount, nullptr);
+            std::vector<VkQueueFamilyProperties> availableQueueFamilies;
+            vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, & devQueueFamilyCount, nullptr);
             availableQueueFamilies.resize(devQueueFamilyCount);
-            for (int i = 0; i < devQueueFamilyCount; ++i)
-                { availableQueueFamilies[i] = { VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2 }; }
-            vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, & devQueueFamilyCount, availableQueueFamilies.data());
+            vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, & devQueueFamilyCount, availableQueueFamilies.data());
+            for (auto const & qfp : availableQueueFamilies)
+                { availableQueueTypes = static_cast<VkQueueFlagBits>(static_cast<int>(availableQueueTypes) | static_cast<int>(qfp.queueFlags)); }
         }
 
         auto const & groupName_c = group_c.get_name();
@@ -170,21 +169,20 @@ namespace og
             std::vector<std::string_view> propertyProviders;
             auto getFeaturesAndProperties = [& featureProviders, & propertyProviders](auto const & criteria_c)
             {
-                if (criteria_c.has_value())
-                {
-                    auto const & features_c = criteria_c->get_features();
-                    for (auto const & [key, _] : features_c)
-                        { featureProviders.push_back(key); }
-                    auto const & properties_c = criteria_c->get_properties();
-                    for (auto const & [key, _] : properties_c)
-                        { propertyProviders.push_back(key); }
-                }
+                auto const & features_c = criteria_c.get_features();
+                for (auto const & [key, _] : features_c)
+                    { featureProviders.push_back(key); }
+                auto const & desFeatures_c = criteria_c.get_desiredFeatures();
+                for (auto const & [key, _] : desFeatures_c)
+                    { featureProviders.push_back(key); }
+                auto const & properties_c = criteria_c.get_properties();
+                for (auto const & [key, _] : properties_c)
+                    { propertyProviders.push_back(key); }
             };
 
-            getFeaturesAndProperties(group_c.get_requires());
-            getFeaturesAndProperties(group_c.get_desires());
-            getFeaturesAndProperties(profile_c.get_requires());
-            getFeaturesAndProperties(profile_c.get_desires());
+            if (group_c.get_sharedCriteria().has_value())
+                { getFeaturesAndProperties(* group_c.get_sharedCriteria()); }
+            getFeaturesAndProperties(profile_c);
 
             profileSpecificCriteria.features.init(featureProviders);
             profileSpecificCriteria.properties.init(propertyProviders);
@@ -198,53 +196,50 @@ namespace og
             {
                 // NOTE: these will check against SELECTED extensions, layers, etc
                 // from instance creation.
-                if (criteria_c.has_value())
+                auto const & vulkanVersion_c =  criteria_c.get_vulkanVersion();
+                if (vulkanVersion_c.has_value())
                 {
-                    auto const & vulkanVersion_c =  criteria_c->get_vulkanVersion();
-                    if (vulkanVersion_c.has_value())
-                    {
-                        if (e->checkVulkan(* vulkanVersion_c) == false)
-                            { noGood = true; log(". . . . Vulkan version '{}' requirement not met."); if (! reportAll) { return; } }
-                    }
+                    if (e->checkVulkan(* vulkanVersion_c) == false)
+                        { noGood = true; log(". . . . Vulkan version '{}' requirement not met."); if (! reportAll) { return; } }
+                }
 
-                    auto const & extensions_c = criteria_c->get_extensions();
-                    for (auto const & extension_c : extensions_c)
-                    {
-                        if (e->checkExtension(extension_c) == false)
-                            { noGood = true; log(fmt::format(". . . . Extension '{}' requirement not met.", extension_c)); if (! reportAll) { return; } }
-                    }
+                auto const & extensions_c = criteria_c.get_extensions();
+                for (auto const & extension_c : extensions_c)
+                {
+                    if (e->checkExtension(extension_c) == false)
+                        { noGood = true; log(fmt::format(". . . . Extension '{}' requirement not met.", extension_c)); if (! reportAll) { return; } }
+                }
 
-                    auto const & layers_c = criteria_c->get_layers();
-                    for (auto const & layer_c : layers_c)
-                    {
-                        if (e->checkLayer(layer_c) == false)
-                            { noGood = true; log(fmt::format(". . . . Layer '{}' requirement not met.", layer_c)); if (! reportAll) { return; } }
-                    }
+                auto const & layers_c = criteria_c.get_layers();
+                for (auto const & layer_c : layers_c)
+                {
+                    if (e->checkLayer(layer_c) == false)
+                        { noGood = true; log(fmt::format(". . . . Layer '{}' requirement not met.", layer_c)); if (! reportAll) { return; } }
                 }
             };
 
-            check(group_c.get_requires());
-            check(profile_c.get_requires());
+            if (group_c.get_sharedCriteria().has_value())
+                { check(* group_c.get_sharedCriteria()); }
+            check(profile_c);
 
             // These will check against AVAILABLE device extensions, queueTypes, and features.
 
-            auto const & deviceExtensions_c = profile_c.get_requires()->get_deviceExtensions();
+            auto const & deviceExtensions_c = profile_c.get_deviceExtensions();
             for (auto const & deviceExtension_c : deviceExtensions_c)
             {
                 if (checkDeviceExtension(deviceExtension_c) == false)
                     { noGood = true; log(fmt::format(". . . . Device extension '{}' requirement not met.", deviceExtension_c)); if (! reportAll) { break; } }
             }
 
-            auto const & queueTypesInc_c = profile_c.get_requires()->get_queueTypesIncluded();
-            auto const & queueTypesExc_c = profile_c.get_requires()->get_queueTypesExcluded();
+            auto const & queueTypesInc_c = profile_c.get_queueTypesIncluded();
+            auto const & queueTypesExc_c = profile_c.get_queueTypesExcluded();
             if (checkQueueTypes(
                 queueTypesInc_c.has_value() ? * queueTypesInc_c : static_cast<VkQueueFlagBits>(0),
                 queueTypesExc_c.has_value() ? * queueTypesExc_c : static_cast<VkQueueFlagBits>(0))
                 == false)
                 { noGood = true; log(". . . . Queue types requirement not met."); if (! reportAll) { break; } }
 
-
-            auto const & featuresMap_c = profile_c.get_requires()->get_features();
+            auto const & featuresMap_c = profile_c.get_features();
             for (auto const & [provider_c, features_c] : featuresMap_c)
             {
                 for (auto const & feature_c : features_c)
@@ -261,7 +256,7 @@ namespace og
             }
 
 
-            auto const & propertiesMap_c = profile_c.get_requires()->get_properties();
+            auto const & propertiesMap_c = profile_c.get_properties();
             for (auto const & [provider_c, properties_c] : propertiesMap_c)
             {
                 for (auto const & [property_c, op_c, value_c] : properties_c)
@@ -276,6 +271,9 @@ namespace og
                         { noGood = true; log(fmt::format(". . . . requirement error: properties / {} / {}: {}", provider_c, property_c, e.what())); if (! reportAll) { break; } }
                 }
             }
+
+            // We don't check desired features or desired extensions. We'll just add
+            // them later if we can.
 
             if (noGood == false)
             {
@@ -341,9 +339,9 @@ namespace og
                     auto const & devQueueFamily = suitabilityQfs[devQfi];
                     bool noGood = false;
 
-                    if (qfAttribs_c.get_requires().has_value())
+                    if (qfAttribs_c.get_criteria().has_value())
                     {
-                        auto const & featuresMap_c = qfAttribs_c.get_requires()->get_features();
+                        auto const & featuresMap_c = qfAttribs_c.get_criteria()->get_features();
                         for (auto const & [provider_c, features_c] : featuresMap_c)
                         {
                             for (auto const & feature_c : features_c)
@@ -359,7 +357,7 @@ namespace og
                             }
                         }
 
-                        auto const & propertiesMap_c = qfAttribs_c.get_requires()->get_properties();
+                        auto const & propertiesMap_c = qfAttribs_c.get_criteria()->get_properties();
                         for (auto const & [provider_c, properties_c] : propertiesMap_c)
                         {
                             for (auto const & [property_c, op_c, value_c] : properties_c)
@@ -375,7 +373,7 @@ namespace og
                             }
                         }
 
-                        auto const & qfPropertiesMap_c = qfAttribs_c.get_requires()->get_queueFamilyProperties();
+                        auto const & qfPropertiesMap_c = qfAttribs_c.get_criteria()->get_queueFamilyProperties();
                         for (auto const & [provider_c, properties_c] : propertiesMap_c)
                         {
                             for (auto const & [property_c, op_c, value_c] : properties_c)
@@ -603,9 +601,7 @@ namespace og
         }
 
         auto const & group_c = e->get_config().get_vkDeviceProfileGroups()[groupIdx];
-        auto const & groupDesires_c = group_c.get_desires();
         auto const & profile_c = group_c.get_profiles()[profileIdx];
-        auto const & profileDesires_c = profile_c.get_desires();
 
         std::vector<char const *> requiredDeviceExtensions;
         std::vector<char const *> requiredLayers;
@@ -613,61 +609,78 @@ namespace og
         auto const & assignment = e->deviceAssignments[groupIdx];
         auto const & suitability = assignment.deviceSuitabilities[physicalDeviceIdx];
         auto const & profileCriteria = suitability.profileCritera[suitability.bestProfileIdx];
-        utilizedDeviceFeatures = profileCriteria.features.copyAndReset();
+        createdCapabilities.features = profileCriteria.features.copyAndReset();
 
         auto requireExtsAndLayersEtc = [&](auto const & criteria_c)
         {
-            if (criteria_c.has_value() == false)
-                { return; }
-
             // remaking the layers from instance creation
-            for (auto const & layerName_c : criteria_c->get_layers())
+            for (auto const & layerName_c : criteria_c.get_layers())
             {
                 auto it = std::find_if(begin(e->get_utilizedLayers()), end(e->get_utilizedLayers()),
                     [& layerName_c](auto && ae){ return layerName_c == ae; } );
                 if (it != end(e->get_utilizedLayers()))
                     { requiredLayers.push_back(it->data()); }
             }
-            for (auto const & deviceExtension_c : criteria_c->get_deviceExtensions())
+            for (auto const & deviceExtension_c : criteria_c.get_deviceExtensions())
             {
                 auto it = std::find_if(begin(availableDeviceExtensions), end(availableDeviceExtensions),
                     [& deviceExtension_c](auto && ae){ return deviceExtension_c == ae.extensionName; } );
                 if (it != end(availableDeviceExtensions))
                 {
-                    utilizedDeviceExtensions.push_back(it->extensionName);
+                    createdCapabilities.deviceExtensions.push_back(it->extensionName);
                     requiredDeviceExtensions.push_back(it->extensionName);
                 }
             }
-            for (auto const & [provider_c, features_c] : criteria_c->get_features())
+            for (auto const & deviceExtension_c : criteria_c.get_desiredDeviceExtensions())
+            {
+                auto it = std::find_if(begin(availableDeviceExtensions), end(availableDeviceExtensions),
+                    [& deviceExtension_c](auto && ae){ return deviceExtension_c == ae.extensionName; } );
+                if (it != end(availableDeviceExtensions))
+                {
+                    createdCapabilities.deviceExtensions.push_back(it->extensionName);
+                    requiredDeviceExtensions.push_back(it->extensionName);
+                }
+            }
+            for (auto const & [provider_c, features_c] : criteria_c.get_features())
             {
                 for (auto const & feature_c : features_c)
                 {
                     if (profileCriteria.features.check(provider_c, feature_c))
-                        { utilizedDeviceFeatures.set(provider_c, feature_c, VK_TRUE); }
+                        { createdCapabilities.features.set(provider_c, feature_c, VK_TRUE); }
+                }
+            }
+            for (auto const & [provider_c, features_c] : criteria_c.get_desiredFeatures())
+            {
+                for (auto const & feature_c : features_c)
+                {
+                    if (profileCriteria.features.check(provider_c, feature_c))
+                        { createdCapabilities.features.set(provider_c, feature_c, VK_TRUE); }
                 }
             }
         };
 
-        requireExtsAndLayersEtc(groupDesires_c);
-        requireExtsAndLayersEtc(profileDesires_c);
-        requireExtsAndLayersEtc(profile_c.get_requires());
+        if (group_c.get_sharedCriteria().has_value())
+            { requireExtsAndLayersEtc(* group_c.get_sharedCriteria()); }
+        requireExtsAndLayersEtc(profile_c);
 
-        utilizedQueueFamilies = suitability.queueFamilyComposition;
+        createdCapabilities.queueFamilies = std::move(suitability.queueFamilies);
+        createdCapabilities.queueFamilyComposition = std::move(suitability.queueFamilyComposition);
 
+        log(". using device extensions: ");
         for (auto & re : requiredDeviceExtensions)
-            { log(fmt::format("  using device extension: {}", re)); }
+            { log(fmt::format("  {}", re)); }
 
         log(". using queue families: ");
-        for (auto const & queueFam : utilizedQueueFamilies.queueFamilies)
+        for (auto const & queueFam : createdCapabilities.queueFamilyComposition.queueFamilies)
         {
             log(fmt::format(". . queue family index: {}\n     . . count: {}\n     . . flags: {}",
                 queueFam.qfi, queueFam.count, static_cast<uint32_t>(queueFam.flags)));
         }
 
-        auto dqcis = std::vector<VkDeviceQueueCreateInfo>(utilizedQueueFamilies.queueFamilies.size());
-        for (int i = 0; i < utilizedQueueFamilies.queueFamilies.size(); ++i)
+        auto dqcis = std::vector<VkDeviceQueueCreateInfo>(createdCapabilities.queueFamilyComposition.queueFamilies.size());
+        for (int i = 0; i < createdCapabilities.queueFamilyComposition.queueFamilies.size(); ++i)
         {
-            auto const & [qfi, count, flags, priorities, globalPriority] = utilizedQueueFamilies.queueFamilies[i];
+            auto const & [qfi, count, flags, priorities, globalPriority] = createdCapabilities.queueFamilyComposition.queueFamilies[i];
 
             void * pNext = NULL;
             VkDeviceQueueGlobalPriorityCreateInfoKHR globalPriorityStruct = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR, NULL, VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR };
@@ -691,7 +704,7 @@ namespace og
         VkDeviceCreateInfo dci =
         {
             .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-            .pNext = & utilizedDeviceFeatures,
+            .pNext = & createdCapabilities.features.mainStruct,
             .flags = 0,
             .queueCreateInfoCount = static_cast<uint32_t>(dqcis.size()),
             .pQueueCreateInfos = dqcis.data(),
@@ -734,9 +747,9 @@ namespace og
         }
         else
         {
-            auto aeit = std::find_if(begin(utilizedDeviceExtensions), end(utilizedDeviceExtensions),
+            auto aeit = std::find_if(begin(createdCapabilities.deviceExtensions), end(createdCapabilities.deviceExtensions),
                 [& deviceExtension](auto && elem) { return elem == deviceExtension; });
-            return aeit != end(utilizedDeviceExtensions);
+            return aeit != end(createdCapabilities.deviceExtensions);
         }
     }
 
@@ -748,20 +761,17 @@ namespace og
         VkQueueFlagBits queueTypesAvailable = static_cast<VkQueueFlagBits>(0);
         if (device == nullptr)
         {
-            for (auto const & qfProps : availableQueueFamilies)
-            {
-                queueTypesAvailable = static_cast<VkQueueFlagBits>(
-                    static_cast<uenum_t>(queueTypesAvailable) |
-                    static_cast<uenum_t>(qfProps.queueFamilyProperties.queueFlags));
-            }
+            queueTypesAvailable = static_cast<VkQueueFlagBits>(
+                static_cast<uenum_t>(queueTypesAvailable) |
+                static_cast<uenum_t>(availableQueueTypes));
         }
         else
         {
-            for (auto const & qfProps : utilizedQueueFamilies.queueFamilies)
+            for (auto const & qfProps : createdCapabilities.queueFamilyComposition.queueFamilies)
             {
                 queueTypesAvailable = static_cast<VkQueueFlagBits>(
                     static_cast<uenum_t>(queueTypesAvailable) |
-                    static_cast<uenum_t>(availableQueueFamilies[qfProps.qfi].queueFamilyProperties.queueFlags));
+                    static_cast<uenum_t>(createdCapabilities.queueFamilies[qfProps.qfi].mainStruct.queueFamilyProperties.queueFlags));
             }
         }
 

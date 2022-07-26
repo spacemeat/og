@@ -1,0 +1,120 @@
+@{ type: abilities }
+{
+    abilities: {
+        //multiview: { query: 'vk12/multiview | vk11/multiview | VK_KHR_multiview/multiview' enabled: true }
+        multiview: { profiles: [ { name: core query: 'multiview le vk11'}
+                                 { name: ext query: 'multiview'} ] enabled: true }
+
+    }
+
+    builtinAbilities: {
+        multiview: false
+        // ...
+    }
+
+    // these will be baked in
+
+    builtinAbilities: [ {
+            name: multiview
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [multiview]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        multiview: [multiview]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_multiview]
+                    features: {
+                        multiview: [multiview]
+                    }
+                }
+            ]
+        }, // ... { }
+
+    ]
+        name:
+        multiview: [ {
+                name: vk12
+                vulkanVersion: 1.2
+                features: {
+                    vulkan_1_1: [multiview]
+                }
+                enabled: true
+            } {
+                name: vk11
+                vulkanVersion: 1.1
+                features: {
+                    multiview: [multiview]
+                }
+            } {
+                name: ext
+                vulkanVersion: 1.0
+                extensions: [VK_KHR_get_physical_device_properties2]
+                deviceExtensions: [VK_KHR_multiview]
+                features: {
+                    multiview: [multiview]
+                }
+            }
+        ]
+    }
+}
+
+11: [
+    16BitStorage
+    Multiview
+    VariablePointers
+    ProtectedMemory
+    SamplerYcbcrConversion
+    ShaderDrawParameters
+
+    VK_KHR_shader_draw_parameters - shaderDrawParameters
+]
+
+12: [
+    8BitStorage
+    ShaderAtonmicInt64
+    ShaderFloat16Int8
+    DescriptorIndexing
+    ScalarBlockLayout
+    ImagelessFramebuffer
+    UniformBufferStandardLayout
+    ShaderSubgroupExtendedType
+    SeparateDepthStencilLayouts
+    HostQueryReset
+    TimelineSemaphore
+    BufferDeviceAddress
+    VulkanMemoryModel
+
+    VK_KHR_draw_indirect_count - drawIndirectCount
+    VK_KHR_sampler_mirror_clamp_to_edge - samplerMirrorClampToEdge
+    VK_EXT_descriptor_indexing - descriptorIndexing
+    VK_EXT_sampler_filter_minmax - samplerFilterMinmax
+    VK_EXT_shader_viewport_index_layer - shaderOutputViewportIndex && shaderOutputLayer
+]
+
+13: [
+    DynamicRendering
+    ImageRobustness
+    InlineUniformBlock
+    Maintenance4
+    PipelineCreationCacheControl
+    PrivateData
+    ShaderDemoteToHelperInvocation
+    ShaderIntegerDotProduct
+    ShaderTerminateInvocation
+    SubgroupSizeControl
+    Synchronization2
+    TextureCompressionASTCHDR
+    ZeroInitializeWorkgroupMemory
+]

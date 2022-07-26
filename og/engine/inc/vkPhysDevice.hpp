@@ -54,6 +54,19 @@ namespace og
         std::vector<int> winningDeviceIdxs;
     };
 
+    struct DeviceCapabilities
+    {
+        int vulkanVersion;
+        std::vector<std::string_view> extensions;
+        std::vector<std::string_view> layers;
+
+        std::vector<std::string_view> deviceExtensions;
+        VkFeatures features;
+        VkProperties properties;
+        std::vector<VkQueueFamilies> queueFamilies;
+        QueueFamilyComposition queueFamilyComposition;
+    };
+
     class PhysVkDevice  // naming is hard
     {
     public:
@@ -84,7 +97,8 @@ namespace og
         // This is adjacent to the QF properties stored in a PhysicalDeviceSuitability.
         // That looks for chain structures; this only needs to consider queue types, so
         // we just get the basic structs.
-        std::vector<VkQueueFamilyProperties2> availableQueueFamilies;
+        //std::vector<VkQueueFamilyProperties> availableQueueFamilies;
+        VkQueueFlagBits availableQueueTypes;
 
         bool isAssignedToDeviceProfileGroup = false;
 
@@ -92,10 +106,15 @@ namespace og
         int profileIdx = -1;
         VkDevice device = nullptr;
 
-        std::vector<std::string_view> utilizedDeviceExtensions;
-        VkFeatures utilizedDeviceFeatures;
-        std::vector<std::tuple<VkStructureType, void *>> utilizedFeaturesIndexable;
-        QueueFamilyComposition utilizedQueueFamilies;
+
+        DeviceCapabilities createdCapabilities;
+
+        //std::vector<std::string_view> utilizedDeviceExtensions;
+        //VkFeatures utilizedDeviceFeatures;
+        //std::vector<std::tuple<VkStructureType, void *>> utilizedFeaturesIndexable;
+        //std::vector<VkQueueFamilies> utilizedQueueFamilies;
+        //QueueFamilyComposition utilizedQueueFamilyComposition;
     };
+
 
 }
