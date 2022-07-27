@@ -7,14 +7,111 @@
 
     }
 
-    builtinAbilities: {
-        multiview: false
-        // ...
-    }
-
-    // these will be baked in
-
     builtinAbilities: [ {
+            name:  storageBuffer16BitAccess
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [storageBuffer16BitAccess]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        16bit_storage: [storageBuffer16BitAccess]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_16bit_storage]
+                    features: {
+                        16bit_storage: [storageBuffer16BitAccess]
+                    }
+                }
+            ]
+        } {
+            name:  uniformAndStorageBuffer16BitAccess
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [uniformAndStorageBuffer16BitAccess]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        16bit_storage: [uniformAndStorageBuffer16BitAccess]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_16bit_storage]
+                    features: {
+                        16bit_storage: [uniformAndStorageBuffer16BitAccess]
+                    }
+                }
+            ]
+        } {
+            name:  storagePushConstant16
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [storagePushConstant16]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        16bit_storage: [storagePushConstant16]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_16bit_storage]
+                    features: {
+                        16bit_storage: [storagePushConstant16]
+                    }
+                }
+            ]
+        } {
+            name:  storageInputOutput16
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [storageInputOutput16]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        16bit_storage: [storageInputOutput16]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_16bit_storage]
+                    features: {
+                        16bit_storage: [storageInputOutput16]
+                    }
+                }
+            ]
+        } {
             name: multiview
             enabled: true
             profiles: [ {
@@ -40,81 +137,1765 @@
                     }
                 }
             ]
-        }, // ... { }
+        } {
+            name: multiviewGeometryShader
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [multiviewGeometryShader]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        multiview: [multiviewGeometryShader]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_multiview]
+                    features: {
+                        multiview: [multiviewGeometryShader]
+                    }
+                }
+            ]
+        } {
+            name: multiviewTessellationShader
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [multiviewTessellationShader]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        multiview: [multiviewTessellationShader]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_multiview]
+                    features: {
+                        multiview: [multiviewTessellationShader]
+                    }
+                }
+            ]
+        } {
+            name: variablePointersStorageBuffer
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [variablePointersStorageBuffer]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        multiview: [variablePointersStorageBuffer]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_variable_pointers]
+                    features: {
+                        multiview: [variablePointersStorageBuffer]
+                    }
+                }
+            ]
+        } {
+            name: variablePointers
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [variablePointers]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        variable_pointers: [variablePointers]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_variable_pointers]
+                    features: {
+                        variable_pointers: [variablePointers]
+                    }
+                }
+            ]
+        } {
+            name: protectedMemory
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [protectedMemory]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        protected_memory: [protectedMemory]
+                    }
+                }
+            ]
+        } {
+            name: samplerYcbcrConversion
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [samplerYcbcrConversion]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        sampler_ycbcr_conversion: [samplerYcbcrConversion]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_sampler_ycbcr_conversion]
+                    features: {
+                        sampler_ycbcr_conversion: [samplerYcbcrConversion]
+                    }
+                }
+            ]
+        } {
+            name: shaderDrawParameters
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_1: [shaderDrawParameters]
+                    }
+                    enabled: true
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    features: {
+                        shader_draw_parameters: [shaderDrawParameters]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_shader_draw_parameters]
+                    features: {
+                        shader_draw_parameters: [shaderDrawParameters]
+                    }
+                }
+            ]
+        } {
+            name: storageBuffer8BitAccess
+            // Note: extension requires SPV_KHR_storage_buffer_storage_class spir-v extension.
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [storageBuffer8BitAccess]
+                    }
+                } {
+                    name: ext11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_8bit_storage]
+                    features: {
+                        8bit_storage: [storageBuffer8BitAccess]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_8bit_storage
+                                       VK_KHR_storage_buffer_storage_class]
+                    features: {
+                        8bit_storage: [storageBuffer8BitAccess]
+                    }
+                }
+            ]
+        } {
+            name: uniformAndStorageBuffer8BitAccess
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [uniformAndStorageBuffer8BitAccess]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_8bit_storage]
+                    features: {
+                        8bit_storage: [uniformAndStorageBuffer8BitAccess]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_8bit_storage
+                                       VK_KHR_storage_buffer_storage_class]
+                    features: {
+                        8bit_storage: [uniformAndStorageBuffer8BitAccess]
+                    }
+                }
+            ]
+        } {
+            name: storagePushConstant8
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [storagePushConstant8]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_8bit_storage]
+                    features: {
+                        8bit_storage: [storagePushConstant8]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_8bit_storage
+                                       VK_KHR_storage_buffer_storage_class]
+                    features: {
+                        8bit_storage: [storagePushConstant8]
+                    }
+                }
+            ]
+        } {
+            name: shaderBufferInt64Atomics
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderBufferInt64Atomics]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_shader_atomic_int64]
+                    features: {
+                        shader_atomic_int64: [shaderBufferInt64Atomics]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_shader_atomic_int64]
+                    features: {
+                        shader_atomic_int64: [shaderBufferInt64Atomics]
+                    }
+                }
+            ]
+        } {
+            name: shaderSharedInt64Atomics
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderSharedInt64Atomics]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_shader_atomic_int64]
+                    features: {
+                        shader_atomic_int64: [shaderSharedInt64Atomics]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_shader_atomic_int64]
+                    features: {
+                        shader_atomic_int64: [shaderSharedInt64Atomics]
+                    }
+                }
+            ]
+        } {
+            name: shaderFloat16
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderFloat16]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_shader_float16_int8]
+                    features: {
+                        shader_float16_int8: [shaderFloat16]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_shader_float16_int8]
+                    features: {
+                        shader_float16_int8: [shaderFloat16]
+                    }
+                }
+            ]
+        } {
+            name: shaderInt8
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderInt8]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_shader_float16_int8]
+                    features: {
+                        shader_float16_int8: [shaderInt8]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_shader_float16_int8]
+                    features: {
+                        shader_float16_int8: [shaderInt8]
+                    }
+                }
+            ]
+        }
 
+        {
+            name: shaderInputAttachmentArrayDynamicIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderInputAttachmentArrayDynamicIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderInputAttachmentArrayDynamicIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderInputAttachmentArrayDynamicIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderUniformTexelBufferArrayDynamicIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderUniformTexelBufferArrayDynamicIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderUniformTexelBufferArrayDynamicIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderUniformTexelBufferArrayDynamicIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderStorageTexelBufferArrayDynamicIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderStorageTexelBufferArrayDynamicIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderStorageTexelBufferArrayDynamicIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderStorageTexelBufferArrayDynamicIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderUniformBufferArrayNonUniformIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderUniformBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderUniformBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderUniformBufferArrayNonUniformIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderSampledImageArrayNonUniformIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderSampledImageArrayNonUniformIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderSampledImageArrayNonUniformIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderSampledImageArrayNonUniformIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderStorageBufferArrayNonUniformIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderStorageBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderStorageBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderStorageBufferArrayNonUniformIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderStorageImageArrayNonUniformIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderStorageImageArrayNonUniformIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderStorageImageArrayNonUniformIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderStorageImageArrayNonUniformIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderInputAttachmentArrayNonUniformIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderInputAttachmentArrayNonUniformIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderInputAttachmentArrayNonUniformIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderInputAttachmentArrayNonUniformIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderUniformTexelBufferArrayNonUniformIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderUniformTexelBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderUniformTexelBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderUniformTexelBufferArrayNonUniformIndexing]
+                    }
+                }
+            ]
+        } {
+            name: shaderStorageTexelBufferArrayNonUniformIndexing
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderStorageTexelBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [shaderStorageTexelBufferArrayNonUniformIndexing]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [shaderStorageTexelBufferArrayNonUniformIndexing]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingUniformBufferUpdateAfterBind
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingUniformBufferUpdateAfterBind]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingUniformBufferUpdateAfterBind]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingUniformBufferUpdateAfterBind]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingSampledImageUpdateAfterBind
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingSampledImageUpdateAfterBind]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingSampledImageUpdateAfterBind]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingSampledImageUpdateAfterBind]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingStorageImageUpdateAfterBind
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingStorageImageUpdateAfterBind]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingStorageImageUpdateAfterBind]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingStorageImageUpdateAfterBind]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingStorageBufferUpdateAfterBind
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingStorageBufferUpdateAfterBind]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingStorageBufferUpdateAfterBind]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingStorageBufferUpdateAfterBind]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingUniformTexelBufferUpdateAfterBind
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingUniformTexelBufferUpdateAfterBind]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingUniformTexelBufferUpdateAfterBind]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingUniformTexelBufferUpdateAfterBind]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingStorageTexelBufferUpdateAfterBind
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingStorageTexelBufferUpdateAfterBind]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingStorageTexelBufferUpdateAfterBind]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingStorageTexelBufferUpdateAfterBind]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingUpdateUnusedWhilePending
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingUpdateUnusedWhilePending]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingUpdateUnusedWhilePending]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingUpdateUnusedWhilePending]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingPartiallyBound
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingPartiallyBound]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingPartiallyBound]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingPartiallyBound]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingVariableDescriptorCount
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [descriptorBindingVariableDescriptorCount]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [descriptorBindingVariableDescriptorCount]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [descriptorBindingVariableDescriptorCount]
+                    }
+                }
+            ]
+        } {
+            name: runtimeDescriptorArray
+            // requires SPV_EXT_descriptor_indexing
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [runtimeDescriptorArray]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_descriptor_indexing]
+                    features: {
+                        descriptor_indexing: [runtimeDescriptorArray]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_descriptor_indexing
+                                       VK_KHR_maintenance3]
+                    features: {
+                        descriptor_indexing: [runtimeDescriptorArray]
+                    }
+                }
+            ]
+        }
+
+        {
+            name: scalarBlockLayout
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [scalarBlockLayout]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_scalar_block_layout]
+                    features: {
+                        scalar_block_layout: [scalarBlockLayout]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_scalar_block_layout]
+                    features: {
+                        scalar_block_layout: [scalarBlockLayout]
+                    }
+                }
+            ]
+        } {
+            name: imagelessFramebuffer
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [imagelessFramebuffer]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_imageless_framebuffer
+                                       VK_KHR_image_format_list]
+                    features: {
+                        scalar_block_layout: [imagelessFramebuffer]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_imageless_framebuffer
+                                       VK_KHR_maintenance2
+                                       VK_KHR_image_format_list]
+                    features: {
+                        scalar_block_layout: [imagelessFramebuffer]
+                    }
+                }
+            ]
+        } {
+            name: uniformBufferStandardLayout
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [uniformBufferStandardLayout]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_uniform_buffer_standard_layout]
+                    features: {
+                        uniform_buffer_standard_layout: [uniformBufferStandardLayout]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_uniform_buffer_standard_layout]
+                    features: {
+                        uniform_buffer_standard_layout: [uniformBufferStandardLayout]
+                    }
+                }
+            ]
+        } {
+            name: shaderSubgroupExtendedTypes
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderSubgroupExtendedTypes]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_shader_subgroup_extended_types]
+                    features: {
+                        shader_subgroup_extended_types: [shaderSubgroupExtendedTypes]
+                    }
+                }
+            ]
+        } {
+            name: separateDepthStencilLayouts
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [separateDepthStencilLayouts]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_separate_depth_stencil_layouts
+                                       VK_KHR_create_renderpass2]
+                    features: {
+                        separate_depth_stencil_layouts: [separateDepthStencilLayouts]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_separate_depth_stencil_layouts
+                                       VK_KHR_create_renderpass2
+                                       VK_KHR_maintenance2
+                                       VK_KHR_multiview]
+                    features: {
+                        separate_depth_stencil_layouts: [separateDepthStencilLayouts]
+                    }
+                }
+            ]
+        } {
+            name: hostQueryReset
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [hostQueryReset]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_host_query_reset]
+                    features: {
+                        host_query_reset: [hostQueryReset]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_host_query_reset]
+                    features: {
+                        host_query_reset: [hostQueryReset]
+                    }
+                }
+            ]
+        } {
+            name: timelineSemaphore
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [timelineSemaphore]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_timeline_semaphore]
+                    features: {
+                        timeline_semaphore: [timelineSemaphore]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_timeline_semaphore]
+                    features: {
+                        timeline_semaphore: [timelineSemaphore]
+                    }
+                }
+            ]
+        } {
+            name: bufferDeviceAddress
+            // requires SPV_KHR_physical_storage_buffer
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [bufferDeviceAddress]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_buffer_device_address]
+                    features: {
+                        buffer_device_address: [bufferDeviceAddress]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_buffer_device_address]
+                    features: {
+                        buffer_device_address: [bufferDeviceAddress]
+                    }
+                }
+            ]
+        } {
+            name: bufferDeviceAddressCaptureReplay
+            // requires SPV_KHR_physical_storage_buffer
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [bufferDeviceAddressCaptureReplay]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_buffer_device_address]
+                    features: {
+                        buffer_device_address: [bufferDeviceAddressCaptureReplay]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_buffer_device_address]
+                    features: {
+                        buffer_device_address: [bufferDeviceAddressCaptureReplay]
+                    }
+                }
+            ]
+        } {
+            name: bufferDeviceAddressMultiDevice
+            // requires SPV_KHR_physical_storage_buffer
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [bufferDeviceAddressMultiDevice]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_buffer_device_address]
+                    features: {
+                        buffer_device_address: [bufferDeviceAddressMultiDevice]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_buffer_device_address]
+                    features: {
+                        buffer_device_address: [bufferDeviceAddressMultiDevice]
+                    }
+                }
+            ]
+        } {
+            name: vulkanMemoryModel
+            // requires SPV_KHR_vulkan_memory_model
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [vulkanMemoryModel]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_vulkan_memory_model]
+                    features: {
+                        vulkan_memory_model: [vulkanMemoryModel]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_vulkan_memory_model]
+                    features: {
+                        vulkan_memory_model: [vulkanMemoryModel]
+                    }
+                }
+            ]
+        } {
+            name: vulkanMemoryModelDeviceScope
+            // requires SPV_KHR_vulkan_memory_model
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [vulkanMemoryModelDeviceScope]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_vulkan_memory_model]
+                    features: {
+                        vulkan_memory_model: [vulkanMemoryModelDeviceScope]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_vulkan_memory_model]
+                    features: {
+                        vulkan_memory_model: [vulkanMemoryModelDeviceScope]
+                    }
+                }
+            ]
+        } {
+            name: vulkanMemoryModelAvailabilityVisibilityChains
+            // requires SPV_KHR_vulkan_memory_model
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [vulkanMemoryModelAvailabilityVisibilityChains]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_vulkan_memory_model]
+                    features: {
+                        vulkan_memory_model: [vulkanMemoryModelAvailabilityVisibilityChains]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_vulkan_memory_model]
+                    features: {
+                        vulkan_memory_model: [vulkanMemoryModelAvailabilityVisibilityChains]
+                    }
+                }
+            ]
+        }
+
+        // vulkan_1_2 special cases?
+        {
+            name: drawIndirectCount
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [drawIndirectCount]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    deviceExtensions: [VK_KHR_draw_indirect_count]
+                }
+            ]
+        } {
+            name: samplerMirrorClampToEdge
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [samplerMirrorClampToEdge]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    deviceExtensions: [VK_KHR_sampler_mirror_clamp_to_edge]
+                }
+            ]
+        } {
+            name: samplerFilterMinmax
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [samplerFilterMinmax]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_sampler_filter_minmax]
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_sampler_filter_minmax]
+                }
+            ]
+        }
+
+        {
+            name: shaderOutputViewportIndex
+            // requires SPV_EXT_shader_viewport_index_layer
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderOutputViewportIndex]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    deviceExtensions: [VK_EXT_shader_viewport_index_layer]
+                }
+            ]
+        } {
+            name: shaderOutputLayer
+            // requires SPV_EXT_shader_viewport_index_layer
+            enabled: true
+            profiles: [ {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    features: {
+                        vulkan_1_2: [shaderOutputLayer]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    deviceExtensions: [VK_EXT_shader_viewport_index_layer]
+                }
+            ]
+        }
+
+        // vuilkan_1_3
+        {
+            name: dynamicRendering
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [dynamicRendering]
+                    }
+                } {
+                    name: vk12
+                    vulkanVersion: 1.2
+                    deviceExtensions: [VK_KHR_dynamic_rendering]
+                    features: {
+                        dynamic_rendering: [dynamicRendering]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_dynamic_rendering
+                                       VK_KHR_depth_stencil_resolve
+                                       VK_KHR_create_renderpass2]
+                    features: {
+                        dynamic_rendering: [dynamicRendering]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_dynamic_rendering
+                                       VK_KHR_depth_stencil_resolve
+                                       VK_KHR_create_renderpass2
+                                       VK_KHR_multiview
+                                       VK_KHR_maintenance2]
+                    features: {
+                        dynamic_rendering: [dynamicRendering]
+                    }
+                }
+            ]
+        } {
+            name: robustImageAccess
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [robustImageAccess]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_image_robustness]
+                    features: {
+                        image_robustness: [robustImageAccess]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_image_robustness]
+                    features: {
+                        image_robustness: [robustImageAccess]
+                    }
+                }
+            ]
+        } {
+            name: inlineUniformBlock
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [inlineUniformBlock]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_inline_uniform_block]
+                    features: {
+                        inline_uniform_block: [inlineUniformBlock]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_inline_uniform_block
+                                       VK_KHR_maintenance1]
+                    features: {
+                        inline_uniform_block: [inlineUniformBlock]
+                    }
+                }
+            ]
+        } {
+            name: descriptorBindingInlineUniformBlockUpdateAfterBind
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [descriptorBindingInlineUniformBlockUpdateAfterBind]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_inline_uniform_block]
+                    features: {
+                        inline_uniform_block: [descriptorBindingInlineUniformBlockUpdateAfterBind]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_inline_uniform_block
+                                       VK_KHR_maintenance1]
+                    features: {
+                        inline_uniform_block: [descriptorBindingInlineUniformBlockUpdateAfterBind]
+                    }
+                }
+            ]
+        }
+
+        {
+            name: maintenance4
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [maintenance4]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_maintenance4]
+                    features: {
+                        maintenance_4: [maintenance4]
+                    }
+                    properties: {
+                        maintenance_4: []
+                    }
+                }
+            ]
+        } {
+            name: pipelineCreationCacheControl
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [pipelineCreationCacheControl]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_pipeline_creation_cache_control]
+                    features: {
+                        pipeline_creation_cache_control: [pipelineCreationCacheControl]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_pipeline_creation_cache_control]
+                    features: {
+                        pipeline_creation_cache_control: [pipelineCreationCacheControl]
+                    }
+                }
+            ]
+        } {
+            name: privateData
+            // NOTE: requires VkDevicePrivateDataCreateInfoEXT struct for device creation
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [privateData]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_private_data]
+                    features: {
+                        private_data: [privateData]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_private_data]
+                    features: {
+                        private_data: [privateData]
+                    }
+                }
+            ]
+        } {
+            name: shaderDemoteToHelperInvocation
+            // requires SPV_EXT_demote_to_helper_invocation
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [shaderDemoteToHelperInvocation]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_shader_demote_to_helper_invocation]
+                    features: {
+                        shader_demote_to_helper_invocation: [shaderDemoteToHelperInvocation]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_shader_demote_to_helper_invocation]
+                    features: {
+                        shader_demote_to_helper_invocation: [shaderDemoteToHelperInvocation]
+                    }
+                }
+            ]
+        } {
+            name: shaderIntegerDotProduct
+            // requires SPV_KHR_integer_dot_product.
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [shaderIntegerDotProduct]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_shader_integer_dot_product]
+                    features: {
+                        shader_integer_dot_product: [shaderIntegerDotProduct]
+                    }
+                    properties: {
+                        shader_integer_dot_product: []
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_shader_integer_dot_product]
+                    features: {
+                        shader_integer_dot_product: [shaderIntegerDotProduct]
+                    }
+                    properties: {
+                        shader_integer_dot_product: []
+                    }
+                }
+            ]
+        } {
+            name: shaderTerminateInvocation
+            // requires SPV_KHR_terminate_invocation.
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [shaderTerminateInvocation]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_shader_terminate_invocation]
+                    features: {
+                        shader_terminate_invocation: [shaderTerminateInvocation]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_shader_terminate_invocation]
+                    features: {
+                        shader_terminate_invocation: [shaderTerminateInvocation]
+                    }
+                }
+            ]
+        }
+
+        {
+            name: subgroupSizeControl
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [subgroupSizeControl]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_subgroup_size_control]
+                    features: {
+                        subgroup_size_control: [subgroupSizeControl]
+                    }
+                    properties: {
+                        subgroup_size_control: []
+                    }
+                }
+            ]
+        } {
+            name: computeFullSubgroups
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [computeFullSubgroups]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_subgroup_size_control]
+                    features: {
+                        subgroup_size_control: [computeFullSubgroups]
+                    }
+                    properties: {
+                        subgroup_size_control: []
+                    }
+                }
+            ]
+        }
+
+        {
+            name: synchronization2
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [synchronization2]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_synchronization2]
+                    features: {
+                        synchronization_2: [synchronization2]
+                    }
+                    queueFamilyProperties: {
+                        checkpoint_properties_2: []
+                    }
+                }
+            ]
+        } {
+            name: textureCompressionASTC_HDR
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [textureCompressionASTC_HDR]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_EXT_texture_compression_astc_hdr]
+                    features: {
+                        texture_compression_astc_hdr: [textureCompressionASTC_HDR]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_EXT_texture_compression_astc_hdr]
+                    features: {
+                        texture_compression_astc_hdr: [textureCompressionASTC_HDR]
+                    }
+                }
+            ]
+        } {
+            name: shaderZeroInitializeWorkgroupMemory
+            enabled: true
+            profiles: [ {
+                    name: vk13
+                    vulkanVersion: 1.3
+                    features: {
+                        vulkan_1_3: [shaderZeroInitializeWorkgroupMemory]
+                    }
+                } {
+                    name: vk11
+                    vulkanVersion: 1.1
+                    deviceExtensions: [VK_KHR_zero_initialize_workgroup_memory]
+                    features: {
+                        zero_initialize_workgroup_memory: [shaderZeroInitializeWorkgroupMemory]
+                    }
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    extensions: [VK_KHR_get_physical_device_properties2]
+                    deviceExtensions: [VK_KHR_zero_initialize_workgroup_memory]
+                    features: {
+                        zero_initialize_workgroup_memory: [shaderZeroInitializeWorkgroupMemory]
+                    }
+                }
+            ]
+        }
     ]
-        name:
-        multiview: [ {
-                name: vk12
-                vulkanVersion: 1.2
-                features: {
-                    vulkan_1_1: [multiview]
-                }
-                enabled: true
-            } {
-                name: vk11
-                vulkanVersion: 1.1
-                features: {
-                    multiview: [multiview]
-                }
-            } {
-                name: ext
-                vulkanVersion: 1.0
-                extensions: [VK_KHR_get_physical_device_properties2]
-                deviceExtensions: [VK_KHR_multiview]
-                features: {
-                    multiview: [multiview]
-                }
-            }
-        ]
-    }
 }
 
-11: [
-    16BitStorage
-    Multiview
-    VariablePointers
-    ProtectedMemory
-    SamplerYcbcrConversion
-    ShaderDrawParameters
-
-    VK_KHR_shader_draw_parameters - shaderDrawParameters
-]
-
-12: [
-    8BitStorage
-    ShaderAtonmicInt64
-    ShaderFloat16Int8
-    DescriptorIndexing
-    ScalarBlockLayout
-    ImagelessFramebuffer
-    UniformBufferStandardLayout
-    ShaderSubgroupExtendedType
-    SeparateDepthStencilLayouts
-    HostQueryReset
-    TimelineSemaphore
-    BufferDeviceAddress
-    VulkanMemoryModel
-
-    VK_KHR_draw_indirect_count - drawIndirectCount
-    VK_KHR_sampler_mirror_clamp_to_edge - samplerMirrorClampToEdge
-    VK_EXT_descriptor_indexing - descriptorIndexing
-    VK_EXT_sampler_filter_minmax - samplerFilterMinmax
-    VK_EXT_shader_viewport_index_layer - shaderOutputViewportIndex && shaderOutputLayer
-]
-
-13: [
-    DynamicRendering
-    ImageRobustness
-    InlineUniformBlock
-    Maintenance4
-    PipelineCreationCacheControl
-    PrivateData
-    ShaderDemoteToHelperInvocation
-    ShaderIntegerDotProduct
-    ShaderTerminateInvocation
-    SubgroupSizeControl
-    Synchronization2
-    TextureCompressionASTCHDR
-    ZeroInitializeWorkgroupMemory
-]

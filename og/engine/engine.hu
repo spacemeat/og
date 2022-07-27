@@ -116,6 +116,7 @@
                 }, {
                     name: feeb
                     vulkanVersion: 1.0
+                    deviceExtensions: [VK_KHR_synchronization2]
                     queueTypesIncluded: [compute_bit graphics_bit]
                 }
             ]
