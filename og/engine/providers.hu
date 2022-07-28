@@ -1,0 +1,516 @@
+@ { type: providers }
+
+/*        /////
+        renderPlanproviders: [ {
+                name: v4.2-hud
+                abilities: [ 'hmdView ^= v3.3' ]
+            }
+        ]
+
+
+        //////
+
+
+        {
+            name: hmdView
+            providers: [ {
+                    name: 2+1
+                    abilities: [ 'multiview & maxMultiviewViewCount ^= 2+1ext' ]
+                } {
+                    name: 2+0
+                    abilities: [ 'multiview & maxMultiviewViewCount ^= 2+0ext' ]
+                }
+            ]
+        }
+
+
+        {
+            name: maxMultiviewViewCount
+            providers: [ {
+                    name: 2+1
+                    abilities: [ 'multiview-bi' ]
+                    properties: {
+                        multiview: [[maxMultiviewViewCount gt 2]]
+                    }
+                } {
+                    name: 2+0
+                    abilities: [ 'multiview-bi' ]
+                    properties: {
+                        multiview: [[maxMultiviewViewCount ge 2]]
+                    }
+                }
+            ]
+        }
+
+
+
+
+
+///////
+{
+    providers: [ {
+            name: multiview
+            providers: [ {
+                    vulkanVersion: 1.2
+                    features: vulkan_1_1
+                    properties: vulkan_1_1
+                } {
+                    vulkanVersion: 1.1
+                    features: VK_KHR_multiview
+                    properties: VK_KHR_multiview
+                }
+            ]
+        }
+    ]
+*/
+[ {
+        name:  16bit_storage
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_1
+                properties: vulkan_1_1
+            } {
+                vulkanVersion: 1.0
+                features: 16bit_storage
+                properties: 16bit_storage
+            }
+        ]
+    } {
+        name: multiview
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_1
+                properties: vulkan_1_1
+            } {
+                vulkanVersion: 1.0
+                features: multiview
+                properties: multiview
+            }
+        ]
+    } {
+        name: variablePointers
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_1
+                properties: vulkan_1_1
+            } {
+                vulkanVersion: 1.0
+                features: variablePointers
+                properties: variablePointers
+            }
+        ]
+    } {
+        name: protectedMemory
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_1
+                properties: vulkan_1_1
+            } {
+                vulkanVersion: 1.1  // 1.1, not 1.0
+                features: protected_memory
+                properties: protected_memory
+            }
+        ]
+    } {
+        name: samplerYcbcrConversion
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_1
+                properties: vulkan_1_1
+            } {
+                vulkanVersion: 1.0
+                features: sampler_ycbcr_conversion
+                properties: sampler_ycbcr_conversion
+            }
+        ]
+    } {
+        name: shaderDrawParameters
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_1
+                properties: vulkan_1_1
+            } {
+                vulkanVersion: 1.0
+                features: shader_draw_parameters
+                properties: shader_draw_parameters
+            }
+        ]
+    } {
+        name: maintenance_3
+        providers: [ {
+                vulkanVersion: 1.2
+                properties: vulkan_1_1
+            } {
+                vulkanVersion: 1.0
+                properties: maintenance_3
+            }
+        ]
+    }
+
+    // vulkan 1.2
+    {
+        name: 8bit_storage
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: 8bit_storage
+                properties: 8bit_storage
+            }
+        ]
+    } {
+        name: shader_atomic_int64
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: shader_atomic_int64
+                properties: shader_atomic_int64
+            }
+        ]
+    } {
+        name: shader_float16_int8
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: shader_float16_int8
+                properties: shader_float16_int8
+            }
+        ]
+    } {
+        name: descriptor_indexing
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: descriptor_indexing
+                properties: descriptor_indexing
+            }
+        ]
+    } {
+        name: scalar_block_layout
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: scalar_block_layout
+                properties: scalar_block_layout
+            }
+        ]
+    } {
+        name: uniform_buffer_standard_layout
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: uniform_buffer_standard_layout
+                properties: uniform_buffer_standard_layout
+            }
+        ]
+    } {
+        name: shader_subgroup_extended_types
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: shader_subgroup_extended_types
+                properties: shader_subgroup_extended_types
+            }
+        ]
+    } {
+        name: separate_depth_stencil_layouts
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: separate_depth_stencil_layouts
+                properties: separate_depth_stencil_layouts
+            }
+        ]
+    } {
+        name: host_query_reset
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: host_query_reset
+                properties: host_query_reset
+            }
+        ]
+    } {
+        name: timeline_semaphore
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: timeline_semaphore
+                properties: timeline_semaphore
+            }
+        ]
+    } {
+        name: buffer_device_address
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: buffer_device_address
+                properties: buffer_device_address
+            }
+        ]
+    } {
+        name: vulkan_memory_model
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                features: vulkan_memory_model
+                properties: vulkan_memory_model
+            }
+        ]
+    } {
+        name: vulkan_memory_model
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+            }
+        ]
+    }
+
+    // vulkan_1_2 special cases
+
+    {
+        name: sampler_mirror_clamp_to_edge
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+            }
+        ]
+    } {
+        name: sampler_filter_minmax
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+            }
+        ]
+    } {
+        name: sampler_filter_minmax
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+            }
+        ]
+    } {
+        name: shader_viewport_index_layer
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+            }
+        ]
+    }
+        // other 1_2 extensions
+     {
+        name: draw_indirect_count
+        providers: [ {
+                vulkanVersion: 1.2
+                features: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+            }
+        ]
+    }
+
+    // vuilkan_1_3
+    {
+        name: dynamic_rendering
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: dynamic_rendering
+                properties: dynamic_rendering
+            }
+        ]
+    } {
+        name: image_robustness
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: image_robustness
+                properties: image_robustness
+            }
+        ]
+    } {
+        name: inline_uniform_block
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: inline_uniform_block
+                properties: inline_uniform_block
+            }
+        ]
+    } {
+        name: maintenance_4
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: maintenance_4
+                properties: maintenance_4
+            }
+        ]
+    } {
+        name: pipeline_creation_cache_control
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: pipeline_creation_cache_control
+                properties: pipeline_creation_cache_control
+            }
+        ]
+    } {
+        name: private_data
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: private_data
+                properties: private_data
+            }
+        ]
+    } {
+        name: shader_demote_to_helper_invocation
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: shader_demote_to_helper_invocation
+                properties: shader_demote_to_helper_invocation
+            }
+        ]
+    } {
+        name: shader_integer_dot_product
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: shader_integer_dot_product
+                properties: shader_integer_dot_product
+            }
+        ]
+    } {
+        name: shader_terminate_invocation
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: shader_terminate_invocation
+                properties: shader_terminate_invocation
+            }
+        ]
+    } {
+        name: subgroup_size_control
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.1  // 1.1, not 1.0
+                features: subgroup_size_control
+                properties: subgroup_size_control
+            }
+        ]
+    } {
+        name: synchronization_2
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.1  // 1.1, not 1.0
+                features: synchronization_2
+                properties: synchronization_2
+                queueFamilyProperties: checkpoint_properties_2
+            }
+        ]
+    } {
+        name: texture_compression_astc_hdr
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: texture_compression_astc_hdr
+                properties: texture_compression_astc_hdr
+            }
+        ]
+    } {
+        name: zero_initialize_workgroup_memory
+        providers: [ {
+                vulkanVersion: 1.3
+                features: vulkan_1_3
+                properties: vulkan_1_3
+            } {
+                vulkanVersion: 1.0
+                features: zero_initialize_workgroup_memory
+                properties: zero_initialize_workgroup_memory
+            }
+        ]
+    }
+]
