@@ -1,70 +1,27 @@
 @ { type: providers }
-
-/*        /////
-        renderPlanproviders: [ {
-                name: v4.2-hud
-                abilities: [ 'hmdView ^= v3.3' ]
+[ {
+        names: [robustBufferAccess, fullDrawIndexUint32, imageCubeArray, independentBlend
+                geometryShader, tessellationShader, sampleRateShading, dualSrcBlend
+                logicOp, multiDrawIndirect, drawIndirectFirstInstance, depthClamp
+                depthBiasClamp, fillModeNonSolid, depthBounds, wideLines
+                largePoints, alphaToOne, multiViewport, samplerAnisotropy
+                textureCompressionETC2, textureCompressionASTC_LDR, textureCompressionBC, occlusionQueryPrecise
+                pipelineStatisticsQuery, vertexPipelineStoresAndAtomics, fragmentStoresAndAtomics, shaderTessellationAndGeometryPointSize
+                shaderImageGatherExtended, shaderStorageImageExtendedFormats, shaderStorageImageMultisample, shaderStorageImageReadWithoutFormat
+                shaderStorageImageWriteWithoutFormat, shaderUniformBufferArrayDynamicIndexing, shaderSampledImageArrayDynamicIndexing, shaderStorageBufferArrayDynamicIndexing
+                shaderStorageImageArrayDynamicIndexing, shaderClipDistance, shaderCullDistance, shaderFloat64
+                shaderInt64, shaderInt16, shaderResourceResidency, shaderResourceMinLod
+                sparseBinding, sparseResidencyBuffer, sparseResidencyImage2D, sparseResidencyImage3D
+                sparseResidency2Samples, sparseResidency4Samples, sparseResidency8Samples, sparseResidency16Samples
+                sparseResidencyAliased, variableMultisampleRate, inheritedQueries]
+        providers: [ {
+                vulkanVersion: 1.0
+                features: vulkan_1_0
+                properties: vulkan_1_0
             }
         ]
-
-
-        //////
-
-
-        {
-            name: hmdView
-            providers: [ {
-                    name: 2+1
-                    abilities: [ 'multiview & maxMultiviewViewCount ^= 2+1ext' ]
-                } {
-                    name: 2+0
-                    abilities: [ 'multiview & maxMultiviewViewCount ^= 2+0ext' ]
-                }
-            ]
-        }
-
-
-        {
-            name: maxMultiviewViewCount
-            providers: [ {
-                    name: 2+1
-                    abilities: [ 'multiview-bi' ]
-                    properties: {
-                        multiview: [[maxMultiviewViewCount gt 2]]
-                    }
-                } {
-                    name: 2+0
-                    abilities: [ 'multiview-bi' ]
-                    properties: {
-                        multiview: [[maxMultiviewViewCount ge 2]]
-                    }
-                }
-            ]
-        }
-
-
-
-
-
-///////
-{
-    providers: [ {
-            name: multiview
-            providers: [ {
-                    vulkanVersion: 1.2
-                    features: vulkan_1_1
-                    properties: vulkan_1_1
-                } {
-                    vulkanVersion: 1.1
-                    features: VK_KHR_multiview
-                    properties: VK_KHR_multiview
-                }
-            ]
-        }
-    ]
-*/
-[ {
-        name:  16bit_storage
+    } {
+        names: [storageBuffer16BitAccess, uniformAndStorageBuffer16BitAccess, storagePushConstant16, storageInputOutput16]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_1
@@ -76,7 +33,7 @@
             }
         ]
     } {
-        name: multiview
+        names: [multiview, multiviewGeometryShader, multiviewTessellationShader]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_1
@@ -88,7 +45,7 @@
             }
         ]
     } {
-        name: variablePointers
+        names: [variablePointersStorageBuffer, variablePointers]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_1
@@ -100,7 +57,7 @@
             }
         ]
     } {
-        name: protectedMemory
+        names: [protectedMemory]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_1
@@ -112,7 +69,7 @@
             }
         ]
     } {
-        name: samplerYcbcrConversion
+        names: [samplerYcbcrConversion]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_1
@@ -124,7 +81,7 @@
             }
         ]
     } {
-        name: shaderDrawParameters
+        names: [shaderDrawParameters]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_1
@@ -136,7 +93,7 @@
             }
         ]
     } {
-        name: maintenance_3
+        names: [maintenance3]
         providers: [ {
                 vulkanVersion: 1.2
                 properties: vulkan_1_1
@@ -149,7 +106,7 @@
 
     // vulkan 1.2
     {
-        name: 8bit_storage
+        names: [storageBuffer8BitAccess, uniformAndStorageBuffer8BitAccess, storagePushConstant8]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -161,7 +118,7 @@
             }
         ]
     } {
-        name: shader_atomic_int64
+        names: [shaderBufferInt64Atomics, shaderSharedInt64Atomics]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -173,7 +130,7 @@
             }
         ]
     } {
-        name: shader_float16_int8
+        names: [shaderFloat16, shaderInt8]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -185,7 +142,11 @@
             }
         ]
     } {
-        name: descriptor_indexing
+        names: [shaderInputAttachmentArrayDynamicIndexing, shaderUniformTexelBufferArrayDynamicIndexing, shaderStorageTexelBufferArrayDynamicIndexing, shaderUniformBufferArrayNonUniformIndexing
+                shaderSampledImageArrayNonUniformIndexing, shaderStorageBufferArrayNonUniformIndexing, shaderStorageImageArrayNonUniformIndexing, shaderInputAttachmentArrayNonUniformIndexing
+                shaderUniformTexelBufferArrayNonUniformIndexing, shaderStorageTexelBufferArrayNonUniformIndexing, descriptorBindingUniformBufferUpdateAfterBind, descriptorBindingSampledImageUpdateAfterBind
+                descriptorBindingStorageImageUpdateAfterBind, descriptorBindingStorageBufferUpdateAfterBind, descriptorBindingUniformTexelBufferUpdateAfterBind, descriptorBindingStorageTexelBufferUpdateAfterBind
+                descriptorBindingUpdateUnusedWhilePending, descriptorBindingPartiallyBound, descriptorBindingVariableDescriptorCount, runtimeDescriptorArray]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -197,7 +158,7 @@
             }
         ]
     } {
-        name: scalar_block_layout
+        names: [scalarBlockLayout, imagelessFramebuffer]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -209,7 +170,7 @@
             }
         ]
     } {
-        name: uniform_buffer_standard_layout
+        names: [uniformBufferStandardLayout]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -221,7 +182,7 @@
             }
         ]
     } {
-        name: shader_subgroup_extended_types
+        names: [shaderSubgroupExtendedTypes]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -233,7 +194,7 @@
             }
         ]
     } {
-        name: separate_depth_stencil_layouts
+        names: [separateDepthStencilLayouts]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -245,7 +206,7 @@
             }
         ]
     } {
-        name: host_query_reset
+        names: [hostQueryReset]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -257,7 +218,7 @@
             }
         ]
     } {
-        name: timeline_semaphore
+        names: [timelineSemaphore]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -269,7 +230,7 @@
             }
         ]
     } {
-        name: buffer_device_address
+        names: [bufferDeviceAddress, bufferDeviceAddressCaptureReplay, bufferDeviceAddressMultiDevice]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -281,7 +242,7 @@
             }
         ]
     } {
-        name: vulkan_memory_model
+        names: [vulkanMemoryModel, vulkanMemoryModelDeviceScope, vulkanMemoryModelAvailabilityVisibilityChains]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -292,21 +253,11 @@
                 properties: vulkan_memory_model
             }
         ]
-    } {
-        name: vulkan_memory_model
-        providers: [ {
-                vulkanVersion: 1.2
-                features: vulkan_1_2
-            } {
-                vulkanVersion: 1.0
-            }
-        ]
     }
 
     // vulkan_1_2 special cases
-
     {
-        name: sampler_mirror_clamp_to_edge
+        names: [samplerMirrorClampToEdge]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -315,7 +266,7 @@
             }
         ]
     } {
-        name: sampler_filter_minmax
+        names: [samplerFilterMinmax]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -324,7 +275,7 @@
             }
         ]
     } {
-        name: sampler_filter_minmax
+        names: [sampler_filter_minmax]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -333,7 +284,7 @@
             }
         ]
     } {
-        name: shader_viewport_index_layer
+        names: [shaderOutputViewportIndex, shaderOutputLayer]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
@@ -342,21 +293,31 @@
             }
         ]
     }
-        // other 1_2 extensions
-     {
-        name: draw_indirect_count
+    // other 1_2 extensions
+    {
+        names: [drawIndirectCount]
         providers: [ {
                 vulkanVersion: 1.2
                 features: vulkan_1_2
             } {
                 vulkanVersion: 1.0
+            }
+        ]
+    } {
+        names: [depthStencilResolve]
+        providers: [ {
+                vulkanVersion: 1.2
+                properties: vulkan_1_2
+            } {
+                vulkanVersion: 1.0
+                properties: depth_stencil_resolve
             }
         ]
     }
 
     // vuilkan_1_3
     {
-        name: dynamic_rendering
+        names: [dynamicRendering]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -368,7 +329,7 @@
             }
         ]
     } {
-        name: image_robustness
+        names: [robustImageAccess]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -380,7 +341,7 @@
             }
         ]
     } {
-        name: inline_uniform_block
+        names: [inlineUniformBlock, descriptorBindingInlineUniformBlockUpdateAfterBind]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -392,7 +353,7 @@
             }
         ]
     } {
-        name: maintenance_4
+        names: [maintenance4]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -404,7 +365,7 @@
             }
         ]
     } {
-        name: pipeline_creation_cache_control
+        names: [pipelineCreationCacheControl]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -416,7 +377,7 @@
             }
         ]
     } {
-        name: private_data
+        names: [privateData]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -428,7 +389,7 @@
             }
         ]
     } {
-        name: shader_demote_to_helper_invocation
+        names: [shaderDemoteToHelperInvocation]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -440,7 +401,7 @@
             }
         ]
     } {
-        name: shader_integer_dot_product
+        names: [shaderIntegerDotProduct]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -452,7 +413,7 @@
             }
         ]
     } {
-        name: shader_terminate_invocation
+        names: [shaderTerminateInvocation]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -464,7 +425,7 @@
             }
         ]
     } {
-        name: subgroup_size_control
+        names: [subgroupSizeControl, computeFullSubgroups]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -476,7 +437,7 @@
             }
         ]
     } {
-        name: synchronization_2
+        names: [synchronization2, checkpointProperties2]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -489,7 +450,7 @@
             }
         ]
     } {
-        name: texture_compression_astc_hdr
+        names: [textureCompressionASTC_HDR]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
@@ -501,7 +462,7 @@
             }
         ]
     } {
-        name: zero_initialize_workgroup_memory
+        names: [shaderZeroInitializeWorkgroupMemory]
         providers: [ {
                 vulkanVersion: 1.3
                 features: vulkan_1_3
