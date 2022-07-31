@@ -606,8 +606,8 @@ namespace og
         std::vector<char const *> requiredDeviceExtensions;
         std::vector<char const *> requiredLayers;
 
-        auto const & assignment = e->deviceAssignments[groupIdx];
-        auto const & suitability = assignment.deviceSuitabilities[physicalDeviceIdx];
+        auto & assignment = e->deviceAssignments[groupIdx];
+        auto & suitability = assignment.deviceSuitabilities[physicalDeviceIdx];
         auto const & profileCriteria = suitability.profileCritera[suitability.bestProfileIdx];
         createdCapabilities.features = profileCriteria.features.copyAndReset();
 

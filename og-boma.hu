@@ -101,8 +101,11 @@
             appConfig: {
                 name: stringView
                 version: stringView
-                loggerConfigPath: { type: stringView }
-                engineConfigPath: { type: stringView }
+                loggerConfigPath: { type: string }
+                deviceConfigPath: { type: string }
+                providerAliasesPaths: { type: vector of: string }
+                builtinAbilitiesPaths: { type: vector of: string }
+                abilitiesPaths: { type: vector of: string }
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
                 works: { type: vector of: workUnit }
             }
@@ -132,7 +135,7 @@
                 active: { type: bool default: false }
                 screenFormat: { type: optional of: VkFormat }
             }
-            engineConfig: {
+            deviceConfig: {
                 version: stringView
                 vkInstanceProfileGroups: { type: vector of: vkInstanceProfileGroup }
                 useInstanceProfileGroup: stringView
@@ -170,23 +173,34 @@
         namespace: og.abilities
         deserializeFrom: [humon]
         types: {
-            abilities_t: {
-                abilities: { type: map of: [string, ability] }
-                builtinAbilities: { type: vector of: builtinAbility }
+            providerAliases_t: {
+                providerAliases: { type: unorderedMap of: [stringView, { type: vector of: providerAlias } ] }
             }
-            ability: {
-                profiles: { type: vector of: abilityProfile }
-                query: { type: optional of: stringView }
-                enabled: bool
+            providerAlias: {
+                vulkanVersion: stringView
+                features: { type: optional of: stringView }
+                properties: { type: optional of: stringView }
+                queueFamilyProperties: { type: optional of: stringView }
             }
-            abilityProfile: {
-                name: stringView
-                query: stringView
+            builtinAbilities_t: {
+                builtinAbilities: { type: unorderedMap of: [stringView, builtinAbility] }
             }
             builtinAbility: {
                 name: stringView
                 enabled: { type: bool default: true }
                 profiles: { type: vector of: universalCriteria }
+            }
+            abilities_t: {
+                abilities: { type: unorderedMap of: [stringView, ability] }
+            }
+            ability: {
+                profiles: { type: vector of: abilityProfile }
+                query: { type: optional of: stringView }
+                enabled: { type: bool default: true }
+            }
+            abilityProfile: {
+                name: stringView
+                query: stringView
             }
         }
     }

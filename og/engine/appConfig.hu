@@ -2,8 +2,13 @@
 {
     name: 'a prog called test'
     version: 0.0.1
+
     loggerConfigPath: loggers.hu
-    engineConfigPath: engine.hu
+    deviceConfigPath: device.hu
+
+    providerAliasesPaths: [providerAliases.hu]
+    builtinAbilitiesPaths: [builtinAbilities.hu]
+    abilitiesPaths: [abilities.hu]
 
     views: [ { @ type: windowConfig_t
             name: mainWindow

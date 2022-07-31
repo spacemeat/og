@@ -47,7 +47,7 @@ namespace og
         Engine(std::string configPath);
         ~Engine();
 
-        engine::engineConfig const & get_config() { return config; }
+        engine::deviceConfig const & get_config() { return config; }
         engine::appConfig const & get_appConfig() { return appConfig; }
 
         void init();
@@ -59,6 +59,8 @@ namespace og
 
     private:
         bool iterateLoop();
+
+        void initAbilities();
 
         void initVkInstance();
         void destroyVkInstance();
@@ -88,9 +90,14 @@ namespace og
 
     private:
         hu::Trove configTrove;
-        engine::engineConfig config;
+        engine::deviceConfig config;
         hu::Trove appConfigTrove;
         engine::appConfig appConfig;
+
+        std::vector<hu::Trove> abilitiesTroves;
+        std::unordered_map<std::string_view, abilities::providerAlias> providerAliases;
+        std::unordered_map<std::string_view, abilities::builtinAbility> builtins;
+        std::unordered_map<std::string_view, abilities::ability> abilities;
 
         version_t availableVulkanVersion;
         version_t utilizedVulkanVersion;

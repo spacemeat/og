@@ -1,0 +1,29 @@
+@{ type: abilities_t }
+{
+    abilities: {
+        multiview: {
+            enabled: true
+            profiles: [ { name: core query: 'multiview >= core'}
+                        { name: ext query: 'multiview'}
+            ]
+        }
+    }
+}
+
+/*
+
+Need to get all providers for e/l for instance structurechain init.
+
+Need to check e/l against available.
+
+Need to get all providers for f/p/qfp/de for suitability structurechain init.
+
+Need to check f/p/qfp/de against suitability structurechain.
+
+Need to clone suitability to utilized.
+
+Need to check and set f/p/qfp/de against utilized.
+
+Need to generate structures from utilized.
+
+*/

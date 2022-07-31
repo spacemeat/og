@@ -11,7 +11,7 @@ namespace og
         if (auto t = std::get_if<hu::Trove>(& tr))
         {
             configTrove = std::move(* t);
-            config = og::engine::engineConfig { configTrove.root() };
+            config = og::engine::deviceConfig { configTrove.root() };
         }
         else
         {
@@ -29,6 +29,8 @@ namespace og
         log("engine init");
 
         auto const & appConfig = app->get_config();
+
+        initAbilities();
 
         initVkInstance();
 

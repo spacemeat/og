@@ -1,516 +1,513 @@
-@{ type: abilities }
+@{ type: builtinAbilities_t }
 {
     abilities: {
         multiview: {
             enabled: true
-            profiles: [ { name: core query: 'multiview >= ext11'}
+            profiles: [ { name: core query: 'multiview >= core'}
                         { name: ext query: 'multiview'}
             ]
         }
-
-
     }
 
-    builtinAbilities: [ {
-            name: robustBufferAccess
+    builtinAbilities: {
+        robustBufferAccess: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    features: { vulkan_1_0: [robustBufferAccess] }
-                    properties: { vulkan_1_0: [] }
+                    features: { core: [robustBufferAccess] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: fullDrawIndexUint32
+        }
+        fullDrawIndexUint32: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [fullDrawIndexUint32] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [fullDrawIndexUint32] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: imageCubeArray
+        }
+        imageCubeArray: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [imageCubeArray] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [imageCubeArray] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: independentBlend
+        }
+        independentBlend: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [independentBlend] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [independentBlend] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: geometryShader
+        }
+        geometryShader: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [geometryShader] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [geometryShader] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: tessellationShader
+        }
+        tessellationShader: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [tessellationShader] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [tessellationShader] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sampleRateShading
+        }
+        sampleRateShading: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sampleRateShading] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sampleRateShading] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: dualSrcBlend
+        }
+        dualSrcBlend: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [dualSrcBlend] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [dualSrcBlend] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: logicOp
+        }
+        logicOp: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [logicOp] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [logicOp] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: multiDrawIndirect
+        }
+        multiDrawIndirect: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [multiDrawIndirect] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [multiDrawIndirect] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: drawIndirectFirstInstance
+        }
+        drawIndirectFirstInstance: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [drawIndirectFirstInstance] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [drawIndirectFirstInstance] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: depthClamp
+        }
+        depthClamp: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [depthClamp] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [depthClamp] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: depthBiasClamp
+        }
+        depthBiasClamp: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [depthBiasClamp] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [depthBiasClamp] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: fillModeNonSolid
+        }
+        fillModeNonSolid: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [fillModeNonSolid] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [fillModeNonSolid] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: depthBounds
+        }
+        depthBounds: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [depthBounds] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [depthBounds] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: wideLines
+        }
+        wideLines: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [wideLines] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [wideLines] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: largePoints
+        }
+        largePoints: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [largePoints] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [largePoints] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: alphaToOne
+        }
+        alphaToOne: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [alphaToOne] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [alphaToOne] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: multiViewport
+        }
+        multiViewport: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [multiViewport] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [multiViewport] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: samplerAnisotropy
+        }
+        samplerAnisotropy: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [samplerAnisotropy] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [samplerAnisotropy] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: textureCompressionETC2
+        }
+        textureCompressionETC2: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [textureCompressionETC2] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [textureCompressionETC2] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: textureCompressionASTC_LDR
+        }
+        textureCompressionASTC_LDR: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [textureCompressionASTC_LDR] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [textureCompressionASTC_LDR] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: textureCompressionBC
+        }
+        textureCompressionBC: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [textureCompressionBC] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [textureCompressionBC] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: occlusionQueryPrecise
+        }
+        occlusionQueryPrecise: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [occlusionQueryPrecise] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [occlusionQueryPrecise] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: pipelineStatisticsQuery
+        }
+        pipelineStatisticsQuery: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [pipelineStatisticsQuery] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [pipelineStatisticsQuery] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: vertexPipelineStoresAndAtomics
+        }
+        vertexPipelineStoresAndAtomics: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [vertexPipelineStoresAndAtomics] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [vertexPipelineStoresAndAtomics] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: fragmentStoresAndAtomics
+        }
+        fragmentStoresAndAtomics: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [fragmentStoresAndAtomics] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [fragmentStoresAndAtomics] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderTessellationAndGeometryPointSize
+        }
+        shaderTessellationAndGeometryPointSize: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderTessellationAndGeometryPointSize] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderTessellationAndGeometryPointSize] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderImageGatherExtended
+        }
+        shaderImageGatherExtended: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderImageGatherExtended] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderImageGatherExtended] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderStorageImageExtendedFormats
+        }
+        shaderStorageImageExtendedFormats: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderStorageImageExtendedFormats] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderStorageImageExtendedFormats] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderStorageImageMultisample
+        }
+        shaderStorageImageMultisample: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderStorageImageMultisample] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderStorageImageMultisample] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderStorageImageReadWithoutFormat
+        }
+        shaderStorageImageReadWithoutFormat: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderStorageImageReadWithoutFormat] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderStorageImageReadWithoutFormat] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderStorageImageWriteWithoutFormat
+        }
+        shaderStorageImageWriteWithoutFormat: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderStorageImageWriteWithoutFormat] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderStorageImageWriteWithoutFormat] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderUniformBufferArrayDynamicIndexing
+        }
+        shaderUniformBufferArrayDynamicIndexing: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderUniformBufferArrayDynamicIndexing] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderUniformBufferArrayDynamicIndexing] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderSampledImageArrayDynamicIndexing
+        }
+        shaderSampledImageArrayDynamicIndexing: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderSampledImageArrayDynamicIndexing] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderSampledImageArrayDynamicIndexing] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderStorageBufferArrayDynamicIndexing
+        }
+        shaderStorageBufferArrayDynamicIndexing: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderStorageBufferArrayDynamicIndexing] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderStorageBufferArrayDynamicIndexing] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderStorageImageArrayDynamicIndexing
+        }
+        shaderStorageImageArrayDynamicIndexing: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderStorageImageArrayDynamicIndexing] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderStorageImageArrayDynamicIndexing] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderClipDistance
+        }
+        shaderClipDistance: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderClipDistance] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderClipDistance] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderCullDistance
+        }
+        shaderCullDistance: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderCullDistance] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderCullDistance] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderFloat64
+        }
+        shaderFloat64: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderFloat64] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderFloat64] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderInt64
+        }
+        shaderInt64: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderInt64] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderInt64] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderInt16
+        }
+        shaderInt16: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderInt16] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderInt16] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderResourceResidency
+        }
+        shaderResourceResidency: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderResourceResidency] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderResourceResidency] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: shaderResourceMinLod
+        }
+        shaderResourceMinLod: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [shaderResourceMinLod] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [shaderResourceMinLod] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseBinding
+        }
+        sparseBinding: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseBinding] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseBinding] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidencyBuffer
+        }
+        sparseResidencyBuffer: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidencyBuffer] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidencyBuffer] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidencyImage2D
+        }
+        sparseResidencyImage2D: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidencyImage2D] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidencyImage2D] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidencyImage3D
+        }
+        sparseResidencyImage3D: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidencyImage3D] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidencyImage3D] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidency2Samples
+        }
+        sparseResidency2Samples: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidency2Samples] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidency2Samples] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidency4Samples
+        }
+        sparseResidency4Samples: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidency4Samples] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidency4Samples] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidency8Samples
+        }
+        sparseResidency8Samples: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidency8Samples] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidency8Samples] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidency16Samples
+        }
+        sparseResidency16Samples: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidency16Samples] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidency16Samples] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: sparseResidencyAliased
+        }
+        sparseResidencyAliased: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [sparseResidencyAliased] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [sparseResidencyAliased] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: variableMultisampleRate
+        }
+        variableMultisampleRate: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [variableMultisampleRate] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [variableMultisampleRate] }
+                    properties: { core: [] }
                 }
             ]
-        } {
-            name: inheritedQueries
+        }
+        inheritedQueries: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.0
-                    featuers: { vulkan_1_0: [inheritedQueries] }
-                    properties: { vulkan_1_0: [] }
+                    featuers: { core: [inheritedQueries] }
+                    properties: { core: [] }
                 }
             ]
         }
 
-        // vulkan_1_0 additional
-        {
-            name: swapchain
+        // core additional
+        swapchain: {
             profiles: [ {
                     name: ext
                     vulkanVersion: 1.0
@@ -518,8 +515,8 @@
                     deviceExtensions: [VK_KHR_swapchain]
                 }
             ]
-        } {
-            name: surface
+        }
+        surface: {
             profiles: [ {
                     name: ext
                     vulkanVersion: 1.0
@@ -529,8 +526,7 @@
         }
 
         // vulkan_1_1 additional
-        {
-            name: getPhysicalDeviceProperties2
+        getPhysicalDeviceProperties2: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.1
@@ -540,8 +536,8 @@
                     extensions: [VK_KHR_get_physical_device_properties2]
                 }
             ]
-        } {
-            name: storageBufferStorageClass
+        }
+        storageBufferStorageClass: {
             sharedCriteria: { spirvExtensions: [SPV_KHR_storage_buffer_storage_class] }
             profiles: [ {
                     name: core
@@ -552,8 +548,8 @@
                     deviceExtensions: [VK_KHR_storage_buffer_storage_class]
                 }
             ]
-        } {
-            name: maintenance1
+        }
+        maintenance1: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.1
@@ -563,8 +559,8 @@
                     deviceExtensions: [VK_KHR_maintenance1]
                 }
             ]
-        } {
-            name: maintenance2
+        }
+        maintenance2: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.1
@@ -574,11 +570,12 @@
                     deviceExtensions: [VK_KHR_maintenance2]
                 }
             ]
-        } {
-            name: maintenance3
+        }
+        // vulkan_1_1
+        storageBuffer16BitAccess: {
             sharedCriteria: {
-                abilities: [getPhysicalDeviceProperties2]
-                properties: { maintenance_3: [] }
+                abilities: [ getPhysicalDeviceProperties2 ]
+                features: { 16bitStorage: [storageBuffer16BitAccess] }
             }
             profiles: [ {
                     name: core
@@ -586,16 +583,14 @@
                 } {
                     name: ext
                     vulkanVersion: 1.0
-                    deviceExtensions: [VK_KHR_maintenance3]
+                    deviceExtensions: [VK_KHR_16bit_storage]
                 }
             ]
         }
-        // vulkan_1_1
-        {
-            name:  storageBuffer16BitAccess
+        uniformAndStorageBuffer16BitAccess: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { 16bit_storage: [storageBuffer16BitAccess] }
+                features: { 16bitStorage: [uniformAndStorageBuffer16BitAccess] }
             }
             profiles: [ {
                     name: core
@@ -606,11 +601,11 @@
                     deviceExtensions: [VK_KHR_16bit_storage]
                 }
             ]
-        } {
-            name:  uniformAndStorageBuffer16BitAccess
+        }
+        storagePushConstant16: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { 16bit_storage: [uniformAndStorageBuffer16BitAccess] }
+                features: { 16bitStorage: [storagePushConstant16] }
             }
             profiles: [ {
                     name: core
@@ -621,11 +616,11 @@
                     deviceExtensions: [VK_KHR_16bit_storage]
                 }
             ]
-        } {
-            name:  storagePushConstant16
+        }
+        storageInputOutput16: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { 16bit_storage: [storagePushConstant16] }
+                features: { 16bitStorage: [storageInputOutput16] }
             }
             profiles: [ {
                     name: core
@@ -636,23 +631,8 @@
                     deviceExtensions: [VK_KHR_16bit_storage]
                 }
             ]
-        } {
-            name:  storageInputOutput16
-            sharedCriteria: {
-                abilities: [ getPhysicalDeviceProperties2 ]
-                features: { 16bit_storage: [storageInputOutput16] }
-            }
-            profiles: [ {
-                    name: core
-                    vulkanVersion: 1.1
-                } {
-                    name: ext
-                    vulkanVersion: 1.0
-                    deviceExtensions: [VK_KHR_16bit_storage]
-                }
-            ]
-        } {
-            name: multiview
+        }
+        multiview: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
                 features: { multiview: [multiview] }
@@ -666,8 +646,8 @@
                     deviceExtensions: [VK_KHR_multiview]
                 }
             ]
-        } {
-            name: multiviewGeometryShader
+        }
+        multiviewGeometryShader: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
                 features: { multiview: [multiviewGeometryShader] }
@@ -681,8 +661,8 @@
                     deviceExtensions: [VK_KHR_multiview]
                 }
             ]
-        } {
-            name: multiviewTessellationShader
+        }
+        multiviewTessellationShader: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
                 features: { multiview: [multiviewTessellationShader] }
@@ -696,11 +676,11 @@
                     deviceExtensions: [VK_KHR_multiview]
                 }
             ]
-        } {
-            name: variablePointersStorageBuffer
+        }
+        variablePointersStorageBuffer: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { variable_pointers: [variablePointersStorageBuffer] }
+                features: { variablePointers: [variablePointersStorageBuffer] }
             }
             profiles: [ {
                     name: core
@@ -711,11 +691,11 @@
                     deviceExtensions: [VK_KHR_variable_pointers]
                 }
             ]
-        } {
-            name: variablePointers
+        }
+        variablePointers: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { variable_pointers: [variablePointers] }
+                features: { variablePointers: [variablePointers] }
             }
             profiles: [ {
                     name: core
@@ -726,19 +706,19 @@
                     deviceExtensions: [VK_KHR_variable_pointers]
                 }
             ]
-        } {
-            name: protectedMemory
+        }
+        protectedMemory: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.1
-                    features: { protected_memory: [protectedMemory] }
+                    features: { protectedMemory: [protectedMemory] }
                 }
             ]
-        } {
-            name: samplerYcbcrConversion
+        }
+        samplerYcbcrConversion: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { sampler_ycbcr_conversion: [samplerYcbcrConversion] }
+                features: { samplerYcbcrConversion: [samplerYcbcrConversion] }
             }
             profiles: [ {
                     name: core
@@ -749,8 +729,8 @@
                     deviceExtensions: [VK_KHR_sampler_ycbcr_conversion]
                 }
             ]
-        } {
-            name: shaderDrawParameters
+        }
+        shaderDrawParameters: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
                 features: { shader_draw_parameters: [shaderDrawParameters] }
@@ -765,14 +745,27 @@
                 }
             ]
         }
+        maintenance3: {
+            sharedCriteria: {
+                abilities: [getPhysicalDeviceProperties2]
+                properties: { maintenance3: [] }
+            }
+            profiles: [ {
+                    name: core
+                    vulkanVersion: 1.1
+                } {
+                    name: ext
+                    vulkanVersion: 1.0
+                    deviceExtensions: [VK_KHR_maintenance3]
+                }
+            ]
+        }
 
         // vulkan 1.2
-        {
-            name: storageBuffer8BitAccess
-            // requires
+        storageBuffer8BitAccess: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, storageBufferStorageClass ]
-                features: { 8bit_storage: [storageBuffer8BitAccess] }
+                features: { 8bitStorage: [storageBuffer8BitAccess] }
                 spirvExtensions: [ SPV_KHR_storage_buffer_storage_class ]
             }
             profiles: [ {
@@ -788,11 +781,11 @@
                     deviceExtensions: [VK_KHR_8bit_storage]
                 }
             ]
-        } {
-            name: uniformAndStorageBuffer8BitAccess
+        }
+        uniformAndStorageBuffer8BitAccess: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, storageBufferStorageClass ]
-                features: { 8bit_storage: [uniformAndStorageBuffer8BitAccess] }
+                features: { 8bitStorage: [uniformAndStorageBuffer8BitAccess] }
             }
             profiles: [ {
                     name: core
@@ -807,11 +800,11 @@
                     deviceExtensions: [VK_KHR_8bit_storage]
                 }
             ]
-        } {
-            name: storagePushConstant8
+        }
+        storagePushConstant8: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, storageBufferStorageClass ]
-                features: { 8bit_storage: [storagePushConstant8] }
+                features: { 8bitStorage: [storagePushConstant8] }
             }
             profiles: [ {
                     name: core
@@ -826,11 +819,11 @@
                     deviceExtensions: [VK_KHR_8bit_storage]
                 }
             ]
-        } {
-            name: shaderBufferInt64Atomics
+        }
+        shaderBufferInt64Atomics: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_atomic_int64: [shaderBufferInt64Atomics] }
+                features: { shaderAtomicInt64: [shaderBufferInt64Atomics] }
             }
             profiles: [ {
                     name: core
@@ -845,11 +838,11 @@
                     deviceExtensions: [VK_KHR_shader_atomic_int64]
                 }
             ]
-        } {
-            name: shaderSharedInt64Atomics
+        }
+        shaderSharedInt64Atomics: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_atomic_int64: [shaderSharedInt64Atomics] }
+                features: { shaderAtomicInt64: [shaderSharedInt64Atomics] }
             }
             profiles: [ {
                     name: core
@@ -864,11 +857,11 @@
                     deviceExtensions: [VK_KHR_shader_atomic_int64]
                 }
             ]
-        } {
-            name: shaderFloat16
+        }
+        shaderFloat16: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_float16_int8: [shaderFloat16] }
+                features: { shaderFloat16Int8: [shaderFloat16] }
             }
             profiles: [ {
                     name: core
@@ -883,11 +876,11 @@
                     deviceExtensions: [VK_KHR_shader_float16_int8]
                 }
             ]
-        } {
-            name: shaderInt8
+        }
+        shaderInt8: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_float16_int8: [shaderInt8] }
+                features: { shaderFloat16Int8: [shaderInt8] }
             }
             profiles: [ {
                     name: core
@@ -902,11 +895,11 @@
                     deviceExtensions: [VK_KHR_shader_float16_int8]
                 }
             ]
-        } {
-            name: shaderInputAttachmentArrayDynamicIndexing
+        }
+        shaderInputAttachmentArrayDynamicIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderInputAttachmentArrayDynamicIndexing] }
+                features: { descriptorIndexing: [shaderInputAttachmentArrayDynamicIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -922,11 +915,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderUniformTexelBufferArrayDynamicIndexing
+        }
+        shaderUniformTexelBufferArrayDynamicIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderUniformTexelBufferArrayDynamicIndexing] }
+                features: { descriptorIndexing: [shaderUniformTexelBufferArrayDynamicIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -942,11 +935,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderStorageTexelBufferArrayDynamicIndexing
+        }
+        shaderStorageTexelBufferArrayDynamicIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderStorageTexelBufferArrayDynamicIndexing] }
+                features: { descriptorIndexing: [shaderStorageTexelBufferArrayDynamicIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -962,11 +955,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderUniformBufferArrayNonUniformIndexing
+        }
+        shaderUniformBufferArrayNonUniformIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderUniformBufferArrayNonUniformIndexing] }
+                features: { descriptorIndexing: [shaderUniformBufferArrayNonUniformIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -982,11 +975,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderSampledImageArrayNonUniformIndexing
+        }
+        shaderSampledImageArrayNonUniformIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderSampledImageArrayNonUniformIndexing] }
+                features: { descriptorIndexing: [shaderSampledImageArrayNonUniformIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1002,11 +995,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderStorageBufferArrayNonUniformIndexing
+        }
+        shaderStorageBufferArrayNonUniformIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderStorageBufferArrayNonUniformIndexing] }
+                features: { descriptorIndexing: [shaderStorageBufferArrayNonUniformIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1022,11 +1015,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderStorageImageArrayNonUniformIndexing
+        }
+        shaderStorageImageArrayNonUniformIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderStorageImageArrayNonUniformIndexing] }
+                features: { descriptorIndexing: [shaderStorageImageArrayNonUniformIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1042,11 +1035,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderInputAttachmentArrayNonUniformIndexing
+        }
+        shaderInputAttachmentArrayNonUniformIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderInputAttachmentArrayNonUniformIndexing] }
+                features: { descriptorIndexing: [shaderInputAttachmentArrayNonUniformIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1062,11 +1055,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderUniformTexelBufferArrayNonUniformIndexing
+        }
+        shaderUniformTexelBufferArrayNonUniformIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderUniformTexelBufferArrayNonUniformIndexing] }
+                features: { descriptorIndexing: [shaderUniformTexelBufferArrayNonUniformIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1082,11 +1075,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: shaderStorageTexelBufferArrayNonUniformIndexing
+        }
+        shaderStorageTexelBufferArrayNonUniformIndexing: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [shaderStorageTexelBufferArrayNonUniformIndexing] }
+                features: { descriptorIndexing: [shaderStorageTexelBufferArrayNonUniformIndexing] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1102,11 +1095,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingUniformBufferUpdateAfterBind
+        }
+        descriptorBindingUniformBufferUpdateAfterBind: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingUniformBufferUpdateAfterBind] }
+                features: { descriptorIndexing: [descriptorBindingUniformBufferUpdateAfterBind] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1122,11 +1115,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingSampledImageUpdateAfterBind
+        }
+        descriptorBindingSampledImageUpdateAfterBind: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingSampledImageUpdateAfterBind] }
+                features: { descriptorIndexing: [descriptorBindingSampledImageUpdateAfterBind] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1142,11 +1135,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingStorageImageUpdateAfterBind
+        }
+        descriptorBindingStorageImageUpdateAfterBind: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingStorageImageUpdateAfterBind] }
+                features: { descriptorIndexing: [descriptorBindingStorageImageUpdateAfterBind] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1162,11 +1155,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingStorageBufferUpdateAfterBind
+        }
+        descriptorBindingStorageBufferUpdateAfterBind: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingStorageBufferUpdateAfterBind] }
+                features: { descriptorIndexing: [descriptorBindingStorageBufferUpdateAfterBind] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1182,11 +1175,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingUniformTexelBufferUpdateAfterBind
+        }
+        descriptorBindingUniformTexelBufferUpdateAfterBind: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingUniformTexelBufferUpdateAfterBind] }
+                features: { descriptorIndexing: [descriptorBindingUniformTexelBufferUpdateAfterBind] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1202,11 +1195,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingStorageTexelBufferUpdateAfterBind
+        }
+        descriptorBindingStorageTexelBufferUpdateAfterBind: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingStorageTexelBufferUpdateAfterBind] }
+                features: { descriptorIndexing: [descriptorBindingStorageTexelBufferUpdateAfterBind] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1222,11 +1215,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingUpdateUnusedWhilePending
+        }
+        descriptorBindingUpdateUnusedWhilePending: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingUpdateUnusedWhilePending] }
+                features: { descriptorIndexing: [descriptorBindingUpdateUnusedWhilePending] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1242,11 +1235,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingPartiallyBound
+        }
+        descriptorBindingPartiallyBound: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingPartiallyBound] }
+                features: { descriptorIndexing: [descriptorBindingPartiallyBound] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1262,11 +1255,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: descriptorBindingVariableDescriptorCount
+        }
+        descriptorBindingVariableDescriptorCount: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [descriptorBindingVariableDescriptorCount] }
+                features: { descriptorIndexing: [descriptorBindingVariableDescriptorCount] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1282,11 +1275,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: runtimeDescriptorArray
+        }
+        runtimeDescriptorArray: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance3 ]
-                features: { descriptor_indexing: [runtimeDescriptorArray] }
+                features: { descriptorIndexing: [runtimeDescriptorArray] }
                 shaderExtensions: [SPV_EXT_descriptor_indexing]
             }
             profiles: [ {
@@ -1302,11 +1295,11 @@
                     deviceExtensions: [VK_EXT_descriptor_indexing]
                 }
             ]
-        } {
-            name: scalarBlockLayout
+        }
+        scalarBlockLayout: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { scalar_block_layout: [scalarBlockLayout] }
+                features: { scalarBlockLayout: [scalarBlockLayout] }
             }
             profiles: [ {
                     name: core
@@ -1321,11 +1314,11 @@
                     deviceExtensions: [VK_EXT_scalar_block_layout]
                 }
             ]
-        } {
-            name: imagelessFramebuffer
+        }
+        imagelessFramebuffer: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, imageFormatList ]
-                features: { scalar_block_layout: [imagelessFramebuffer] }
+                features: { imagelessFramebuffer: [imagelessFramebuffer] }
             }
             profiles: [ {
                     name: core
@@ -1340,11 +1333,11 @@
                     deviceExtensions: [VK_KHR_imageless_framebuffer]
                 }
             ]
-        } {
-            name: uniformBufferStandardLayout
+        }
+        uniformBufferStandardLayout: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { uniform_buffer_standard_layout: [uniformBufferStandardLayout] }
+                features: { uniformBufferStandardLayout: [uniformBufferStandardLayout] }
             }
             profiles: [ {
                     name: core
@@ -1359,11 +1352,11 @@
                     deviceExtensions: [VK_KHR_uniform_buffer_standard_layout]
                 }
             ]
-        } {
-            name: shaderSubgroupExtendedTypes
+        }
+        shaderSubgroupExtendedTypes: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_subgroup_extended_types: [shaderSubgroupExtendedTypes] }
+                features: { shaderSubgroupExtendedTypes: [shaderSubgroupExtendedTypes] }
             }
             profiles: [ {
                     name: core
@@ -1374,11 +1367,11 @@
                     deviceExtensions: [VK_KHR_shader_subgroup_extended_types]
                 }
             ]
-        } {
-            name: separateDepthStencilLayouts
+        }
+        separateDepthStencilLayouts: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, createRenderpass2 ]
-                features: { separate_depth_stencil_layouts: [separateDepthStencilLayouts] }
+                features: { separateDepthStencilLayouts: [separateDepthStencilLayouts] }
             }
             profiles: [ {
                     name: core
@@ -1393,11 +1386,11 @@
                     deviceExtensions: [VK_KHR_separate_depth_stencil_layouts]
                 }
             ]
-        } {
-            name: hostQueryReset
+        }
+        hostQueryReset: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { host_query_reset: [hostQueryReset] }
+                features: { hostQueryReset: [hostQueryReset] }
             }
             profiles: [ {
                     name: core
@@ -1412,8 +1405,8 @@
                     deviceExtensions: [VK_EXT_host_query_reset]
                 }
             ]
-        } {
-            name: timelineSemaphore
+        }
+        timelineSemaphore: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
                 features: { timeline_semaphore: [timelineSemaphore] }
@@ -1431,11 +1424,11 @@
                     deviceExtensions: [VK_KHR_timeline_semaphore]
                 }
             ]
-        } {
-            name: bufferDeviceAddress
+        }
+        bufferDeviceAddress: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { buffer_device_address: [bufferDeviceAddress] }
+                features: { bufferDeviceAddress: [bufferDeviceAddress] }
                 spirvExtensions: [SPV_KHR_physical_storage_buffer]
             }
             profiles: [ {
@@ -1451,11 +1444,11 @@
                     deviceExtensions: [VK_KHR_buffer_device_address]
                 }
             ]
-        } {
-            name: bufferDeviceAddressCaptureReplay
+        }
+        bufferDeviceAddressCaptureReplay: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { buffer_device_address: [bufferDeviceAddressCaptureReplay] }
+                features: { bufferDeviceAddress: [bufferDeviceAddressCaptureReplay] }
                 spirvExtensions: [SPV_KHR_physical_storage_buffer]
             }
             profiles: [ {
@@ -1471,11 +1464,11 @@
                     deviceExtensions: [VK_KHR_buffer_device_address]
                 }
             ]
-        } {
-            name: bufferDeviceAddressMultiDevice
+        }
+        bufferDeviceAddressMultiDevice: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { buffer_device_address: [bufferDeviceAddressMultiDevice] }
+                features: { bufferDeviceAddress: [bufferDeviceAddressMultiDevice] }
                 spirvExtensions: [SPV_KHR_physical_storage_buffer]
             }
             profiles: [ {
@@ -1491,11 +1484,11 @@
                     deviceExtensions: [VK_KHR_buffer_device_address]
                 }
             ]
-        } {
-            name: vulkanMemoryModel
+        }
+        vulkanMemoryModel: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { vulkan_memory_model: [vulkanMemoryModel] }
+                features: { vulkanMemoryModel: [vulkanMemoryModel] }
                 spirvExtensions: [SPV_KHR_vulkan_memory_model]
             }
             profiles: [ {
@@ -1511,11 +1504,11 @@
                     deviceExtensions: [VK_KHR_buffer_device_address]
                 }
             ]
-        } {
-            name: vulkanMemoryModelDeviceScope
+        }
+        vulkanMemoryModelDeviceScope: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { vulkan_memory_model: [vulkanMemoryModelDeviceScope] }
+                features: { vulkanMemoryModel: [vulkanMemoryModelDeviceScope] }
                 spirvExtensions: [SPV_KHR_vulkan_memory_model]
             }
             profiles: [ {
@@ -1531,11 +1524,11 @@
                     deviceExtensions: [VK_KHR_buffer_device_address]
                 }
             ]
-        } {
-            name: vulkanMemoryModelAvailabilityVisibilityChains
+        }
+        vulkanMemoryModelAvailabilityVisibilityChains: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { vulkan_memory_model: [vulkanMemoryModelAvailabilityVisibilityChains] }
+                features: { vulkanMemoryModel: [vulkanMemoryModelAvailabilityVisibilityChains] }
                 spirvExtensions: [SPV_KHR_vulkan_memory_model]
             }
             profiles: [ {
@@ -1554,26 +1547,25 @@
         }
 
         // vulkan_1_2 special cases?
-        {
-            name: samplerMirrorClampToEdge
+        samplerMirrorClampToEdge: {
             sharedCriteria: { abilities: [ getPhysicalDeviceProperties2 ] }
             profiles: [ {
                     name: core
                     vulkanVersion: 1.2
-                    features: { sampler_mirror_clamp_to_edge: [samplerMirrorClampToEdge] }
+                    features: { samplerMirrorClampToEdge: [samplerMirrorClampToEdge] }
                 } {
                     name: ext
                     vulkanVersion: 1.0
                     deviceExtensions: [VK_KHR_sampler_mirror_clamp_to_edge]
                 }
             ]
-        } {
-            name: samplerFilterMinmax
+        }
+        samplerFilterMinmax: {
             sharedCriteria: { abilities: [ getPhysicalDeviceProperties2 ] }
             profiles: [ {
                     name: core
                     vulkanVersion: 1.2
-                    features: { sampler_filter_minmax: [samplerFilterMinmax] }
+                    features: { samplerFilterMinmax: [samplerFilterMinmax] }
                 } {
                     name: ext11
                     vulkanVersion: 1.1
@@ -1584,8 +1576,8 @@
                     deviceExtensions: [VK_EXT_sampler_filter_minmax]
                 }
             ]
-        } {
-            name: shaderOutputViewportIndex
+        }
+        shaderOutputViewportIndex: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
                 spirvExtensions: [SPV_EXT_shader_viewport_index_layer]
@@ -1593,15 +1585,15 @@
             profiles: [ {
                     name: core
                     vulkanVersion: 1.2
-                    features: { shader_viewport_index_layer: [shaderOutputViewportIndex] }
+                    features: { shaderViewportIndexLayer: [shaderOutputViewportIndex] }
                 } {
                     name: ext
                     vulkanVersion: 1.0
                     deviceExtensions: [VK_EXT_shader_viewport_index_layer]
                 }
             ]
-        } {
-            name: shaderOutputLayer
+        }
+        shaderOutputLayer: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
                 spirvExtensions: [SPV_EXT_shader_viewport_index_layer]
@@ -1609,18 +1601,18 @@
             profiles: [ {
                     name: core
                     vulkanVersion: 1.2
-                    features: { shader_viewport_index_layer: [shaderOutputLayer] }
+                    features: { shaderViewportIndexLayer: [shaderOutputLayer] }
                 } {
                     name: ext
                     vulkanVersion: 1.0
                     deviceExtensions: [VK_EXT_shader_viewport_index_layer]
                 }
             ]
-        } {
-            name: depthStencilResolve
+        }
+        depthStencilResolve: {
             sharedCriteria: {
                 abilities: [ createRenderpass2 ]
-                properties: { depth_stencil_resolve: [] }
+                properties: { depthStencilResolve: [] }
             }
             profiles: [ {
                     name: core
@@ -1632,9 +1624,8 @@
                 }
             ]
         }
-        // other 1_2 extensions
-        {
-            name: imageFormatList
+        // other 1_2
+        imageFormatList: {
             profiles: [ {
                     name: core
                     vulkanVersion: 1.2
@@ -1648,8 +1639,8 @@
                     deviceExtensions: [VK_KHR_image_format_list]
                 }
             ]
-        } {
-            name: createRenderpass2
+        }
+        createRenderpass2: {
             sharedCriteria: { abilities: [multiview, maintenance2] }
             profiles: [ {
                     name: core
@@ -1664,13 +1655,13 @@
                     deviceExtensions: [VK_KHR_create_renderpass2]
                 }
             ]
-        } {
-            name: drawIndirectCount
+        }
+        drawIndirectCount: {
             sharedCriteria: { abilities: [ getPhysicalDeviceProperties2 ] }
             profiles: [ {
                     name: core
                     vulkanVersion: 1.2
-                    features: { draw_indirect_count: [drawIndirectCount] }
+                    features: { drawIndirectCount: [drawIndirectCount] }
                 } {
                     name: ext
                     vulkanVersion: 1.0
@@ -1680,11 +1671,10 @@
         }
 
         // vuilkan_1_3
-        {
-            name: dynamicRendering
+        dynamicRendering: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, depthStencilResolve ]
-                features: { dynamic_rendering: [dynamicRendering] }
+                features: { dynamicRendering: [dynamicRendering] }
             }
             profiles: [ {
                     name: core
@@ -1699,11 +1689,11 @@
                     deviceExtensions: [VK_KHR_dynamic_rendering]
                 }
             ]
-        } {
-            name: robustImageAccess
+        }
+        robustImageAccess: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { image_robustness: [robustImageAccess] }
+                features: { imageRobustness: [robustImageAccess] }
             }
             profiles: [ {
                     name: core
@@ -1718,11 +1708,11 @@
                     deviceExtensions: [VK_EXT_image_robustness]
                 }
             ]
-        } {
-            name: inlineUniformBlock
+        }
+        inlineUniformBlock: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance1 ]
-                features: { inline_uniform_block: [inlineUniformBlock] }
+                features: { inlineUniformBlock: [inlineUniformBlock] }
             }
             profiles: [ {
                     name: core
@@ -1737,11 +1727,11 @@
                     deviceExtensions: [VK_EXT_inline_uniform_block]
                 }
             ]
-        } {
-            name: descriptorBindingInlineUniformBlockUpdateAfterBind
+        }
+        descriptorBindingInlineUniformBlockUpdateAfterBind: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2, maintenance1 ]
-                features: { inline_uniform_block: [descriptorBindingInlineUniformBlockUpdateAfterBind] }
+                features: { inlineUniformBlock: [descriptorBindingInlineUniformBlockUpdateAfterBind] }
             }
             profiles: [ {
                     name: core
@@ -1756,11 +1746,11 @@
                     deviceExtensions: [VK_EXT_inline_uniform_block]
                 }
             ]
-        } {
-            name: maintenance4
+        }
+        maintenance4: {
             sharedCriteria: {
-                features: { maintenance_4: [maintenance4] }
-                properties: { maintenance_4: [] }
+                features: { maintenance4: [maintenance4] }
+                properties: { maintenance4: [] }
             }
             profiles: [ {
                     name: core
@@ -1771,11 +1761,11 @@
                     deviceExtensions: [VK_KHR_maintenance4]
                 }
             ]
-        } {
-            name: pipelineCreationCacheControl
+        }
+        pipelineCreationCacheControl: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { pipeline_creation_cache_control: [pipelineCreationCacheControl] }
+                features: { pipelineCreationCacheControl: [pipelineCreationCacheControl] }
             }
             profiles: [ {
                     name: core
@@ -1790,11 +1780,11 @@
                     deviceExtensions: [VK_EXT_pipeline_creation_cache_control]
                 }
             ]
-        } {
-            name: privateData
+        }
+        privateData: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { private_data: [privateData] }
+                features: { privateData: [privateData] }
             }
             profiles: [ {
                     name: core
@@ -1809,11 +1799,11 @@
                     deviceExtensions: [VK_EXT_private_data]
                 }
             ]
-        } {
-            name: shaderDemoteToHelperInvocation
+        }
+        shaderDemoteToHelperInvocation: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_demote_to_helper_invocation: [shaderDemoteToHelperInvocation] }
+                features: { shaderDemoteToHelperInvocation: [shaderDemoteToHelperInvocation] }
                 spirvExtensions: [SPV_EXT_demote_to_helper_invocation]
             }
             profiles: [ {
@@ -1829,12 +1819,12 @@
                     deviceExtensions: [VK_EXT_shader_demote_to_helper_invocation]
                 }
             ]
-        } {
-            name: shaderIntegerDotProduct
+        }
+        shaderIntegerDotProduct: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_integer_dot_product: [shaderIntegerDotProduct] }
-                properties: { shader_integer_dot_product: [] }
+                features: { shaderIntegerDotProduct: [shaderIntegerDotProduct] }
+                properties: { shaderIntegerDotProduct: [] }
                 spirvExtensions: [SPV_KHR_integer_dot_product]
             }
             profiles: [ {
@@ -1850,11 +1840,11 @@
                     deviceExtensions: [VK_KHR_shader_integer_dot_product]
                 }
             ]
-        } {
-            name: shaderTerminateInvocation
+        }
+        shaderTerminateInvocation: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { shader_terminate_invocation: [shaderTerminateInvocation] }
+                features: { shaderTerminateInvocation: [shaderTerminateInvocation] }
                 spirvExtensions: [SPV_KHR_terminate_invocation]
             }
             profiles: [ {
@@ -1870,12 +1860,12 @@
                     deviceExtensions: [VK_KHR_shader_terminate_invocation]
                 }
             ]
-        } {
-            name: subgroupSizeControl
+        }
+        subgroupSizeControl: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { subgroup_size_control: [subgroupSizeControl] }
-                properties: { subgroup_size_control: [] }
+                features: { subgroupSizeControl: [subgroupSizeControl] }
+                properties: { subgroupSizeControl: [] }
             }
             profiles: [ {
                     name: core
@@ -1886,12 +1876,12 @@
                     deviceExtensions: [VK_EXT_subgroup_size_control]
                 }
             ]
-        } {
-            name: computeFullSubgroups
+        }
+        computeFullSubgroups: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { subgroup_size_control: [computeFullSubgroups] }
-                properties: { subgroup_size_control: [] }
+                features: { subgroupSizeControl: [computeFullSubgroups] }
+                properties: { subgroupSizeControl: [] }
             }
             profiles: [ {
                     name: core
@@ -1902,12 +1892,12 @@
                     deviceExtensions: [VK_EXT_subgroup_size_control]
                 }
             ]
-        } {
-            name: synchronization2
+        }
+        synchronization2: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { synchronization_2: [synchronization2] }
-                queueFamilyProperties: { checkpoint_properties_2: [] }
+                features: { synchronization2: [synchronization2] }
+                queueFamilyProperties: { checkpointProperties2: [] }
             }
             profiles: [ {
                     name: core
@@ -1918,27 +1908,11 @@
                     deviceExtensions: [VK_KHR_synchronization2]
                 }
             ]
-        } {
-            name: checkpointProperties2
+        }
+        textureCompressionAstcHdr: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { synchronization_2: [synchronization2] }
-                queueFamilyProperties: { checkpoint_properties_2: [] }
-            }
-            profiles: [ {
-                    name: core
-                    vulkanVersion: 1.3
-                } {
-                    name: ext
-                    vulkanVersion: 1.1
-                    deviceExtensions: [VK_KHR_synchronization2]
-                }
-            ]
-        } {
-            name: textureCompressionASTC_HDR
-            sharedCriteria: {
-                abilities: [ getPhysicalDeviceProperties2 ]
-                features: { texture_compression_astc_hdr: [textureCompressionASTC_HDR] }
+                features: { textureCompressionAstcHdr: [textureCompressionASTC_HDR] }
             }
             profiles: [ {
                     name: core
@@ -1953,11 +1927,11 @@
                     deviceExtensions: [VK_EXT_texture_compression_astc_hdr]
                 }
             ]
-        } {
-            name: shaderZeroInitializeWorkgroupMemory
+        }
+        shaderZeroInitializeWorkgroupMemory: {
             sharedCriteria: {
                 abilities: [ getPhysicalDeviceProperties2 ]
-                features: { zero_initialize_workgroup_memory: [shaderZeroInitializeWorkgroupMemory] }
+                features: { shaderZeroInitializeWorkgroupMemory: [shaderZeroInitializeWorkgroupMemory] }
             }
             profiles: [ {
                     name: core
@@ -1973,7 +1947,7 @@
                 }
             ]
         }
-    ]
+    }
 }
 
 /*

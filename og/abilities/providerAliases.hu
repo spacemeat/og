@@ -1,0 +1,381 @@
+@ { type: providerAliases_t }
+{
+    core: [ {
+            vulkanVersion: 1.0
+            features: vulkan_1_0
+            properties: vulkan_1_0
+        }
+    ]
+    16bitStorage: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_1
+            properties: vulkan_1_1
+        } {
+            vulkanVersion: 1.0
+            features: 16bitStorage
+            properties: 16bitStorage
+        }
+    ]
+    multiview: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_1
+            properties: vulkan_1_1
+        } {
+            vulkanVersion: 1.0
+            features: multiview
+            properties: multiview
+        }
+    ]
+    variablePointers: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_1
+            properties: vulkan_1_1
+        } {
+            vulkanVersion: 1.0
+            features: variablePointers
+            properties: variablePointers
+        }
+    ]
+    protectedMemory: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_1
+            properties: vulkan_1_1
+        } {
+            vulkanVersion: 1.1  // 1.1, not 1.0
+            features: protectedMemory
+            properties: protectedMemory
+        }
+    ]
+    samplerYcbcrConversion: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_1
+            properties: vulkan_1_1
+        } {
+            vulkanVersion: 1.0
+            features: samplerYcbcrConversion
+            properties: samplerYcbcrConversion
+        }
+    ]
+    shaderDrawParameters: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_1
+            properties: vulkan_1_1
+        } {
+            vulkanVersion: 1.0
+            features: shaderDrawParameters
+            properties: shaderDrawParameters
+        }
+    ]
+    maintenance3: [ {
+            vulkanVersion: 1.2
+            properties: vulkan_1_1
+        } {
+            vulkanVersion: 1.0
+            properties: maintenance3
+        }
+    ]
+
+    // vulkan 1.2
+    8bitStorage: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: 8bitStorage
+            properties: 8bitStorage
+        }
+    ]
+    shaderAtomicInt64: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: shaderAtomicInt64
+            properties: shaderAtomicInt64
+        }
+    ]
+    shaderFloat16Int8: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: shaderFloat16Int8
+            properties: shaderFloat16Int8
+        }
+    ]
+    descriptorIndexing: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: descriptorIndexing
+            properties: descriptorIndexing
+        }
+    ]
+    scalarBlockLayout: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: scalarBlockLayout
+            properties: scalarBlockLayout
+        }
+    ]
+    imagelessFramebuffer: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: imagelessFramebuffer
+            properties: imagelessFramebuffer
+        }
+    ]
+    uniformBufferStandardLayout: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: uniformBufferStandardLayout
+            properties: uniformBufferStandardLayout
+        }
+    ]
+    shaderSubgroupExtendedTypes: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: shaderSubgroupExtendedTypes
+            properties: shaderSubgroupExtendedTypes
+        }
+    ]
+    separateDepthStencilLayouts: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: separateDepthStencilLayouts
+            properties: separateDepthStencilLayouts
+        }
+    ]
+    hostQueryReset: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: hostQueryReset
+            properties: hostQueryReset
+        }
+    ]
+    timelineSemaphore: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: timelineSemaphore
+            properties: timelineSemaphore
+        }
+    ]
+    bufferDeviceAddress: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: bufferDeviceAddress
+            properties: bufferDeviceAddress
+        }
+    ]
+    vulkanMemoryModel: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            features: vulkanMemoryModel
+            properties: vulkanMemoryModel
+        }
+    ]
+
+    // vulkan_1_2 special cases
+    samplerMirrorClampToEdge: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+        }
+    ]
+    samplerFilterMinmax: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+        }
+    ]
+    shaderViewportIndexLayer: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+        }
+    ]
+    depthStencilResolve: [ {
+            vulkanVersion: 1.2
+            properties: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+            properties: depthStencilResolve
+        }
+    ]
+        // other 1_2 extensions
+    drawIndirectCount: [ {
+            vulkanVersion: 1.2
+            features: vulkan_1_2
+        } {
+            vulkanVersion: 1.0
+        }
+    ]
+
+    // vuilkan_1_3
+    dynamicRendering: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: dynamicRendering
+            properties: dynamicRendering
+        }
+    ]
+    imageRobustness: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: imageRobustness
+            properties: imageRobustness
+        }
+    ]
+    inlineUniformBlock: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: inlineUniformBlock
+            properties: inlineUniformBlock
+        }
+    ]
+    maintenance4: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: maintenance4
+            properties: maintenance4
+        }
+    ]
+    pipelineCreationCacheControl: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: pipelineCreationCacheControl
+            properties: pipelineCreationCacheControl
+        }
+    ]
+    privateData: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: privateData
+            properties: privateData
+        }
+    ]
+    shaderDemoteToHelperInvocation: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: shaderDemoteToHelperInvocation
+            properties: shaderDemoteToHelperInvocation
+        }
+    ]
+    shaderIntegerDotProduct: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: shaderIntegerDotProduct
+            properties: shaderIntegerDotProduct
+        }
+    ]
+    shaderTerminateInvocation: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: shaderTerminateInvocation
+            properties: shaderTerminateInvocation
+        }
+    ]
+    subgroupSizeControl: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.1  // 1.1, not 1.0
+            features: subgroupSizeControl
+            properties: subgroupSizeControl
+        }
+    ]
+    synchronization2: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.1  // 1.1, not 1.0
+            features: synchronization2
+            properties: synchronization2
+            queueFamilyProperties: checkpointProperties2
+        }
+    ]
+    textureCompressionAstcHdr: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: textureCompressionAstcHdr
+            properties: textureCompressionAstcHdr
+        }
+    ]
+    shaderZeroInitializeWorkgroupMemory: [ {
+            vulkanVersion: 1.3
+            features: vulkan_1_3
+            properties: vulkan_1_3
+        } {
+            vulkanVersion: 1.0
+            features: shaderZeroInitializeWorkgroupMemory
+            properties: shaderZeroInitializeWorkgroupMemory
+        }
+    ]
+}

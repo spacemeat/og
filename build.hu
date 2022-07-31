@@ -119,6 +119,40 @@
         }
     }
 
+    --abilities: {
+        version: 0.0.1
+        includeDirs: [
+            'og/abilities/gen/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: abilities
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'og/abilities/gen/src/*.cpp'
+                //'og/abilities/src/*.cpp'
+            ]
+        }
+        --test: {
+            buildType: exe
+            outputDir: $testDir
+            outputName: test.abilities
+            sources: [
+                'og/abilities/main.cpp'
+            ]
+            libDirs: [$libDir]
+            libs: [!..lib!$outputLibPath,
+                   !...logger.lib!$outputLibPath,
+                   !...og.lib!$outputLibPath,
+                   fmt, humon,
+                   glfw, vulkan, dl, pthread, X11, Xxf86vm, Xrandr, Xi,
+                   c]
+        }
+    }
+
     --vkRequirements: {
         version: 0.0.1
         includeDirs: [
@@ -189,6 +223,7 @@
             ]
             libDirs: [$libDir]
             libs: [!..lib!$outputLibPath,
+                   !...abilities.lib!$outputLibPath,
                    !...vkRequirements.lib!$outputLibPath,
                    !...assetDb.lib!$outputLibPath,
                    !...logger.lib!$outputLibPath,

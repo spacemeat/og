@@ -1,4 +1,4 @@
-@{ type: engineConfig }
+@{ type: deviceConfig }
 {
     version: 0.0.1
 

@@ -15,7 +15,7 @@ namespace og
         {
             app.emplace(std::string {appConfigPath});
             l.emplace(std::string {app->get_config().get_loggerConfigPath()});
-            e.emplace(std::string {app->get_config().get_engineConfigPath()});
+            e.emplace(std::string {app->get_config().get_deviceConfigPath()});
         }
 
         ~makeGlobOpts()
