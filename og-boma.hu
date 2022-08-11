@@ -103,8 +103,8 @@
                 version: stringView
                 loggerConfigPath: { type: string }
                 deviceConfigPath: { type: string }
-                providerAliasesPaths: { type: vector of: string }
-                builtinAbilitiesPaths: { type: vector of: string }
+                providerAliasesPath: string
+                builtinsPaths: { type: vector of: string }
                 abilitiesPaths: { type: vector of: string }
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
                 works: { type: vector of: workUnit }
@@ -137,22 +137,25 @@
             }
             deviceConfig: {
                 version: stringView
+                minVulkanVersion: { type: stringView default: 1.0 }
+                maxVulkanVersion: { type: stringView default: 1.3 }
                 vkInstanceProfileGroups: { type: vector of: vkInstanceProfileGroup }
                 useInstanceProfileGroup: stringView
-                sharedInstanceCriteria: { type: optional of: instanceCriteria }
+                sharedInstanceCriteria: { type: optional of: universalCriteria }
                 vkDeviceProfileGroups: { type: vector of: physicalVkDeviceProfileGroup }
             }
             vkInstanceProfileGroup: {
                 name: stringView
-                profiles: { type: vector of: instanceCriteria }
-                sharedCriteria: { type: optional of: instanceCriteria }
+                usingLayers: { type: bool default: true }
+                sharedCriteria: { type: optional of: universalCriteria }
+                profiles: { type: vector of: universalCriteria }
                 debugUtilsMessengers: { type: vector of: debugUtilsMessenger_t }
                 validationFeatures: { type: optional of: validationFeatures_t }
             }
             physicalVkDeviceProfileGroup: {
                 name: stringView
-                profiles: { type: vector of: deviceCriteria }
-                sharedCriteria: { type: optional of: deviceCriteria }
+                sharedCriteria: { type: optional of: universalCriteria }
+                profiles: { type: vector of: universalCriteria }
                 queueVillageProfiles: { type: vector of: queueVillageProfile }
             }
             queueVillageProfile: {
@@ -160,7 +163,7 @@
                 queueVillage: { type: vector of: queueFamilyAttributes }
             }
             queueFamilyAttributes: {
-                criteria: { type: optional of: queueFamilyCriteria }
+                criteria: { type: optional of: universalCriteria }
                 flags: { type: VkDeviceQueueCreateFlagBits default: 0 }
                 priorities: { type: vector of: float }
                 maxQueueCount: uint32_t
@@ -174,33 +177,42 @@
         deserializeFrom: [humon]
         types: {
             providerAliases_t: {
-                providerAliases: { type: unorderedMap of: [stringView, { type: vector of: providerAlias } ] }
+                providerAliases: { type: unorderedMap of: [stringView, { type: vector of: providerAlias_t }] }
             }
-            providerAlias: {
-                vulkanVersion: stringView
+            providerAlias_t: {
+                vulkanVersion: { type: stringView }
                 features: { type: optional of: stringView }
                 properties: { type: optional of: stringView }
                 queueFamilyProperties: { type: optional of: stringView }
             }
-            builtinAbilities_t: {
-                builtinAbilities: { type: unorderedMap of: [stringView, builtinAbility] }
+            builtinsGroups_t: {
+                builtinsGroups: { type: unorderedMap of: [stringView, builtins_t] }
             }
-            builtinAbility: {
+            builtins_t: {
+                include: { type: vector of: stringView }
+                builtins: { type: unorderedMap of: [stringView, builtin_t] }
+            }
+            builtin_t: {
                 name: stringView
                 enabled: { type: bool default: true }
                 profiles: { type: vector of: universalCriteria }
             }
-            abilities_t: {
-                abilities: { type: unorderedMap of: [stringView, ability] }
+            abilitiesGroups_t: {
+                abilitiesGroups: { type: unorderedMap of: [stringView, abilities_t] }
             }
-            ability: {
-                profiles: { type: vector of: abilityProfile }
+            abilities_t: {
+                include: { type: vector of: stringView }
+                abilities: { type: unorderedMap of: [stringView, ability_t] }
+            }
+            ability_t: {
+                profiles: { type: vector of: abilityProfile_t }
                 query: { type: optional of: stringView }
                 enabled: { type: bool default: true }
             }
-            abilityProfile: {
+            abilityProfile_t: {
                 name: stringView
                 query: stringView
+                enabled: { type: bool default: true }
             }
         }
     }
@@ -213,6 +225,17 @@
 
         enumFlags: false
 
+        --criteriaEnums: {
+            namespace: og.vkRequirements
+            enumFlags: true
+            enums: {
+                criteriaKinds: [abilities, desiredAbilities, vulkanVersion, extensions,
+                                desiredExtensions, layers, desiredLayers, deviceExtensions,
+                                desiredDeviceExtensions, queueTypesIncluded, queueTypesExcluded,
+                                features, desiredFeatures, properties, queueFamilyProperties]
+            }
+        }
+
         enums: {
             reqOperator: [in, nin, eq, ne, lt, gt, le, ge, has, hasnot]
         }
@@ -221,6 +244,7 @@
                 name: stringView
                 enabled: { type: bool default: true }
                 abilities: { type: vector of: stringView }
+                desiredAbilities: { type: vector of: stringView }
                 vulkanVersion: { type: optional of: stringView }
                 extensions: { type: vector of: stringView }
                 desiredExtensions: { type: vector of: stringView }
@@ -232,36 +256,6 @@
                 queueTypesExcluded: { type: optional of: VkQueueFlagBits }
                 features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
                 desiredFeatures: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
-                properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
-                queueFamilyProperties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
-            }
-            instanceCriteria: {
-                name: stringView
-                enabled: { type: bool default: true }
-                vulkanVersion: { type: optional of: stringView }
-                extensions: { type: vector of: stringView }
-                desiredExtensions: { type: vector of: stringView }
-                layers: { type: vector of: stringView }
-                desiredLayers: { type: vector of: stringView }
-            }
-            deviceCriteria: {
-                name: stringView
-                enabled: { type: bool default: true }
-                vulkanVersion: { type: optional of: stringView }
-                extensions: { type: vector of: stringView }
-                layers: { type: vector of: stringView }
-                deviceExtensions: { type: vector of: stringView }
-                desiredDeviceExtensions: { type: vector of: stringView }
-                queueTypesIncluded: { type: optional of: VkQueueFlagBits }
-                queueTypesExcluded: { type: optional of: VkQueueFlagBits }
-                features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
-                desiredFeatures: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
-                properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
-            }
-            queueFamilyCriteria: {
-                name: stringView
-                enabled: { type: bool default: true }
-                features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
                 properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
                 queueFamilyProperties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
             }

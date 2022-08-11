@@ -6,7 +6,7 @@
     loggerConfigPath: loggers.hu
     deviceConfigPath: device.hu
 
-    providerAliasesPaths: [providerAliases.hu]
+    providerAliasesPath: providerAliases.hu
     builtinAbilitiesPaths: [builtinAbilities.hu]
     abilitiesPaths: [abilities.hu]
 

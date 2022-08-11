@@ -2,10 +2,19 @@
 {
     version: 0.0.1
 
+    maxVulkanVersion: 1.3
+
     // We'll use the first profile that passes requiremetns
     // in the desired group.
+    instanceBuiltinInclude: [allDevices]
+    instanceInclude: [graphicsAbilities computeAbilities]
+    sharedInstanceCriteria: { abilities: [appSpecific-graphics appSpecific-compute] }
     vkInstanceProfileGroups: [ {
             name: debug
+            usingLayers: true
+            sharedCriteria: {
+                abilities: [debug]
+            }
             profiles: [ {
                     name: v1.3
                     vulkanVersion: 1.3
@@ -18,22 +27,8 @@
                 }, {
                     name: v1.0
                     vulkanVersion: 1.0
-                    extensions: [
-                        VK_KHR_get_physical_device_properties2
-                    ]
                 }
             ]
-            sharedCriteria: {
-                extensions: [
-                    VK_EXT_debug_utils
-                ]
-                layers: [
-                    VK_LAYER_KHRONOS_synchronization2
-                ]
-                desiredLayers: [
-                    VK_LAYER_KHRONOS_validation
-                ]
-            }
             debugUtilsMessengers: [{
                     severity: [verbose_bit, info_bit, warning_bit, error_bit]
                     type: [general_bit, validation_bit, performance_bit]
@@ -47,6 +42,9 @@
             }
         }, {
             name: release
+            usingLayers: false
+            sharedCriteria: {
+            }
             profiles: [ {
                     name: v1.3
                     vulkanVersion: 1.3
@@ -59,70 +57,43 @@
                 }, {
                     name: v1.0
                     vulkanVersion: 1.0
-                    extensions: [
-                        VK_KHR_get_physical_device_properties2
-                    ]
                 }
             ]
-            sharedCriteria: {
-                layers: [
-                    VK_LAYER_KHRONOS_synchronization2
-                ]
-            }
         }
     ]
-
     // selects which above profile group to use
     useInstanceProfileGroup: debug
-    sharedInstanceCriteria: { extensions: [VK_KHR_surface] }
 
     vkDeviceProfileGroups: [ {
             name: graphicsDevices
+            builtinInclude: [allDevices]
+            include: [graphicsAbilities]
+            sharedCriteria: {
+                abilities: [appSpecific-graphics]
+                builtinAbilities: [allDevices]
+            }
             profiles: [ {
                     name: baller
-                    //enabled: true
-                    vulkanVersion: 1.3
-                    queueTypesIncluded: [compute_bit graphics_bit]
-                    features: {
-                        vulkan_1_1: [multiview]
-                    }
+                    // weird example
                     properties: {
-                        vulkan_1_0: [[deviceType eq discrete_gpu]
-                                        [limits_maxImageDimension2D ge 8192]
-                                        [limits_maxComputeWorkGroupCount_0 gt 0]
-                                        [limits_maxComputeWorkGroupCount_1 gt 0]
-                                        [limits_maxComputeWorkGroupCount_2 gt 0]
-                                    ]
-                        vulkan_1_1: [[maxMultiviewViewCount ge 2]]
-                    }
-                    desiredFeatures: {
-                            global_priority_query: [[globalPriorityQuery]]
+                        core: [[deviceType eq discrete_gpu]
+                               [limits_maxImageDimension2D ge 8192]
+                               [limits_maxComputeWorkGroupCount_0 gt 0]
+                               [limits_maxComputeWorkGroupCount_1 gt 0]
+                               [limits_maxComputeWorkGroupCount_2 gt 0]
+                        ]
                     }
                 }, {
-                    name: highPerf
-                    vulkanVersion: 1.3
-                    queueTypesIncluded: [compute_bit graphics_bit]
-                    properties: {
-                        vulkan_1_0: [[deviceType eq discrete_gpu]]
-                    }
+                    name: ish
+                    properties: { core: [[deviceType eq integrated_gpu]] }
                 }, {
-                    name: highPerf-1.2
-                    vulkanVersion: 1.2
-                    deviceExtensions: [VK_KHR_synchronization2]
-                    queueTypesIncluded: [compute_bit graphics_bit]
-                    properties: {
-                        vulkan_1_0: [[deviceType eq discrete_gpu]]
-                    }
+                    name: goodLuck
+                    properties: { core: [[deviceType eq virtual_gpu]] }
                 }, {
                     name: feeb
                     vulkanVersion: 1.0
-                    deviceExtensions: [VK_KHR_synchronization2]
-                    queueTypesIncluded: [compute_bit graphics_bit]
                 }
             ]
-            sharedCriteria: {
-                deviceExtensions: [VK_KHR_swapchain]
-            }
 
             /* Each group specs a combination of queue families. The first group that
                matches the available queue family types and queue counts is selected.
@@ -145,15 +116,12 @@
                     // these come order-independent
                     queueVillage: [ {
                             criteria: {
-                                features: {
-                                    global_priority_query: [globalPriorityQuery]
-                                }
+                                abilities: [globalPriority]
                                 queueFamilyProperties: {
-                                    vulkan_1_0: [[queueFlags has grphics_bit]
-                                                 [queueFlags has compute_bit]
-                                                 [queueCount ge 1]]
-                                    //query_result_status: [[queryResultStatusSupport eq true]]
-                                    global_priority: [[priorityCount ge 2]]
+                                    core: [[queueFlags has grphics_bit]
+                                           [queueFlags has compute_bit]
+                                           [queueCount ge 1]]
+                                    globalPriority: [[priorityCount ge 2]]
                                 }
                             }
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
@@ -283,22 +251,22 @@
             ]
         }, {
             name: computeDevices
+            builtinInclude: [allDevices]
+            include [computeAbilities]
+            sharedCriteria: {
+                abilities: [appSpecific-compute]
+                builtinAbilities: [allDevices]
+            }
             profiles: [ {
                     name: computeOnly
-                    queueTypesIncluded: [compute_bit]
                     queueTypesExcluded: [graphics_bit]
-                    properties: {
-                        vulkan_1_0: [[deviceType eq discrete_gpu]]
-                    }
+                    properties: { core: [[deviceType eq discrete_gpu]] }
                 }, {
                     name: highPerfGraphics
-                    queueTypesIncluded: [compute_bit graphics_bit]
-                    properties: {
-                        vulkan_1_0: [[deviceType eq discrete_gpu]]
-                    }
+                    queueTypesIncluded: [graphics_bit]
+                    properties: { core: [[deviceType eq discrete_gpu]] }
                 }, {
                     name: any
-                    queueTypesIncluded: [compute_bit]
                 }
             ]
             queueVillageProfiles: [ {

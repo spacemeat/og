@@ -1,6 +1,8 @@
 #include "../inc/engine.hpp"
 #include "../../logger/inc/logger.hpp"
 #include "../inc/app.hpp"
+#include "../../abilities/inc/abilityResolver.hpp"
+
 
 template <class T>
 auto toNum(T t) { return static_cast<std::underlying_type_t<T>>(t); }
@@ -68,9 +70,9 @@ namespace og
 {
     void Engine::initVkInstance()
     {
-        auto const & appConfig = app->get_config();
-        std::string_view appName = appConfig.get_name();
-        auto appVersion = version_t { appConfig.get_version() };
+        auto const & appConfig_c = app->get_config();
+        std::string_view appName_c = appConfig_c.get_name();
+        auto appVersion_c = version_t { appConfig_c.get_version() };
 
         uint32_t vulkanVersion = 0;
         VKR(vkEnumerateInstanceVersion(& vulkanVersion));
@@ -108,95 +110,123 @@ namespace og
         }
 
         // get best vkInstance profile in requested group
-        auto const & groupName = config.get_useInstanceProfileGroup();
-        auto const & profileGroups = config.get_vkInstanceProfileGroups();
-        auto pgit = std::find_if(begin(profileGroups), end(profileGroups),
-            [& groupName](auto && elem) { return elem.get_name() == groupName; } );
+        auto const & groupName_c = config.get_useInstanceProfileGroup();
+        auto const & profileGroups_c = config.get_vkInstanceProfileGroups();
+        auto pgit_c = std::find_if(begin(profileGroups_c), end(profileGroups_c),
+            [& groupName_c](auto && elem_c) { return elem_c.get_name() == groupName_c; } );
 
-        if (pgit == end(profileGroups))
-            { throw Ex(fmt::format("Could not find a vkInstance profile group named '{}'", groupName)); }
+        if (pgit_c == end(profileGroups_c))
+            { throw Ex(fmt::format("Could not find a vkInstance profile group named '{}'", groupName_c)); }
 
-        auto const & profileGroup = * pgit;
-        auto const & profiles = profileGroup.get_profiles();
-        int profileIdx = -1;
-        for (int i = 0; i < profiles.size(); ++i)
+        auto const & profileGroup_c = * pgit_c;
+        auto const & profiles_c = profileGroup_c.get_profiles();
+        int selectedProfileIdx = -1;
+
+        auto requireExtsAndLayers = [&](og::vkRequirements::universalCriteria const & criteria_c) -> bool
         {
-            auto const & profile = profiles[i];
-
-            // test profile criteria against version, inst exts, and layers
-            bool noGood = false;
-
             // NOTE: these will check against AVAILABLE extensions, layers, etc.
-            auto const & vulkanVersion = profile.get_vulkanVersion();
-            if (vulkanVersion.has_value())
+
+            // TODO NEXT: turn abilities into criteria.
+
+            auto const & vulkanVersion_c = criteria_c.get_vulkanVersion();
+            if (vulkanVersion_c.has_value())
             {
-                if (checkVulkan(* vulkanVersion) == false)
-                    { noGood = true; log("Vulkan version {} reqirement not met."); break; }
+                if (checkVulkan(* vulkanVersion_c) == false)
+                    { log("Vulkan version {} reqirement not met."); return false; }
             }
 
-            auto const & extensions = profile.get_extensions();
-            for (auto const & extension : extensions)
+            auto const & extensions_c = criteria_c.get_extensions();
+            for (auto const & extension_c : extensions_c)
             {
-                if (checkExtension(extension) == false)
-                    { noGood = true; log(fmt::format("Extension {} reqirement not met.", extension)); break; }
+                if (checkExtension(extension_c) == false)
+                    { log(fmt::format("Extension {} reqirement not met.", extension_c)); return false; }
             }
 
-            auto const & layers = profile.get_layers();
-            for (auto const & layer : layers)
+            auto const & layers_c = criteria_c.get_layers();
+            for (auto const & layer_c : layers_c)
             {
-                if (checkLayer(layer) == false)
-                    { noGood = true; log(fmt::format("Layer {} reqirement not met.", layer)); break; }
+                if (checkLayer(layer_c) == false)
+                    { log(fmt::format("Layer {} reqirement not met.", layer_c)); return false; }
             }
 
-            if (noGood == false)
+            return true;
+        };
+
+        og::abilities::providerAliases_t const & aliases = ;
+
+        AbilityResolver ar(& aliases);
+
+        bool okay = true;
+
+        auto const & globalCriteria_c = config.get_sharedInstanceCriteria();
+        if (globalCriteria_c.has_value())
+        {
+            if (requireExtsAndLayers(* globalCriteria_c) == false)
+                { okay = false; }
+        }
+
+
+        if (auto const & crit = profileGroup_c.get_sharedCriteria();
+            okay && crit.has_value())
+        {
+            if (requireExtsAndLayers(* crit) == false)
+                { okay = false; }
+        }
+
+        if (okay)
+        {
+            for (int profileIdx_c = 0; profileIdx_c < profiles_c.size(); ++profileIdx_c)
             {
-                profileIdx = i;
-                break;
+                auto const & profile_c = profiles_c[profileIdx_c];
+
+                // test profile criteria against version, inst exts, and layers
+                okay = true;
+                if (requireExtsAndLayers(profile_c) == true)
+                    { selectedProfileIdx = profileIdx_c; break; }
             }
         }
 
-        if (profileIdx < 0)
-            { throw Ex(fmt::format("Unable to meet selection criteria for any vkInstance profile in {}.", groupName)); }
+        if (selectedProfileIdx < 0)
+            { throw Ex(fmt::format("Unable to meet selection criteria for any vkInstance profile in {}.", groupName_c)); }
 
-        auto const & profile = profiles[profileIdx];
-        auto const & globalCriteria = config.get_sharedInstanceCriteria();
-        auto const & groupCriteria = pgit->get_sharedCriteria();
+        auto const & profile_c = profiles_c[selectedProfileIdx];
+        auto const & groupCriteria_c = pgit_c->get_sharedCriteria();
 
-        auto const & vulkanVersionStr = profile.get_vulkanVersion();
-        auto vkVersion = vulkanVersionStr.has_value()
-                       ? version_t {* vulkanVersionStr}.bits
+        auto const & vulkanVersionStr_c = profile_c.get_vulkanVersion();
+        auto vkVersion = vulkanVersionStr_c.has_value()
+                       ? version_t {* vulkanVersionStr_c}.bits
                        : VK_API_VERSION_1_3;
 
         std::vector<char const *> requiredExtensions;
         std::vector<char const *> requiredLayers;
 
-        auto requireExtsAndLayers = [&](og::vkRequirements::instanceCriteria const & criteria)
+        auto requireDesireExtsAndLayers = [&](og::vkRequirements::universalCriteria const & criteria_c)
         {
-            for (auto const & extension : criteria.get_extensions())
+            for (auto const & extension_c : criteria_c.get_extensions())
             {
                 auto it = std::find_if(begin(availableExtensions), end(availableExtensions),
-                    [& extension](auto && ae){ return extension == ae.extensionName; } );
+                    [& extension_c](auto && ae){ return extension_c == ae.extensionName; } );
                 if (it != end(availableExtensions))
                     { requiredExtensions.push_back(it->extensionName); }
             }
-            for (auto const & extension : criteria.get_desiredExtensions())
+            for (auto const & extension_c : criteria_c.get_desiredExtensions())
             {
                 auto it = std::find_if(begin(availableExtensions), end(availableExtensions),
-                    [& extension](auto && ae){ return extension == ae.extensionName; } );
+                    [& extension_c](auto && ae){ return extension_c == ae.extensionName; } );
                 if (it != end(availableExtensions))
                     { requiredExtensions.push_back(it->extensionName); }
             }
-            for (auto const & layer : criteria.get_layers())
+            for (auto const & layer_c : criteria_c.get_layers())
             {
                 auto it = std::find_if(begin(availableLayers), end(availableLayers),
-                    [& layer](auto && ae){ return layer == ae.layerName; } );
+                    [& layer_c](auto && ae){ return layer_c == ae.layerName; } );
                 if (it != end(availableLayers))
                     { requiredLayers.push_back(it->layerName); }
             }
-            for (auto const & layer : criteria.get_desiredLayers())
+            for (auto const & layer_c : criteria_c.get_desiredLayers())
             {
                 auto it = std::find_if(begin(availableLayers), end(availableLayers),
-                    [& layer](auto && ae){ return layer == ae.layerName; } );
+                    [& layer_c](auto && ae){ return layer_c == ae.layerName; } );
                 if (it != end(availableLayers))
                     { requiredLayers.push_back(it->layerName); }
             }
@@ -208,13 +238,13 @@ namespace og
             requiredExtensions.push_back(glfwExts[i]);
         }
 
-        if (globalCriteria.has_value())
-            { requireExtsAndLayers(* globalCriteria); }
+        if (globalCriteria_c.has_value())
+            { requireDesireExtsAndLayers(* globalCriteria_c); }
 
-        if (groupCriteria.has_value())
-            { requireExtsAndLayers(* groupCriteria); }
+        if (groupCriteria_c.has_value())
+            { requireDesireExtsAndLayers(* groupCriteria_c); }
 
-        requireExtsAndLayers(profile);
+        requireDesireExtsAndLayers(profile_c);
 
         for (auto & re : requiredExtensions)
             { log(fmt::format("using extension: {}", re)); }
@@ -224,11 +254,11 @@ namespace og
 
         void * createInfo_pNext = nullptr;
         // debug messengers specifically for vkCreateInstance/vkDestroyInstance
-        std::vector<VkDebugUtilsMessengerCreateInfoEXT> dbgMsgrs(profileGroup.get_debugUtilsMessengers().size());
+        std::vector<VkDebugUtilsMessengerCreateInfoEXT> dbgMsgrs(profileGroup_c.get_debugUtilsMessengers().size());
         for (int i = 0; i < dbgMsgrs.size(); ++i)
         {
-            auto const & cfg = profileGroup.get_debugUtilsMessengers()[i];
-            dbgMsgrs[i] = std::move(makeDebugMessengerCreateInfo(cfg));
+            auto const & cfg_c = profileGroup_c.get_debugUtilsMessengers()[i];
+            dbgMsgrs[i] = std::move(makeDebugMessengerCreateInfo(cfg_c));
             dbgMsgrs[i].pNext = nullptr;
             if (i > 0)
                 { dbgMsgrs[i - 1].pNext = & dbgMsgrs[i]; }
@@ -237,25 +267,25 @@ namespace og
             { createInfo_pNext = & dbgMsgrs[0]; }
 
         std::optional<VkValidationFeaturesEXT> valFeats;
-        auto const & valFeatCfg = profileGroup.get_validationFeatures();
-        if (valFeatCfg.has_value())
+        auto const & valFeatCfg_c = profileGroup_c.get_validationFeatures();
+        if (valFeatCfg_c.has_value())
         {
             valFeats = VkValidationFeaturesEXT {
                 .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
                 .pNext = createInfo_pNext,
-                .enabledValidationFeatureCount = static_cast<uint32_t>(valFeatCfg->get_enabled().size()),
-                .pEnabledValidationFeatures = valFeatCfg->get_enabled().data(),
-                .disabledValidationFeatureCount = static_cast<uint32_t>(valFeatCfg->get_disabled().size()),
-                .pDisabledValidationFeatures = valFeatCfg->get_disabled().data()
+                .enabledValidationFeatureCount = static_cast<uint32_t>(valFeatCfg_c->get_enabled().size()),
+                .pEnabledValidationFeatures = valFeatCfg_c->get_enabled().data(),
+                .disabledValidationFeatureCount = static_cast<uint32_t>(valFeatCfg_c->get_disabled().size()),
+                .pDisabledValidationFeatures = valFeatCfg_c->get_disabled().data()
             };
             createInfo_pNext = & (* valFeats);
         }
 
         VkApplicationInfo vai {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pApplicationName = appName.data(),
+            .pApplicationName = appName_c.data(),
             .applicationVersion = VK_MAKE_API_VERSION(
-                0, appVersion.major(), appVersion.minor(), appVersion.patch()),
+                0, appVersion_c.major(), appVersion_c.minor(), appVersion_c.patch()),
             .pEngineName = "overground",
             .engineVersion = VK_MAKE_API_VERSION(
                 0, Engine::version[0], Engine::version[1], Engine::version[2]

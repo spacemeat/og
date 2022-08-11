@@ -664,7 +664,9 @@ namespace og
         requireExtsAndLayersEtc(profile_c);
 
         createdCapabilities.queueFamilies = std::move(suitability.queueFamilies);
+        suitability.queueFamilies.clear();
         createdCapabilities.queueFamilyComposition = std::move(suitability.queueFamilyComposition);
+        suitability.queueFamilyComposition = {};
 
         log(". using device extensions: ");
         for (auto & re : requiredDeviceExtensions)

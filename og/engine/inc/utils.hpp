@@ -32,3 +32,15 @@ namespace og
     bool operator >(version_t lhs, version_t rhs);
     bool operator >=(version_t lhs, version_t rhs);
 }
+
+namespace hu
+{
+    template<>
+    struct val<og::version_t>
+    {
+        static inline og::version_t extract(const Node & node)
+        {
+            return og::version_t(node.value().str());
+        }
+    };
+}

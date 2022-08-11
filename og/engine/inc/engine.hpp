@@ -9,6 +9,8 @@
 #include <GLFW/glfw3.h>
 
 #include "../../gen/inc/og.hpp"
+#include "../../abilities/gen/inc/abilities_t.hpp"
+#include "../../abilities/inc/providerAliasResolver.hpp"
 #include "except.hpp"
 #include "utils.hpp"
 #include "vkPhysDevice.hpp"
@@ -93,6 +95,8 @@ namespace og
         engine::deviceConfig config;
         hu::Trove appConfigTrove;
         engine::appConfig appConfig;
+
+        ProviderAliasResolver providerAliasResolver;
 
         std::vector<hu::Trove> abilitiesTroves;
         std::unordered_map<std::string_view, abilities::providerAlias> providerAliases;

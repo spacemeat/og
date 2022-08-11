@@ -1,11 +1,86 @@
-@{ type: abilities_t }
+@{ type: abilitiesGroups_t }
 {
-    abilities: {
-        multiview: {
-            enabled: true
-            profiles: [ { name: core query: 'multiview >= core'}
-                        { name: ext query: 'multiview'}
-            ]
+    sharedAbilities: {
+        abilities: {
+            debug: {
+                profiles: [ {
+                        extensions: [
+                            VK_EXT_debug_utils
+                        ]
+                        desiredLayers: [
+                            VK_LAYER_KHRONOS_validation
+                        ]
+                    }
+                ]
+            }
+            compute: {
+                sharedCriteria: {
+                    abilities: []
+                    queueTypesIncluded: [compute_bit]
+                }
+                profiles: [ {
+                        name: ok
+                    }
+                ]
+            }
+            graphics: {
+                sharedCriteria: {
+                    abilities: []
+                    queueTypesIncluded: [graphics_bit]
+                }
+                profiles: [ {
+                        name: ok
+                    }
+                ]
+            }
+        }
+    }
+
+    graphicsAbilities: {
+        include: [sharedAbilities]
+        abilities: {
+            // This would notmally be in an app's specific abilities.hu
+            appSpecific-graphics: {
+                profiles: [ {
+                        abilities: [graphics, swapchain]
+                        desiredAbilities: [synchronization2, multiview]
+                        queueTypesIncluded: [compute_bit]
+                    }
+                ]
+            }
+            multiview: {
+                enabled: true
+                sharedCriteria: { features: [multiview] }
+                profiles: [ {
+                        name: 2+2
+                        properties: {
+                            multiview: [[maxMultiviewViewCount ge 4]]
+                        }
+                    } {
+                        name: 2+1
+                        properties: {
+                            multiview: [[maxMultiviewViewCount eq 3]]
+                        }
+                    } {
+                        name: 2
+                        properties: {
+                            multiview: [[maxMultiviewViewCount eq 2]]
+                        }
+                    }
+                ]
+            }
+        }
+    }
+
+    computeAbilities: {
+        include: [sharedAbilities]
+        abilities: {
+            appSpecific-compute: {
+                profiles: [ {
+                        abilities: [compute]
+                    }
+                ]
+            }
         }
     }
 }
