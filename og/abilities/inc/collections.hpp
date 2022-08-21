@@ -3,48 +3,54 @@
 #include <vector>
 #include <unordered_map>
 #include "../gen/inc/vkChainStructs.hpp"
-#include "../../vkRequirements/gen/inc/universalCriteria.hpp"
-#include "../../abilities/gen/inc/builtinsGroups_t.hpp"
+#include "../../abilities/gen/inc/universalCriteria.hpp"
+#include "../../abilities/gen/inc/abilityLibrary_t.hpp"
 #include "../inc/providerAliasResolver.hpp"
 #include "vkPhysDevice.hpp"
 
 namespace og
 {
-    template<class BaGroup_t, class BuiltinAbilities_t>
-    class BuiltinAbilityCollection
+    class AbilityCollection
     {
-        using crit = vkRequirements::universalCriteria;
-        using critKinds = vkRequirements::criteriaKinds;
+        using crit = abilities::universalCriteria;
+        using critKinds = abilities::criteriaKinds;
 
     public:
-        using baGroup_t = BaGroup_t;
-        using bas_t = BuiltinAbilities_t;
 
-        BuiltinAbilityCollection(std::vector<std::string> const & paths)
+        void loadCollectionFiles(std::vector<std::string> const & paths)
         {
             for (auto const & path : paths)
             {
-                auto tr = hu::Trove::fromFile(path, {hu::Encoding::utf8}, hu::ErrorResponse::stderrAnsiColor);
-                if (auto t = std::get_if<hu::Trove>(& tr))
-                {
-                    troves.push_back(std::move(* t));
-                    auto bas_c = BuiltinCollection::baGroup_t { troves.rbegin()->root() };
-                    groups_c.merge(std::move(bas_c.get_builtinsGroups()));
-                }
-                else
-                {
-                    throw Ex(fmt::format("Could not load collection at {}.", path));
-                }
+                loadCollectionFile(path);
             }
         }
 
-        BuiltinAbilities_t const & getGroup(std::string_view group) const { return groups_c[group]; }
+        void loadCollectionFile(std::string const & path)
+        {
+            auto tr = hu::Trove::fromFile(path, {hu::Encoding::utf8}, hu::ErrorResponse::stderrAnsiColor);
+            if (auto t = std::get_if<hu::Trove>(& tr))
+            {
+                troves.push_back(std::move(* t));
+                auto bas_c = abilities::abilityCollection_t { troves.rbegin()->root() };
+                for (auto const & [libName, lib] : bas_c.get_abilityLibraries())
+                {
+                    libraries_c[libName] = std::move(lib);
+                }
+            }
+            else
+            {
+                throw Ex(fmt::format("Could not load library at {}.", path));
+            }
+        }
+
+        abilities::abilityLibrary_t const & getLibrary(std::string_view libraryName) const
+        {
+            //return libraries_c[libraryName];
+            return libraries_c.find(libraryName)->second;
+        }
 
     private:
         std::vector<hu::Trove> troves;
-        std::unordered_map<std::string_view, BuiltinAbilities_t> groups_c;
+        std::unordered_map<std::string_view, abilities::abilityLibrary_t> libraries_c;
     };
-
-    typedef BuiltinAbilityCollection<abilities::builtinsGroups_t, abilities::builtins_t>        BuiltinCollection;
-    typedef BuiltinAbilityCollection<abilities::abilitiesGroups_t, abilities::abilities_t>      AbilityCollection;
 }

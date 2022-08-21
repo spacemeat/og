@@ -4,11 +4,6 @@
 #include "../../abilities/inc/abilityResolver.hpp"
 
 
-template <class T>
-auto toNum(T t) { return static_cast<std::underlying_type_t<T>>(t); }
-
-template <class T>
-auto toEnum(std::underlying_type_t<T> n) { return static_cast<T>(n); }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -16,33 +11,33 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     const VkDebugUtilsMessengerCallbackDataEXT * pCallbackData,
     void * pUserData)
 {
-    auto logTags = toNum(og::logger::logTags::vulkan) |
-                   toNum(og::logger::logTags::validation);
+    auto logTags = og::enumToNum(og::logger::logTags::vulkan) |
+                   og::enumToNum(og::logger::logTags::validation);
     if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
-        { logTags |= toNum(og::logger::logTags::verbose); }
+        { logTags |= og::enumToNum(og::logger::logTags::verbose); }
     if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-        { logTags |= toNum(og::logger::logTags::info); }
+        { logTags |= og::enumToNum(og::logger::logTags::info); }
     if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-        { logTags |= toNum(og::logger::logTags::warn); }
+        { logTags |= og::enumToNum(og::logger::logTags::warn); }
     if (messageSeverity & VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-        { logTags |= toNum(og::logger::logTags::error); }
+        { logTags |= og::enumToNum(og::logger::logTags::error); }
 
     if (messageType & VkDebugUtilsMessageTypeFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)
-        { logTags |= toNum(og::logger::logTags::general); }
+        { logTags |= og::enumToNum(og::logger::logTags::general); }
     if (messageType & VkDebugUtilsMessageTypeFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
-        { logTags |= toNum(og::logger::logTags::validation); }
+        { logTags |= og::enumToNum(og::logger::logTags::validation); }
     if (messageType & VkDebugUtilsMessageTypeFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
-        { logTags |= toNum(og::logger::logTags::performance); }
+        { logTags |= og::enumToNum(og::logger::logTags::performance); }
 
     if (pCallbackData->messageIdNumber != 0)
     {
-        og::log(toEnum<og::logger::logTags>(logTags), fmt::format("Vk: {} #{}: {}",
+        og::log(og::numToEnum<og::logger::logTags>(logTags), fmt::format("Vk: {} #{}: {}",
             pCallbackData->pMessageIdName, pCallbackData->messageIdNumber,
             pCallbackData->pMessage));
     }
     else
     {
-        og::log(toEnum<og::logger::logTags>(logTags), fmt::format("Vk: {}: {}",
+        og::log(og::numToEnum<og::logger::logTags>(logTags), fmt::format("Vk: {}: {}",
             pCallbackData->pMessageIdName, pCallbackData->pMessage));
     }
     // TODO: labels in queues and command buffers, and objects
@@ -52,7 +47,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
 
 static VkDebugUtilsMessengerCreateInfoEXT makeDebugMessengerCreateInfo(
-    og::vkRequirements::debugUtilsMessenger_t const & cfg)
+    og::abilities::debugUtilsMessenger_t const & cfg)
 {
     return VkDebugUtilsMessengerCreateInfoEXT
     {
@@ -68,7 +63,7 @@ static VkDebugUtilsMessengerCreateInfoEXT makeDebugMessengerCreateInfo(
 
 namespace og
 {
-    void Engine::initVkInstance()
+    void DeviceCreator::initVkInstance()
     {
         auto const & appConfig_c = app->get_config();
         std::string_view appName_c = appConfig_c.get_name();
@@ -111,7 +106,7 @@ namespace og
 
         // get best vkInstance profile in requested group
         auto const & groupName_c = config.get_useInstanceProfileGroup();
-        auto const & profileGroups_c = config.get_vkInstanceProfileGroups();
+        auto const & profileGroups_c = config.get_instanceProfileGroups();
         auto pgit_c = std::find_if(begin(profileGroups_c), end(profileGroups_c),
             [& groupName_c](auto && elem_c) { return elem_c.get_name() == groupName_c; } );
 
@@ -122,7 +117,7 @@ namespace og
         auto const & profiles_c = profileGroup_c.get_profiles();
         int selectedProfileIdx = -1;
 
-        auto requireExtsAndLayers = [&](og::vkRequirements::universalCriteria const & criteria_c) -> bool
+        auto requireExtsAndLayers = [&](og::abilities::universalCriteria const & criteria_c) -> bool
         {
             // NOTE: these will check against AVAILABLE extensions, layers, etc.
 
@@ -152,35 +147,47 @@ namespace og
             return true;
         };
 
-        og::abilities::providerAliases_t const & aliases = ;
+        bool ok = true;
+        AbilityResolver ar(aliases, builtins, abilities);
 
-        AbilityResolver ar(& aliases);
+        for (auto const & inc : config.get_instanceBuiltinInclude())
+            { ar.builtinInclude(inc); }
 
-        bool okay = true;
+        for (auto const & inc : config.get_instanceInclude())
+            { ar.include(inc); }
 
         auto const & globalCriteria_c = config.get_sharedInstanceCriteria();
         if (globalCriteria_c.has_value())
         {
             if (requireExtsAndLayers(* globalCriteria_c) == false)
-                { okay = false; }
+                { ok = false; }
         }
 
+        for (auto const & inc : profileGroup_c.get_builtinInclude())
+            { ar.builtinInclude(inc); }
+
+        for (auto const & inc : profileGroup_c.get_include())
+            { ar.include(inc); }
 
         if (auto const & crit = profileGroup_c.get_sharedCriteria();
-            okay && crit.has_value())
+            ok && crit.has_value())
         {
-            if (requireExtsAndLayers(* crit) == false)
-                { okay = false; }
+            if (ar.forEachProfleGroup(profileGroup_c.get_name(), profileGroup_c, false, requireExtsAndLayers))
+                { ok = false; }
+
+            //if (requireExtsAndLayers(* crit) == false)
+            //    { ok = false; }
         }
 
-        if (okay)
+        if (ok)
         {
             for (int profileIdx_c = 0; profileIdx_c < profiles_c.size(); ++profileIdx_c)
             {
+                auto localAr = ar;
                 auto const & profile_c = profiles_c[profileIdx_c];
 
                 // test profile criteria against version, inst exts, and layers
-                okay = true;
+                ok = true;
                 if (requireExtsAndLayers(profile_c) == true)
                     { selectedProfileIdx = profileIdx_c; break; }
             }
@@ -200,7 +207,7 @@ namespace og
         std::vector<char const *> requiredExtensions;
         std::vector<char const *> requiredLayers;
 
-        auto requireDesireExtsAndLayers = [&](og::vkRequirements::universalCriteria const & criteria_c)
+        auto requireDesireExtsAndLayers = [&](og::abilities::universalCriteria const & criteria_c)
         {
             for (auto const & extension_c : criteria_c.get_extensions())
             {

@@ -104,7 +104,6 @@
                 loggerConfigPath: { type: string }
                 deviceConfigPath: { type: string }
                 providerAliasesPath: string
-                builtinsPaths: { type: vector of: string }
                 abilitiesPaths: { type: vector of: string }
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
                 works: { type: vector of: workUnit }
@@ -135,31 +134,47 @@
                 active: { type: bool default: false }
                 screenFormat: { type: optional of: VkFormat }
             }
+        }
+    }
+
+    --vkDeviceCreator: {
+        namespace: og.vkDeviceCreator
+
+        deserializeFrom: [humon]
+
+        types: {
             deviceConfig: {
                 version: stringView
-                minVulkanVersion: { type: stringView default: 1.0 }
-                maxVulkanVersion: { type: stringView default: 1.3 }
-                vkInstanceProfileGroups: { type: vector of: vkInstanceProfileGroup }
+                minVulkanVersion: { type: stringView default: '"1.0"' }
+                maxVulkanVersion: { type: stringView default: '"1.3"' }
+                instanceBuiltinInclude: { type: vector of: stringView }
+                instanceInclude: { type: vector of: stringView }
+                instanceProfileGroups: { type: vector of: instanceProfileGroup }
                 useInstanceProfileGroup: stringView
                 sharedInstanceCriteria: { type: optional of: universalCriteria }
-                vkDeviceProfileGroups: { type: vector of: physicalVkDeviceProfileGroup }
+                deviceProfileGroups: { type: vector of: physDeviceProfileGroup }
             }
-            vkInstanceProfileGroup: {
+            instanceProfileGroup: {
                 name: stringView
+                enabled: { type: bool default: true }
                 usingLayers: { type: bool default: true }
+                include: { type: vector of: stringView }
                 sharedCriteria: { type: optional of: universalCriteria }
                 profiles: { type: vector of: universalCriteria }
                 debugUtilsMessengers: { type: vector of: debugUtilsMessenger_t }
                 validationFeatures: { type: optional of: validationFeatures_t }
             }
-            physicalVkDeviceProfileGroup: {
+            physDeviceProfileGroup: {
                 name: stringView
+                enabled: { type: bool default: true }
+                include: { type: vector of: stringView }
                 sharedCriteria: { type: optional of: universalCriteria }
                 profiles: { type: vector of: universalCriteria }
                 queueVillageProfiles: { type: vector of: queueVillageProfile }
             }
             queueVillageProfile: {
                 name: stringView
+                enabled: { type: bool default: true }
                 queueVillage: { type: vector of: queueFamilyAttributes }
             }
             queueFamilyAttributes: {
@@ -175,58 +190,10 @@
     --abilities: {
         namespace: og.abilities
         deserializeFrom: [humon]
-        types: {
-            providerAliases_t: {
-                providerAliases: { type: unorderedMap of: [stringView, { type: vector of: providerAlias_t }] }
-            }
-            providerAlias_t: {
-                vulkanVersion: { type: stringView }
-                features: { type: optional of: stringView }
-                properties: { type: optional of: stringView }
-                queueFamilyProperties: { type: optional of: stringView }
-            }
-            builtinsGroups_t: {
-                builtinsGroups: { type: unorderedMap of: [stringView, builtins_t] }
-            }
-            builtins_t: {
-                include: { type: vector of: stringView }
-                builtins: { type: unorderedMap of: [stringView, builtin_t] }
-            }
-            builtin_t: {
-                name: stringView
-                enabled: { type: bool default: true }
-                profiles: { type: vector of: universalCriteria }
-            }
-            abilitiesGroups_t: {
-                abilitiesGroups: { type: unorderedMap of: [stringView, abilities_t] }
-            }
-            abilities_t: {
-                include: { type: vector of: stringView }
-                abilities: { type: unorderedMap of: [stringView, ability_t] }
-            }
-            ability_t: {
-                profiles: { type: vector of: abilityProfile_t }
-                query: { type: optional of: stringView }
-                enabled: { type: bool default: true }
-            }
-            abilityProfile_t: {
-                name: stringView
-                query: stringView
-                enabled: { type: bool default: true }
-            }
-        }
-    }
-
-    --vkRequirements: {
-        namespace: og.vkRequirements
-
-        serializeTo: [humon]
-        deserializeFrom: [humon]
-
         enumFlags: false
 
         --criteriaEnums: {
-            namespace: og.vkRequirements
+            namespace: og.abilities
             enumFlags: true
             enums: {
                 criteriaKinds: [abilities, desiredAbilities, vulkanVersion, extensions,
@@ -237,9 +204,32 @@
         }
 
         enums: {
-            reqOperator: [in, nin, eq, ne, lt, gt, le, ge, has, hasnot]
+            op: [in, nin, eq, ne, lt, gt, le, ge, has, hasnot]
         }
         types: {
+            providerAliases_t: {
+                providerAliases: { type: unorderedMap of: [stringView, { type: vector of: providerAlias_t }] }
+            }
+            providerAlias_t: {
+                vulkanVersion: { type: stringView }
+                features: { type: optional of: stringView }
+                properties: { type: optional of: stringView }
+                queueFamilyProperties: { type: optional of: stringView }
+            }
+            abilityCollection_t: {
+                abilityLibraries: { type: unorderedMap of: [stringView, abilityLibrary_t] }
+            }
+            abilityLibrary_t: {
+                enabled: { type: bool default: true }
+                mutable: { type: bool default: true }
+                include: { type: vector of: stringView }
+                abilities: { type: unorderedMap of: [stringView, abilityProfileGroup_t] }
+            }
+            abilityProfileGroup_t: {
+                enabled: { type: bool default: true }
+                sharedCriteria: universalCriteria
+                profiles: { type: vector of: universalCriteria }
+            }
             universalCriteria: {
                 name: stringView
                 enabled: { type: bool default: true }

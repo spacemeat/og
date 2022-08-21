@@ -4,52 +4,27 @@
 
 namespace og
 {
-    using crit = vkRequirements::universalCriteria;
-    using critKinds = og::vkRequirements::criteriaKinds;
+    using crit = abilities::universalCriteria;
+    using critKinds = og::abilities::criteriaKinds;
 
     AbilityResolver::AbilityResolver(ProviderAliasResolver const & aliasResolver,
-                                     BuiltinCollection const & builtinCollection,
                                      AbilityCollection const & abilityCollection)
     : aliasResolver(aliasResolver),
-      builtinCollection(builtinCollection),
       abilityCollection(abilityCollection)
     {
     }
 
-    void AbilityResolver::builtinInclude(std::string_view groupName)
+    void AbilityResolver::include(std::string_view libraryName)
     {
-        if (std::find(begin(builtinIncludes), end(builtinIncludes), groupName)
-            == end(builtinIncludes))
-        {
-            builtinIncludes.push_back(groupName);
-            auto const & group = builtinCollection.getGroup(groupName);
-            for (auto const & include : group.get_include())
-            {
-                builtinInclude(include);
-            }
-        }
-    }
-
-    void AbilityResolver::abilityInclude(std::string_view groupName)
-    {
-        if (std::find(begin(abilityIncludes), end(abilityIncludes), groupName)
+        if (std::find(begin(abilityIncludes), end(abilityIncludes), libraryName)
             == end(abilityIncludes))
         {
-            abilityIncludes.push_back(groupName);
-            auto const & group = abilityCollection.getGroup(groupName);
+            abilityIncludes.push_back(libraryName);
+            auto const & group = abilityCollection.getLibrary(libraryName);
             for (auto const & include : group.get_include())
             {
-                abilityInclude(include);
+                this->include(include);
             }
-        }
-    }
-
-    void AbilityResolver::addCriteria(crit const & criteria)
-    {
-        for (auto const & ability : criteria.get_abilities())
-        {
-            // TODO HERE: Parse ability into profile query
-            addAbility(ability);
         }
     }
 
@@ -58,30 +33,17 @@ namespace og
         // check for cached value
         if (auto cachedIt = abilities.find(abilityName); cachedIt == abilities.end())
         {
-            for (auto const & groupName : abilityIncludes)
+            for (auto const & libraryName : abilityIncludes)
             {
-                auto const & group = abilityCollection.getGroup(groupName);
+                auto const & group = abilityCollection.getLibrary(libraryName);
                 auto const & abilities_c = group.get_abilities();
                 auto const & ability = abilities_c.at(abilityName);
                 abilities[abilityName] = std::make_tuple(& ability, NotYetCached);
+
             }
         }
     }
 
-    void AbilityResolver::addBuiltin(std::string_view builtinName)
-    {
-        // check for cached entry
-        if (auto cachedIt = builtins.find(builtinName); cachedIt == builtins.end())
-        {
-            for (auto const & groupName : builtinIncludes)
-            {
-                auto const & group = builtinCollection.getGroup(groupName);
-                auto const & builtins_c = group.get_builtins();
-                auto const & builtin = builtins_c.at(builtinName);
-                builtins[builtinName] = std::make_tuple(& builtin, NotYetCached);
-            }
-        }
-    }
 
     crit AbilityResolver::gatherInteresting(critKinds kinds)
     {

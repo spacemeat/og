@@ -153,29 +153,63 @@
         }
     }
 
-    --vkRequirements: {
+    --abilities: {
         version: 0.0.1
         includeDirs: [
-            'og/vkRequirements/gen/inc'
+            'og/abilities/gen/inc'
         ]
         --lib: {
             buildType: staticLib
             outputDir: $libDir
-            outputName: vkRequirements
+            outputName: abilities
             depends: [
                 og-boma.hu
             ]
             sources: [
-                'og/vkRequirements/gen/src/*.cpp'
-                //'og/vkRequirements/src/*.cpp'
+                'og/abilities/gen/src/*.cpp'
+                //'og/abilities/src/*.cpp'
             ]
         }
         --test: {
             buildType: exe
             outputDir: $testDir
-            outputName: test.vkRequirements
+            outputName: test.abilities
             sources: [
-                'og/vkRequirements/main.cpp'
+                'og/abilities/main.cpp'
+            ]
+            libDirs: [$libDir]
+            libs: [!..lib!$outputLibPath,
+                   !...logger.lib!$outputLibPath,
+                   !...og.lib!$outputLibPath,
+                   fmt, humon,
+                   glfw, vulkan, dl, pthread, X11, Xxf86vm, Xrandr, Xi,
+                   c]
+        }
+    }
+
+    --deviceCreator: {
+        version: 0.0.1
+        includeDirs: [
+            'og/deviceCreator/gen/inc'
+        ]
+        --lib: {
+            buildType: staticLib
+            outputDir: $libDir
+            outputName: deviceCreator
+            depends: [
+                og-boma.hu
+            ]
+            sources: [
+                'og/deviceCreator/gen/src/*.cpp'
+                'og/deviceCreator/src/*.cpp'
+            ]
+        }
+        --test: {
+            buildType: exe
+            outputDir: $testDir
+            outputName: test.deviceCreator
+            sources: [
+                'og/deviceCreator/main.cpp'
             ]
             libDirs: [$libDir]
             libs: [!..lib!$outputLibPath,
@@ -224,7 +258,7 @@
             libDirs: [$libDir]
             libs: [!..lib!$outputLibPath,
                    !...abilities.lib!$outputLibPath,
-                   !...vkRequirements.lib!$outputLibPath,
+                   !...abilities.lib!$outputLibPath,
                    !...assetDb.lib!$outputLibPath,
                    !...logger.lib!$outputLibPath,
                    !...og.lib!$outputLibPath,

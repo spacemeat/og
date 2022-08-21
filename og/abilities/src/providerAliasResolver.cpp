@@ -4,9 +4,9 @@
 
 namespace og
 {
-    using critKinds = og::vkRequirements::criteriaKinds;
+    using critKinds = og::abilities::criteriaKinds;
 
-    ProviderAliasResolver::ProviderAliasResolver(std::string const & providerAliasesPath)
+    void ProviderAliasResolver::loadAliases(std::string const & providerAliasesPath)
     {
         auto tr = hu::Trove::fromFile(providerAliasesPath, {hu::Encoding::utf8}, hu::ErrorResponse::stderrAnsiColor);
         if (auto t = std::get_if<hu::Trove>(& tr))

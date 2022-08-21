@@ -5,35 +5,15 @@
 #include <algorithm>
 #include <numeric>
 #include "../inc/utils.hpp"
+#include "../inc/deviceCreator.hpp"
 
 using namespace std::literals::string_view_literals;
 
 namespace og
 {
-    PhysVkDevice::PhysVkDevice()
+    PhysVkDevice::PhysVkDevice(DeviceCreator & deviceCreator)
+     : deviceCreator(deviceCreator)
     {
-    }
-
-    void Engine::initPhysVkDevices()
-    {
-        auto const & workUnits = appConfig.get_works();
-
-        uint32_t vulkanVersion = 0;
-        VKR(vkEnumerateInstanceVersion(& vulkanVersion));
-
-        uint32_t physCount = 0;
-        vkEnumeratePhysicalDevices(vkInstance, & physCount, nullptr);
-        std::vector<VkPhysicalDevice> phDevices(physCount);
-        vkEnumeratePhysicalDevices(vkInstance, & physCount, phDevices.data());
-
-        devices.resize(physCount);
-        for (int physIdx = 0; physIdx < physCount; ++physIdx)
-        {
-            devices[physIdx].init(physIdx, phDevices[physIdx]);
-        }
-
-        auto const & profileGroups_c = config.get_vkDeviceProfileGroups();
-        deviceAssignments.resize(profileGroups_c.size());
     }
 
     void PhysVkDevice::init(int physIdx, VkPhysicalDevice phdev)
@@ -53,82 +33,10 @@ namespace og
             { log(fmt::format(". available device extension: {} v{}", elem.extensionName, elem.specVersion)); }
     }
 
-    void Engine::computeBestProfileGroupDevices(int groupIdx)
-    {
-        auto const & profileGroups_c = config.get_vkDeviceProfileGroups();
-        auto const & group_c = profileGroups_c[groupIdx];
-        auto const & profiles_c = group_c.get_profiles();
-
-        log(fmt::format(". Scoring device group {}:", profileGroups_c[groupIdx].get_name()));
-
-        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];
-        if (deviceAssignmentGroup.hasBeenComputed)
-            { return; }
-
-        deviceAssignmentGroup.deviceSuitabilities.resize(devices.size());
-
-        for (int devIdx = 0; devIdx < devices.size(); ++devIdx)
-        {
-            log(fmt::format(". . Scoring physical device {}:", devIdx));
-
-            auto & device = devices[devIdx];
-            auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
-            suitability.physicalDeviceIdx = devIdx;
-            suitability.profileCritera.resize(profiles_c.size());
-            int profileIdx = device.findBestProfileIdx(groupIdx, profileGroups_c[groupIdx], suitability);
-            suitability.bestProfileIdx = profileIdx;
-            if (profileIdx >= 0)
-            {
-                std::vector<std::string_view> featureProviders;
-                std::vector<std::string_view> propertyProviders;
-                std::vector<std::string_view> queueFamilyPropertyProviders;
-                auto getQueueFamilyProperties = [& featureProviders, & propertyProviders, & queueFamilyPropertyProviders](auto const & criteria)
-                {
-                    if (criteria.has_value())
-                    {
-                        auto const & features = criteria->get_features();
-                        for (auto const & [key, _] : features)
-                            { featureProviders.push_back(key); }
-                        auto const & properties = criteria->get_properties();
-                        for (auto const & [key, _] : properties)
-                            { propertyProviders.push_back(key); }
-                        auto const & queueFamilyProperties = criteria->get_queueFamilyProperties();
-                        for (auto const & [key, _] : queueFamilyProperties)
-                            { queueFamilyPropertyProviders.push_back(key); }
-                    }
-                };
-
-                uint32_t devQueueFamilyCount = 0;
-                vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, nullptr);
-                std::vector<VkQueueFamilyProperties2> qfPropsVect(devQueueFamilyCount);
-                suitability.queueFamilies.resize(devQueueFamilyCount);
-                for (int i = 0; i < devQueueFamilyCount; ++i)
-                {
-                    suitability.queueFamilies[i].init(queueFamilyPropertyProviders);
-                    qfPropsVect[i] = suitability.queueFamilies[i].mainStruct;
-                }
-                vkGetPhysicalDeviceQueueFamilyProperties2(device.physicalDevice, & devQueueFamilyCount, qfPropsVect.data());
-                for (int i = 0; i < devQueueFamilyCount; ++i)
-                {
-                    suitability.queueFamilies[i].mainStruct = qfPropsVect[i];
-                }
-
-                auto && [queueFamilyGroupIdx, queueFamilyAlloc] =
-                    device.findBestQueueFamilyAllocation(groupIdx, profileGroups_c[groupIdx], profileIdx);
-                suitability.bestQueueFamilyGroupIdx = queueFamilyGroupIdx;
-                if (queueFamilyGroupIdx >= 0)
-                {
-                    suitability.queueFamilyComposition = std::move(queueFamilyAlloc);
-                }
-            }
-        }
-        deviceAssignmentGroup.hasBeenComputed = true;
-    }
-
     // Check profiles one by one until the device can meet the profile's requirements.
     // That's the best profile the device can do; the device with the best profile idx
     // will win.
-    int PhysVkDevice::findBestProfileIdx(int groupIdx, engine::physicalVkDeviceProfileGroup const & group_c, PhysicalDeviceSuitability & suitability)
+    int PhysVkDevice::findBestProfileIdx(int groupIdx, vkDeviceCreator::physDeviceProfileGroup const & group_c, PhysicalDeviceSuitability & suitability)
     {
         bool reportAll = true;
 
@@ -192,28 +100,28 @@ namespace og
             vkGetPhysicalDeviceProperties2(physicalDevice, & profileSpecificCriteria.properties.mainStruct);
 
             // now check the results
-            auto check = [& noGood, & reportAll](auto const & criteria_c)
+            auto check = [this, & noGood, & reportAll](auto const & criteria_c)
             {
                 // NOTE: these will check against SELECTED extensions, layers, etc
                 // from instance creation.
                 auto const & vulkanVersion_c =  criteria_c.get_vulkanVersion();
                 if (vulkanVersion_c.has_value())
                 {
-                    if (e->checkVulkan(* vulkanVersion_c) == false)
+                    if (deviceCreator.checkVulkan(* vulkanVersion_c) == false)
                         { noGood = true; log(". . . . Vulkan version '{}' requirement not met."); if (! reportAll) { return; } }
                 }
 
                 auto const & extensions_c = criteria_c.get_extensions();
                 for (auto const & extension_c : extensions_c)
                 {
-                    if (e->checkExtension(extension_c) == false)
+                    if (deviceCreator.checkExtension(extension_c) == false)
                         { noGood = true; log(fmt::format(". . . . Extension '{}' requirement not met.", extension_c)); if (! reportAll) { return; } }
                 }
 
                 auto const & layers_c = criteria_c.get_layers();
                 for (auto const & layer_c : layers_c)
                 {
-                    if (e->checkLayer(layer_c) == false)
+                    if (deviceCreator.checkLayer(layer_c) == false)
                         { noGood = true; log(fmt::format(". . . . Layer '{}' requirement not met.", layer_c)); if (! reportAll) { return; } }
                 }
             };
@@ -297,7 +205,7 @@ namespace og
 
     std::tuple<int, QueueFamilyComposition>
         PhysVkDevice::findBestQueueFamilyAllocation(int groupIdx,
-            engine::physicalVkDeviceProfileGroup const & group_c,
+            vkDeviceCreator::physDeviceProfileGroup const & group_c,
             int profileIdx)
     {
         bool reportAll = true;
@@ -306,7 +214,7 @@ namespace og
 
         // Find the best matching queue family group.
         auto const & qvProfiles_c = group_c.get_queueVillageProfiles();
-        auto & deviceAssignmentGroup = e->deviceAssignments[groupIdx];
+        auto & deviceAssignmentGroup = deviceCreator.deviceAssignments[groupIdx];
         auto & suitability = deviceAssignmentGroup.deviceSuitabilities[physicalDeviceIdx];
         auto & profileSpecificCriteria = suitability.profileCritera[profileIdx];
         auto & suitabilityQfs = suitability.queueFamilies;
@@ -542,56 +450,6 @@ namespace og
     }
 
 
-    void Engine::assignDevices(int groupIdx, int numDevices)
-    {
-        auto const & profileGroups_c = get_config().get_vkDeviceProfileGroups();
-        auto const & group_c = profileGroups_c[groupIdx];
-        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];  // NOT the assignment index!
-
-        for (int numAssignments = 0; numAssignments < numDevices; ++numAssignments)
-        {
-            int bestProfileIdx = group_c.get_profiles().size();
-            int bestDeviceIdx = -1;
-
-            for (int devIdx = 0; devIdx < devices.size(); ++devIdx)
-            {
-                // find the best device which is unassigned
-                auto & device = devices[devIdx];
-                if (device.isAssignedToDeviceProfileGroup)
-                    { continue; }
-
-                auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
-                if (suitability.bestProfileIdx == -1 ||
-                    suitability.bestQueueFamilyGroupIdx == -1)
-                    { continue; }
-
-                if (suitability.bestProfileIdx < bestProfileIdx)
-                {
-                    bestProfileIdx = suitability.bestProfileIdx;
-                    bestDeviceIdx = devIdx;
-                }
-            }
-
-            if (bestDeviceIdx == -1)
-                { return; } // if any assignment fails, they'll fail every time, so bail now
-
-            auto & device = devices[bestDeviceIdx];
-            device.isAssignedToDeviceProfileGroup = true;
-            device.groupIdx = groupIdx;
-            device.profileIdx = bestProfileIdx;
-            deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
-        }
-    }
-
-    void Engine::createAllVkDevices()
-    {
-        for (int devIdx = 0; devIdx < devices.size(); ++devIdx)
-        {
-            auto & device = devices[devIdx];
-            device.createVkDevice();
-        }
-    }
-
     void PhysVkDevice::createVkDevice()
     {
         if (groupIdx == -1)
@@ -600,13 +458,13 @@ namespace og
             return;
         }
 
-        auto const & group_c = e->get_config().get_vkDeviceProfileGroups()[groupIdx];
+        auto const & group_c = deviceCreator.config_c.get_deviceProfileGroups()[groupIdx];
         auto const & profile_c = group_c.get_profiles()[profileIdx];
 
         std::vector<char const *> requiredDeviceExtensions;
         std::vector<char const *> requiredLayers;
 
-        auto & assignment = e->deviceAssignments[groupIdx];
+        auto & assignment = deviceCreator.deviceAssignments[groupIdx];
         auto & suitability = assignment.deviceSuitabilities[physicalDeviceIdx];
         auto const & profileCriteria = suitability.profileCritera[suitability.bestProfileIdx];
         createdCapabilities.features = profileCriteria.features.copyAndReset();
@@ -616,9 +474,9 @@ namespace og
             // remaking the layers from instance creation
             for (auto const & layerName_c : criteria_c.get_layers())
             {
-                auto it = std::find_if(begin(e->get_utilizedLayers()), end(e->get_utilizedLayers()),
+                auto it = std::find_if(begin(deviceCreator.get_utilizedLayers()), end(deviceCreator.get_utilizedLayers()),
                     [& layerName_c](auto && ae){ return layerName_c == ae; } );
-                if (it != end(e->get_utilizedLayers()))
+                if (it != end(deviceCreator.get_utilizedLayers()))
                     { requiredLayers.push_back(it->data()); }
             }
             for (auto const & deviceExtension_c : criteria_c.get_deviceExtensions())
@@ -719,14 +577,6 @@ namespace og
 
         VKR(vkCreateDevice(physicalDevice, & dci, nullptr, & device));
         log("IT WORKED");
-    }
-
-    void Engine::destroyAllVkDevices()
-    {
-        for (int i = 0; i < devices.size(); ++i)
-        {
-            devices[i].destroyVkDevice();
-        }
     }
 
     void PhysVkDevice::destroyVkDevice()

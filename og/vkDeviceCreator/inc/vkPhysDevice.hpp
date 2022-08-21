@@ -5,8 +5,9 @@
 
 #include <map>
 
-#include "../gen/inc/physicalVkDeviceProfileGroup.hpp"
+#include "../gen/inc/physDeviceProfileGroup.hpp"
 #include "../../gen/inc/vkChainStructs.hpp"
+#include "../inc/deviceCreator.hpp"
 
 namespace og
 {
@@ -69,11 +70,13 @@ namespace og
 
     class PhysVkDevice  // naming is hard
     {
+       DeviceCreator & deviceCreator;
+
     public:
-        PhysVkDevice();
+        PhysVkDevice(DeviceCreator & deviceCreator);
         void init(int physicalDeviceIdx, VkPhysicalDevice phdev);
-        int findBestProfileIdx(int groupIdx, engine::physicalVkDeviceProfileGroup const & profileGroup, PhysicalDeviceSuitability & suitability);
-        std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, engine::physicalVkDeviceProfileGroup const & group, int profileIdx);
+        int findBestProfileIdx(int groupIdx, vkDeviceCreator::physDeviceProfileGroup const & profileGroup, PhysicalDeviceSuitability & suitability);
+        std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, vkDeviceCreator::physDeviceProfileGroup const & group, int profileIdx);
 
         bool checkDeviceExtension(std::string_view deviceExtension);
         bool checkQueueTypes(VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);

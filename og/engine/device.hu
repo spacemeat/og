@@ -6,12 +6,19 @@
 
     // We'll use the first profile that passes requiremetns
     // in the desired group.
-    instanceBuiltinInclude: [allDevices]
-    instanceInclude: [graphicsAbilities computeAbilities]
-    sharedInstanceCriteria: { abilities: [appSpecific-graphics appSpecific-compute] }
-    vkInstanceProfileGroups: [ {
-            name: debug
+    instanceInclude: [graphicsAbilitiesLib computeAbilitiesLib]
+    sharedInstanceCriteria: {
+        abilities: [
+            appSpecific-graphics
+            appSpecific-compute
+        ]
+    }
+
+
+    instanceProfileGroups: [ {
+            name: debugInstance
             usingLayers: true
+            include: []
             sharedCriteria: {
                 abilities: [debug]
             }
@@ -41,7 +48,7 @@
                     synchronization_validation]
             }
         }, {
-            name: release
+            name: releaseInstance
             usingLayers: false
             sharedCriteria: {
             }
@@ -62,12 +69,11 @@
         }
     ]
     // selects which above profile group to use
-    useInstanceProfileGroup: debug
+    useInstanceProfileGroup: debugInstance
 
-    vkDeviceProfileGroups: [ {
+    deviceProfileGroups: [ {
             name: graphicsDevices
-            builtinInclude: [allDevices]
-            include: [graphicsAbilities]
+            include: [builtin, graphicsAbilities]
             sharedCriteria: {
                 abilities: [appSpecific-graphics]
                 builtinAbilities: [allDevices]
@@ -251,11 +257,9 @@
             ]
         }, {
             name: computeDevices
-            builtinInclude: [allDevices]
-            include [computeAbilities]
+            include [builtin, computeAbilities]
             sharedCriteria: {
                 abilities: [appSpecific-compute]
-                builtinAbilities: [allDevices]
             }
             profiles: [ {
                     name: computeOnly

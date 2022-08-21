@@ -44,3 +44,13 @@ namespace hu
         }
     };
 }
+
+namespace og
+{
+    template <class T>
+    auto enumToNum(T t) { return static_cast<std::underlying_type_t<T>>(t); }
+
+    template <class T>
+    auto numToEnum(std::underlying_type_t<T> n) { return static_cast<T>(n); }
+
+}
