@@ -6,15 +6,13 @@
 
     // We'll use the first profile that passes requiremetns
     // in the desired group.
-    instanceInclude: [graphicsAbilitiesLib computeAbilitiesLib]
+    instanceInclude: [
+        sharedAbilitiesLib
+    ]
     sharedInstanceCriteria: {
-        abilities: [
-            appSpecific-graphics
-            appSpecific-compute
-        ]
+        abilities: [debug]
     }
-
-
+    /*
     instanceProfileGroups: [ {
             name: debugInstance
             usingLayers: true
@@ -70,6 +68,7 @@
     ]
     // selects which above profile group to use
     useInstanceProfileGroup: debugInstance
+    */
 
     deviceProfileGroups: [ {
             name: graphicsDevices

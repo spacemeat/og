@@ -238,6 +238,8 @@
                 vulkanVersion: { type: optional of: stringView }
                 extensions: { type: vector of: stringView }
                 desiredExtensions: { type: vector of: stringView }
+                debugUtilsMessengers: { type: vector of: debugUtilsMessenger_t }
+                validationFeatures: { type: optional of: validationFeatures_t }
                 layers: { type: vector of: stringView }
                 desiredLayers: { type: vector of: stringView }
                 deviceExtensions: { type: vector of: stringView }
@@ -257,6 +259,9 @@
                 enabled: { type: vector of: VkValidationFeatureEnableEXT }
                 disabled: { type: vector of: VkValidationFeatureDisableEXT }
             }
+
+
+
         }
     }
 

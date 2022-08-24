@@ -5,13 +5,29 @@
             include: []
             abilities: {
                 debug: {
+                    sharedCriteria: {
+                        extensions: [
+                            VK_EXT_debug_utils
+                        ]
+                        desiredLayers: [
+                            VK_LAYER_KHRONOS_validation
+                        ]
+                        debugUtilsMessengers: [ {
+                                severity: [verbose_bit, info_bit, warning_bit, error_bit]
+                                type: [general_bit, validation_bit, performance_bit]
+                            }
+                        ]
+                        validationFeatures: {
+                            enabled: [
+                                gpu_assisted,
+                                best_practies,
+                                //debug_printf,
+                                synchronization_validation
+                            ]
+                        }
+                    }
                     profiles: [ {
-                            extensions: [
-                                VK_EXT_debug_utils
-                            ]
-                            desiredLayers: [
-                                VK_LAYER_KHRONOS_validation
-                            ]
+                            name: ok
                         }
                     ]
                 }

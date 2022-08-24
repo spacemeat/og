@@ -53,4 +53,16 @@ namespace og
     template <class T>
     auto numToEnum(std::underlying_type_t<T> n) { return static_cast<T>(n); }
 
+    const int NotYetCached = -3;
+    const int NoGoodProfile = -1;
+
+    template<class T>
+    void uniquifyVectorOfThings(std::vector<T> & things)
+    {
+        std::unordered_set<T> s;
+        for (auto const & th : things)
+            { s.insert(th); }
+
+        things.assign(begin(s), end(s));
+    }
 }

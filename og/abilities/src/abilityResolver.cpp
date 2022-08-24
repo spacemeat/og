@@ -28,27 +28,27 @@ namespace og
         }
     }
 
-    void AbilityResolver::addAbility(std::string_view abilityName)
+    abilities::abilityProfileGroup_t const * AbilityResolver::findAbility(std::string_view abilityName, bool caching)
     {
         // check for cached value
         if (auto cachedIt = abilities.find(abilityName); cachedIt == abilities.end())
         {
-            for (auto const & libraryName : abilityIncludes)
+            for (auto & libraryName : abilityIncludes)
             {
-                auto const & group = abilityCollection.getLibrary(libraryName);
-                auto const & abilities_c = group.get_abilities();
-                auto const & ability = abilities_c.at(abilityName);
-                abilities[abilityName] = std::make_tuple(& ability, NotYetCached);
+                auto & group = abilityCollection.getLibrary(libraryName);
+                auto & abilities_c = group.get_abilities();
+                auto & ability = abilities_c.at(abilityName);
 
+                if (caching)
+                    { abilities[abilityName] = { & ability, NotYetCached }; }
+
+                return & ability;
             }
         }
+
+        return nullptr;
     }
 
-
-    crit AbilityResolver::gatherInteresting(critKinds kinds)
-    {
-
-    }
 
     void AbilityResolver::invalidateAbilityCache()
     {

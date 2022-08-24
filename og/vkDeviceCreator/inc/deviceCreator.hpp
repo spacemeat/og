@@ -15,6 +15,89 @@
 
 namespace og
 {
+    struct InstanceInfo
+    {
+        std::vector<char const *> extensions;
+        std::vector<char const *> layers;
+        std::vector<abilities::debugUtilsMessenger_t> debugMessengers;
+        std::vector<VkValidationFeatureEnableEXT> enabledValidation;
+        std::vector<VkValidationFeatureDisableEXT> disabledValidation;
+
+        std::vector<VkDebugUtilsMessengerCreateInfoEXT> debugMessengerObjects;
+        std::optional<VkValidationFeaturesEXT> validationFeatures;
+
+        void consolidateCollections();
+        void * makeDebugMessengersAndValidators();
+    };
+
+    struct DeviceInfo
+    {
+        InstanceInfo instanceInfo;
+        std::vector<std::string_view> deviceExtensions;
+        std::vector<std::string_view> featureProviders;
+        std::vector<std::string_view> propertyProviders;
+    };
+
+    struct QueueFamilyAlloc
+    {
+        uint32_t qfi;
+        uint32_t count;
+        VkDeviceQueueCreateFlags flags;
+        std::vector<float> priorities;
+        std::optional<VkQueueGlobalPriorityKHR> globalPriority;
+    };
+
+    struct QueueFamilyComposition
+    {
+        std::vector<QueueFamilyAlloc> queueFamilies;
+    };
+
+    struct ProfileSpecificCriteria
+    {
+        VkFeatures features;
+        VkProperties properties;
+    };
+
+    struct PhysicalDeviceSuitability
+    {
+        uint32_t physicalDeviceIdx;
+        // one for each profile
+        std::vector<ProfileSpecificCriteria> profileCritera;
+        // one for each queue family on the physical device
+        // (once we've chosen the best profile idx)
+        std::vector<VkQueueFamilies> queueFamilies;
+        uint32_t bestProfileIdx;
+        uint32_t bestQueueFamilyGroupIdx;
+        QueueFamilyComposition queueFamilyComposition;
+    };
+
+    // One of these is stored per physical device group
+    struct DevProfileGroupAssignment
+    {
+        int groupIdx = -1;
+        bool hasBeenComputed = false;
+
+        DeviceInfo expDeviceInfo;
+
+        // one for each enumerated physical device
+        std::vector<PhysicalDeviceSuitability> deviceSuitabilities;
+        // winning physical device indices
+        std::vector<int> winningDeviceIdxs;
+    };
+
+    struct DeviceCapabilities
+    {
+        int vulkanVersion;
+        std::vector<std::string_view> extensions;
+        std::vector<std::string_view> layers;
+
+        std::vector<std::string_view> deviceExtensions;
+        VkFeatures features;
+        VkProperties properties;
+        std::vector<VkQueueFamilies> queueFamilies;
+        QueueFamilyComposition queueFamilyComposition;
+    };
+
     class DeviceCreator
     {
     public:
@@ -22,13 +105,20 @@ namespace og
                       std::string_view appName_c, version_t appVersion_c);
 
         // new upstart functiopns
-        void gatherExploratoryInstanceExtensions();
+        bool gatherExploratoryInstanceExtensions();
+        bool requireGlfwExtensions();
+        void consolidateExploratoryCollections();
         void makeExploratoryInstance();
+        void * makeDebugMessengersAndValidators(InstanceInfo & instanceInfo);
         void matchDeviceAbilities();
         void scoreDevices();
         void gatherInstanceExtensionsAndLayers();
         void makeFinalInstance();
         void makeDevices();
+
+        bool checkVulkan(std::string_view vulkanVersion, version_t available);
+        bool checkExtension(std::string_view extension, std::unordered_set<char const *> const & available);
+        bool checkLayer(std::string_view layer, std::unordered_set<char const *> const & available);
 
         // void initVkInstance();
 
@@ -54,10 +144,6 @@ namespace og
         void destroyAllDevices();
         void destroyDevice(int deviceIdx);
 
-    public:
-        bool checkVulkan(std::string_view vulkanVersion);
-        bool checkExtension(std::string_view extension);
-        bool checkLayer(std::string_view layer);
 
     private:
         std::vector<hu::Trove> troves;
@@ -74,10 +160,11 @@ namespace og
         version_t utilizedVulkanVersion;
 
         std::vector<VkExtensionProperties> availableInstanceExtensions;
-        std::unordered_set<std::string_view> availableInstanceExtensionNames;
+        std::unordered_set<char const *> availableInstanceExtensionNames;
         std::vector<VkLayerProperties> availableLayers;
+        std::unordered_set<char const *> availableLayerNames;
 
-        std::vector<std::string_view> exploratoryExtensions;
+        DeviceInfo expInstInfo;
 
         std::vector<std::string_view> utilizedExtensions;
         std::vector<std::string_view> utilizedLayers;

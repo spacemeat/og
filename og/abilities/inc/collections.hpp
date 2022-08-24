@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include "../gen/inc/vkChainStructs.hpp"
 #include "../../abilities/gen/inc/universalCriteria.hpp"
-#include "../../abilities/gen/inc/abilityLibrary_t.hpp"
+#include "../../abilities/gen/inc/abilityCollection_t.hpp"
 #include "../inc/providerAliasResolver.hpp"
 #include "vkPhysDevice.hpp"
 

@@ -65,6 +65,47 @@ namespace og
     using crit = abilities::universalCriteria;
     using critKinds = og::abilities::criteriaKinds;
 
+    void * InstanceInfo::makeDebugMessengersAndValidators()
+    {
+        void * createInfo_pNext = nullptr;
+
+        debugMessengerObjects.resize(debugMessengers.size());
+        for (int i = 0; i < debugMessengerObjects.size(); ++i)
+        {
+            auto const & cfg_c = debugMessengers[i];
+            debugMessengerObjects[i] = std::move(makeDebugMessengerCreateInfo(cfg_c));
+            debugMessengerObjects[i].pNext = nullptr;
+            if (i > 0)
+                { debugMessengerObjects[i - 1].pNext = & debugMessengerObjects[i]; }
+        }
+        if (debugMessengerObjects.size() > 0)
+            { createInfo_pNext = & debugMessengerObjects[0]; }
+
+        if (enabledValidation.size() > 0 || disabledValidation.size() > 0)
+        {
+            validationFeatures = VkValidationFeaturesEXT {
+                .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
+                .pNext = createInfo_pNext,
+                .enabledValidationFeatureCount = static_cast<uint32_t>(enabledValidation.size()),
+                .pEnabledValidationFeatures = enabledValidation.data(),
+                .disabledValidationFeatureCount = static_cast<uint32_t>(disabledValidation.size()),
+                .pDisabledValidationFeatures = disabledValidation.data()
+            };
+            createInfo_pNext = & (* validationFeatures);
+        }
+
+        return createInfo_pNext;
+    }
+
+    void InstanceInfo::consolidateCollections()
+    {
+        uniquifyVectorOfThings(extensions);
+        uniquifyVectorOfThings(layers);
+        uniquifyVectorOfThings(enabledValidation);
+        uniquifyVectorOfThings(disabledValidation);
+    }
+
+
     DeviceCreator::DeviceCreator(std::string_view configPath, ProviderAliasResolver & aliases, AbilityCollection & abilities,
                                  std::string_view appName_c, version_t appVersion_c)
     : aliases(aliases), abilities(abilities)
@@ -87,7 +128,7 @@ namespace og
     set, as well as the layers if we're debugging.
     */
 
-    void DeviceCreator::gatherExploratoryInstanceExtensions()
+    bool DeviceCreator::gatherExploratoryInstanceExtensions()
     {
         // get vulkan runtime version
         uint32_t vulkanVersion = 0;
@@ -111,12 +152,17 @@ namespace og
         for (int i = 0; i < count; ++i)
         {
             availableInstanceExtensionNames.insert(
-                std::string_view {availableInstanceExtensions[i].extensionName});
+                availableInstanceExtensions[i].extensionName);
         }
 
-        // get instance extensions we may wish to use from each
-        // criteria and recursively through abilities
-        auto fn = [this](crit const & criteria_c, std::vector<std::string_view> & extensions)
+        /*  The rest of this function is about getting all the instance
+            extensions that any ability in this device profile might want to use.
+        */
+        Accumulator accum(expInstInfo.instanceInfo.extensions, expInstInfo.instanceInfo.layers, expInstInfo.instanceInfo.debugMessengers,
+                          expInstInfo.instanceInfo.enabledValidation, expInstInfo.instanceInfo.disabledValidation,
+                          expInstInfo.deviceExtensions, expInstInfo.featureProviders, expInstInfo.propertyProviders);
+
+        auto fn = [this](crit const & criteria_c, decltype(accum) & accum)
         {
             bool ok = true;
             bool foundProfile = false;
@@ -133,15 +179,67 @@ namespace og
                 {
                     ok = ok && checkExtension(ext_c, availableInstanceExtensionNames);
                     if (ok)
-                        { extensions.push_back(ext_c); }
+                        { accum.get<0>().push_back(ext_c.data()); }
+                }
+            }
+            if (ok && criteria_c.get_layers().size() > 0)
+            {
+                auto const & lays_c = criteria_c.get_extensions();
+                for (auto const & lay_c : lays_c)
+                {
+                    ok = ok && checkLayer(lay_c, availableLayerNames);
+                    if (ok)
+                        { accum.get<1>().push_back(lay_c.data()); }
                 }
             }
 
-            return std::make_tuple (ok, foundProfile);
+            if (ok)
+            {
+                if (criteria_c.get_debugUtilsMessengers().size() > 0)
+                {
+                    auto const & dums = criteria_c.get_debugUtilsMessengers();
+                    for (auto const & dum : dums)
+                    {
+                        accum.get<2>().push_back(dum);
+                    }
+                }
+
+                if (criteria_c.get_validationFeatures().has_value())
+                {
+                    auto const & valFeats = * criteria_c.get_validationFeatures();
+                    for (auto const & evf : valFeats.get_enabled())
+                    {
+                        accum.get<3>().push_back(evf);
+                    }
+                    for (auto const & dvf : valFeats.get_disabled())
+                    {
+                        accum.get<4>().push_back(dvf);
+                    }
+                }
+
+                // Here we're identifying all the interesting criteria providers
+                // that we'll possibly want to query about in device selection.
+                for (auto devExt_c : criteria_c.get_deviceExtensions())
+                {
+                    accum.get<5>().push_back(devExt_c);
+                }
+
+                for (auto feat_c : criteria_c.get_features())
+                {
+                    accum.get<6>().push_back(feat_c.first);
+                }
+
+                for (auto prop_c : criteria_c.get_properties())
+                {
+                    accum.get<7>().push_back(prop_c.first);
+                }
+            }
+
+            return std::make_tuple(ok, foundProfile);
         };
 
-        std::vector<std::string_view> extensions;
-        Accumulator accum(extensions);
+
+        bool ok = true;
 
         { // nested scope keeping me careful about not reusing ar
             AbilityResolver ar { aliases, abilities };
@@ -151,48 +249,198 @@ namespace og
             if (auto const & criteria_c = config_c.get_sharedInstanceCriteria();
                 criteria_c.has_value())
             {
-                ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum);
+                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, false);
             }
         }
 
-        for (auto const & profileGroup_c : config_c.get_deviceProfileGroups())
+        if (ok == false)
+            { return false; }
+
+        for (int i = 0; i < config_c.get_deviceProfileGroups().size(); ++i)
         {
+            auto const & profileGroup_c = config_c.get_deviceProfileGroups()[i];
+            auto mark = accum.mark();
+
             AbilityResolver ar { aliases, abilities };
             for (auto inc_c : profileGroup_c.get_include())
                 { ar.include(inc_c); }
 
-            ar.doProfleGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, accum);
+            auto & deviceInfo = deviceAssignments[i].expDeviceInfo;
+            deviceInfo = expInstInfo;
+
+            Accumulator devAccum(deviceInfo.instanceInfo.extensions, deviceInfo.instanceInfo.layers, deviceInfo.instanceInfo.debugMessengers,
+                                 deviceInfo.instanceInfo.enabledValidation, deviceInfo.instanceInfo.disabledValidation,
+                                 deviceInfo.deviceExtensions, deviceInfo.featureProviders, deviceInfo.propertyProviders);
+
+            int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, devAccum, false);
+            if (profileIdx != NoGoodProfile)
+            {
+                accum.extend(devAccum);
+            }
+            else
+            {
+                devAccum.rollBack(mark);
+            }
         }
 
-        /*
-            this.availableInstExtensions = VkGetAvailableExtensions()
-
-            gar = ar
-            for each instanceInclude inc:
-                gar.include(inc)
-            this.exploratoryExtensions += gar.gather(instExts, shaerdInstanceCriteria)
-
-            for each device group dg:
-                dar = ar
-                for each dg.include inc:
-                    dar.include(inc)
-                this.exploratoryExtensions += dar.gather(instExts, dg.sharedCriteria, availableInstExtensions)
-                for each dg.profile proCriteria:
-                    par = dar
-                    this.exploratoryExtensions += par.gather(instExts, proCriteria, availableInstExtensions)
-        */
+        requireGlfwExtensions();
+        consolidateExploratoryCollections();
     }
+
+    bool DeviceCreator::requireGlfwExtensions()
+    {
+        // get GLFW extensions
+        uint32_t numGlfwExts = 0;
+        char const ** glfwExts = nullptr;
+        if (app->anyVulkanWindowViews())
+        {
+            glfwExts = app->getVkExtensionsForGlfw(& numGlfwExts);
+            for (uint32_t i = 0; i < numGlfwExts; ++i)
+            {
+                char const * extName = glfwExts[i];
+                if (checkExtension(std::string_view {extName}, availableInstanceExtensionNames))
+                    { expInstInfo.extensions.push_back(extName); }
+                else
+                {
+                    log(fmt::format("Could not find necessary GLFW extension '{}'", extName));
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 
     void DeviceCreator::makeExploratoryInstance()
     {
-        /*
-            this.exploratoryInstance = VkCreateInstance(..., this.exploratoryExtensions, (no layers), ...)
-        */
+        void * createInfo_pNext = makeDebugMessengersAndValidators(expInstInfo);
+
+        VkApplicationInfo vai {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pApplicationName = appName_c.data(),
+            .applicationVersion = VK_MAKE_API_VERSION(
+                0, appVersion_c.major(), appVersion_c.minor(), appVersion_c.patch()),
+            .pEngineName = "overground",
+            .engineVersion = VK_MAKE_API_VERSION(
+                0, Engine::version[0], Engine::version[1], Engine::version[2]
+            ),
+            .apiVersion = utilizedVulkanVersion.bits
+        };
+
+        VkInstanceCreateInfo vici {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pNext = createInfo_pNext,
+            .pApplicationInfo = & vai,
+            .enabledLayerCount = static_cast<uint32_t>(expInstInfo.layers.size()),
+            .ppEnabledLayerNames = expInstInfo.layers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(expInstInfo.extensions.size()),
+            .ppEnabledExtensionNames = expInstInfo.extensions.data()
+        };
+
+        VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
+        log("exploratory vulkan instance created.");
     }
 
     void DeviceCreator::matchDeviceAbilities()
     {
         AbilityResolver ar(aliases, abilities);
+
+        for (int i = 0; i < config_c.get_deviceProfileGroups().size(); ++i)
+        {
+            auto const & dpg = config_c.get_deviceProfileGroups()[i];
+
+//**************************************************
+            Accumulator accum(...);
+
+            auto fn = [this](crit const & criteria_c, decltype(accum) & accum)
+            {
+                bool ok = true;
+                bool foundProfile = false;
+
+                if (ok && criteria_c.get_vulkanVersion().has_value())
+                {
+                    ok = checkVulkan(* criteria_c.get_vulkanVersion(), utilizedVulkanVersion);
+                    foundProfile = ok;
+                }
+                if (ok && criteria_c.get_extensions().size() > 0)
+                {
+                    auto const & exts_c = criteria_c.get_extensions();
+                    for (auto const & ext_c : exts_c)
+                    {
+                        ok = ok && checkExtension(ext_c, availableInstanceExtensionNames);
+                        if (ok)
+                            { accum.get<0>().push_back(ext_c.data()); }
+                    }
+                }
+                if (ok && criteria_c.get_layers().size() > 0)
+                {
+                    auto const & lays_c = criteria_c.get_extensions();
+                    for (auto const & lay_c : lays_c)
+                    {
+                        ok = ok && checkLayer(lay_c, availableLayerNames);
+                        if (ok)
+                            { accum.get<1>().push_back(lay_c.data()); }
+                    }
+                }
+                if (ok && criteria_c.get_debugUtilsMessengers().size() > 0)
+                {
+                    auto const & dums = criteria_c.get_debugUtilsMessengers();
+                    for (auto const & dum : dums)
+                    {
+                        accum.get<2>().push_back(dum);
+                    }
+                }
+
+                if (ok && criteria_c.get_validationFeatures().has_value())
+                {
+                    auto const & valFeats = * criteria_c.get_validationFeatures();
+                    for (auto const & evf : valFeats.get_enabled())
+                    {
+                        accum.get<3>().push_back(evf);
+                    }
+                    for (auto const & dvf : valFeats.get_disabled())
+                    {
+                        accum.get<4>().push_back(dvf);
+                    }
+                }
+
+                return std::make_tuple(ok, foundProfile);
+            };
+
+
+            bool ok = true;
+
+            { // nested scope keeping me careful about not reusing ar
+                AbilityResolver ar { aliases, abilities };
+                for (auto inc_c : config_c.get_instanceInclude())
+                    { ar.include(inc_c); }
+
+                if (auto const & criteria_c = config_c.get_sharedInstanceCriteria();
+                    criteria_c.has_value())
+                {
+                    ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, false);
+                }
+            }
+
+            if (ok == false)
+                { return false; }
+
+            for (auto const & profileGroup_c : config_c.get_deviceProfileGroups())
+            {
+                auto mark = accum.mark();
+
+                AbilityResolver ar { aliases, abilities };
+                for (auto inc_c : profileGroup_c.get_include())
+                    { ar.include(inc_c); }
+
+                int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, accum, false);
+                if (profileIdx == NoGoodProfile)
+                    { accum.rollBack(mark); }
+            }
+
+//*********************************************
+
+        }
         /*
             for each device group dg:
                 dar = ar
@@ -235,6 +483,20 @@ namespace og
 
     }
 
+    bool DeviceCreator::checkVulkan(std::string_view vulkanVersion, version_t available)
+    {
+        return version_t {vulkanVersion} .bits <= available.bits;
+    }
+
+    bool DeviceCreator::checkExtension(std::string_view extension, std::unordered_set<char const *> const & available)
+    {
+        return available.find(extension.data()) != end(available);
+    }
+
+    bool DeviceCreator::checkLayer(std::string_view layer, std::unordered_set<char const *> const & available)
+    {
+        return available.find(layer.data()) != end(available);
+    }
 
 
 
