@@ -46,7 +46,7 @@ namespace og
 
         app->initViews();
 
-        initPhysVkDevices();
+        initPhysDevices();
 
         // vec of [groupIdx, numDevices]
         std::vector<std::tuple<int, int>> deviceSchedule;

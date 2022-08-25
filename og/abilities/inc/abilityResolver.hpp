@@ -55,7 +55,7 @@ namespace og
         template<class ...Args, typename Indices = std::make_index_sequence<sizeof...(Args)>>
         void extender(std::tuple<Args & ...> & collections, std::tuple<Args & ...> & rhs)
         {
-            extender_impl(collections, mark, Indices{});
+            extender_impl(collections, rhs, Indices{});
         }
     }
 

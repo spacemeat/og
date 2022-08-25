@@ -17,25 +17,35 @@ namespace og
 {
     struct InstanceInfo
     {
+
+    };
+
+    struct DeviceInfo
+    {
         std::vector<char const *> extensions;
         std::vector<char const *> layers;
         std::vector<abilities::debugUtilsMessenger_t> debugMessengers;
         std::vector<VkValidationFeatureEnableEXT> enabledValidation;
         std::vector<VkValidationFeatureDisableEXT> disabledValidation;
 
-        std::vector<VkDebugUtilsMessengerCreateInfoEXT> debugMessengerObjects;
-        std::optional<VkValidationFeaturesEXT> validationFeatures;
-
-        void consolidateCollections();
-        void * makeDebugMessengersAndValidators();
-    };
-
-    struct DeviceInfo
-    {
-        InstanceInfo instanceInfo;
         std::vector<std::string_view> deviceExtensions;
         std::vector<std::string_view> featureProviders;
         std::vector<std::string_view> propertyProviders;
+
+        // built by makeDebugMessengersAndValidators()
+        std::vector<VkDebugUtilsMessengerCreateInfoEXT> debugMessengerObjects;
+        std::optional<VkValidationFeaturesEXT> validationFeatures;
+
+
+        void consolidateCollections();
+        void * makeDebugMessengersAndValidators();
+
+        auto makeAccumulator()
+        {
+            return Accumulator { extensions, layers, debugMessengers,
+                                 enabledValidation, disabledValidation,
+                                 deviceExtensions, featureProviders, propertyProviders };
+        }
     };
 
     struct QueueFamilyAlloc
@@ -110,7 +120,12 @@ namespace og
         void consolidateExploratoryCollections();
         void makeExploratoryInstance();
         void * makeDebugMessengersAndValidators(InstanceInfo & instanceInfo);
+
+        void initExploratoryPhysDevices();
         void matchDeviceAbilities();
+
+        int getBestProfile();
+
         void scoreDevices();
         void gatherInstanceExtensionsAndLayers();
         void makeFinalInstance();
@@ -129,14 +144,15 @@ namespace og
         void createDebugMessengers(std::vector<VkDebugUtilsMessengerCreateInfoEXT> const & dbgMsgrs);
         void destroyDebugMessengers();
 
+
     public:
         // old confuesd functions
         std::vector<std::string_view> const & get_utilizedExtensions() { return utilizedExtensions; }
         std::vector<std::string_view> const & get_utilizedLayers() { return utilizedLayers; }
 
     private:
+
         // old confuesd functions
-        void initPhysVkDevices();
         void computeBestProfileGroupDevices(int groupIdx);
         void assignDevices(int groupIdx, int numDevices);
         void createAllVkDevices();
@@ -172,7 +188,7 @@ namespace og
         VkInstance vkInstance;
         std::vector<VkDebugUtilsMessengerEXT> vkDebugMessengers;
 
-        std::vector<PhysVkDevice> devices;
+        std::vector<PhysVkDevice> physDevices;
 
         // vector of [groupIdx, vector of [phIdx, profileIdx], winningPhysIdx]
         // matches 1-1 with groups
