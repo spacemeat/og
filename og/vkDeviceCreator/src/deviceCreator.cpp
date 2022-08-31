@@ -160,7 +160,7 @@ namespace og
         */
         auto accum = expInstInfo.makeAccumulator();
 
-        auto fn = [this](crit const & criteria_c, decltype(accum) & accum)
+        auto fn = [this](crit const & criteria_c, decltype(accum) & accum, auto _)
         {
             bool ok = true;
             bool foundProfile = false;
@@ -257,6 +257,7 @@ namespace og
         };
 
         bool ok = true;
+        bool _ = false;
 
         { // nested scope keeping me careful about not reusing ar
             AbilityResolver ar { aliases, abilities };
@@ -266,28 +267,28 @@ namespace og
             if (auto const & criteria_c = config_c.get_sharedInstanceCriteria();
                 criteria_c.has_value())
             {
-                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, false);
+                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, _, false);
             }
         }
 
         if (ok == false)
             { return false; }
 
-        for (int i = 0; i < config_c.get_deviceProfileGroups().size(); ++i)
+        for (int devGroupIdx = 0; devGroupIdx < config_c.get_deviceProfileGroups().size(); ++devGroupIdx)
         {
-            auto const & profileGroup_c = config_c.get_deviceProfileGroups()[i];
+            auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
             auto mark = accum.mark();
 
             AbilityResolver ar { aliases, abilities };
             for (auto inc_c : profileGroup_c.get_include())
                 { ar.include(inc_c); }
 
-            auto & deviceInfo = deviceAssignments[i].expDeviceInfo;
-            deviceInfo = expInstInfo;
+            auto & deviceInfo = deviceAssignments[devGroupIdx].expDeviceInfo;
+            //deviceInfo = expInstInfo;
 
             auto devAccum = deviceInfo.makeAccumulator();
 
-            int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, devAccum, false);
+            int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, devAccum, _, false);
             if (profileIdx != NoGoodProfile)
             {
                 accum.extend(devAccum);
@@ -395,6 +396,8 @@ namespace og
                 auto const & availableDeviceExts = physDevices[physIdx].availableDeviceExtensions;
                 auto & suitability = devAss.deviceSuitabilities[physIdx];
 
+                suitability.physicalDeviceIdx = physIdx;
+
                 VkFeatures interestingFeatures = allInterestingFeatures.copyAndReset();
                 VkProperties interestingProperties = allInterestingProperties.copyAndReset();
 
@@ -403,7 +406,7 @@ namespace og
                 vkGetPhysicalDeviceProperties2(physDevice, & interestingProperties.mainStruct);
 
                 //  check device against features, props, etc
-                int profile = getBestProfile(dpgIdx, physIdx, interestingFeatures, interestingProperties);
+                suitability.bestProfileIdx = getBestProfile(dpgIdx, physIdx, interestingFeatures, interestingProperties);
 
                 //  if we found a profile:
                 //      da.deviceProfiles[physDevIdx].bestProfileIdx = profileIdx
@@ -427,19 +430,25 @@ namespace og
                 //      check shared
                 //      check each profile until one is found
                 //          check accumulates all providers for the winning profile
-    int DeviceCreator::getBestProfile()
+    int DeviceCreator::getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & features, VkProperties const & properties)
     {
-        auto accum = expInstInfo.makeAccumulator();
+        auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
+        auto & devAss = deviceAssignments[devGroupIdx];
+        auto & devSuit = devAss.deviceSuitabilities[physDevIdx];
 
-        auto fn = [this](crit const & criteria_c, decltype(accum) & accum)
+        auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
+
+        auto & physDev = physDevices[physDevIdx];
+
+        auto fn = [this, & features, & properties, & physDev](crit const & criteria_c, decltype(accum) & accum, VkFeatures & features)
         {
             bool ok = true;
-            bool foundProfile = false;
+            bool foundProfile = true;
 
             if (ok && criteria_c.get_vulkanVersion().has_value())
             {
-                ok = checkVulkan(* criteria_c.get_vulkanVersion(), utilizedVulkanVersion);
-                foundProfile = ok;
+                ok = ok && checkVulkan(* criteria_c.get_vulkanVersion(), utilizedVulkanVersion);
+                foundProfile = foundProfile && ok;
             }
             if (ok && criteria_c.get_extensions().size() > 0)
             {
@@ -449,6 +458,7 @@ namespace og
                     ok = ok && checkExtension(ext_c, availableInstanceExtensionNames);
                     if (ok)
                         { accum.get<0>().push_back(ext_c.data()); }
+                    foundProfile = foundProfile && ok;
                 }
             }
             if (ok && criteria_c.get_desiredExtensions().size() > 0)
@@ -459,6 +469,7 @@ namespace og
                     // optional; we're not setting ok here, just adding if it's available
                     if (ok && checkExtension(ext_c, availableInstanceExtensionNames))
                         { accum.get<0>().push_back(ext_c.data()); }
+                    foundProfile = foundProfile && ok;
                 }
             }
             if (ok && criteria_c.get_layers().size() > 0)
@@ -469,9 +480,45 @@ namespace og
                     ok = ok && checkLayer(lay_c, availableLayerNames);
                     if (ok)
                         { accum.get<1>().push_back(lay_c.data()); }
+                    foundProfile = foundProfile && ok;
                 }
             }
-
+            if (ok && criteria_c.get_deviceExtensions().size() > 0)
+            {
+                for (auto devExt_c : criteria_c.get_deviceExtensions())
+                {
+                    ok = ok && checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions);
+                    if (ok)
+                        { accum.get<5>().push_back(devExt_c); }
+                    foundProfile = foundProfile && ok;
+                }
+            }
+            if (ok && criteria_c.get_features().size() > 0)
+            {
+                for (auto feat_c : criteria_c.get_features())
+                {
+                    auto const & [provider_c, features_c] = feat_c;
+                    ok = ok && checkFeatures(provider_c, features_c, features);
+                    if (ok)
+                    {
+                        accum.get<6>().push_back(feat_c.first);
+                        // here we record the features to the structurechain for later use
+                        for (auto const & feature_c : features_c)
+                            { features.set(provider_c, feature_c, VK_TRUE); }
+                    }
+                    foundProfile = foundProfile && ok;
+                }
+            }
+            if (ok && criteria_c.get_properties().size() > 0)
+            {
+                for (auto prop_c : criteria_c.get_properties())
+                {
+                    auto const & [provider_c, properties_c] = prop_c;
+                    ok = ok && checkProperties(provider_c, properties_c, properties);
+                    if (ok)
+                        { accum.get<7>().push_back(prop_c.first); }
+                }
+            }
             if (ok)
             {
                 if (criteria_c.get_debugUtilsMessengers().size() > 0)
@@ -495,32 +542,16 @@ namespace og
                         accum.get<4>().push_back(dvf);
                     }
                 }
-
-                // Here we're identifying all the interesting criteria providers
-                // that we'll possibly want to query about in device selection.
-                for (auto devExt_c : criteria_c.get_deviceExtensions())
-                {
-                    accum.get<5>().push_back(devExt_c);
-                }
-
                 for (auto devExt_c : criteria_c.get_desiredDeviceExtensions())
                 {
-                    accum.get<5>().push_back(devExt_c);
+                    if (checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
+                        { accum.get<5>().push_back(devExt_c); }
                 }
-
-                for (auto feat_c : criteria_c.get_features())
+                for (auto const & feat_c : criteria_c.get_desiredFeatures())
                 {
-                    accum.get<6>().push_back(feat_c.first);
-                }
-
-                for (auto feat_c : criteria_c.get_desiredFeatures())
-                {
-                    accum.get<6>().push_back(feat_c.first);
-                }
-
-                for (auto prop_c : criteria_c.get_properties())
-                {
-                    accum.get<7>().push_back(prop_c.first);
+                    auto const & [provider_c, features_c] = feat_c;
+                    if (checkFeatures(provider_c, features_c, features))
+                        { accum.get<6>().push_back(feat_c.first); }
                 }
             }
 
@@ -528,6 +559,10 @@ namespace og
         };
 
         bool ok = true;
+
+        auto mark = accum.mark();
+
+        VkFeatures sharedFeatures = features.copyAndReset();
 
         { // nested scope keeping me careful about not reusing ar
             AbilityResolver ar { aliases, abilities };
@@ -537,37 +572,27 @@ namespace og
             if (auto const & criteria_c = config_c.get_sharedInstanceCriteria();
                 criteria_c.has_value())
             {
-                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, false);
+                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, sharedFeatures, false);
             }
         }
 
         if (ok == false)
-            { return false; }
+            { return NoGoodProfile; }
 
-        for (int i = 0; i < config_c.get_deviceProfileGroups().size(); ++i)
+        AbilityResolver ar { aliases, abilities };
+        for (auto inc_c : profileGroup_c.get_include())
+            { ar.include(inc_c); }
+
+        VkFeatures profileFeatures = features.copyAndReset();
+        int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, accum, profileFeatures, false);
+        if (profileIdx != NoGoodProfile)
         {
-            auto const & profileGroup_c = config_c.get_deviceProfileGroups()[i];
-            auto mark = accum.mark();
-
-            AbilityResolver ar { aliases, abilities };
-            for (auto inc_c : profileGroup_c.get_include())
-                { ar.include(inc_c); }
-
-            auto & deviceInfo = deviceAssignments[i].expDeviceInfo;
-            deviceInfo = expInstInfo;
-
-            auto devAccum = deviceInfo.makeAccumulator();
-
-            int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, devAccum, false);
-            if (profileIdx != NoGoodProfile)
-            {
-                accum.extend(devAccum);
-            }
-            else
-            {
-                devAccum.rollBack(mark);
-            }
+            devSuit.bestProfileFeatures = sharedFeatures | profileFeatures;
+            return profileIdx;
         }
+
+        accum.rollBack(mark);
+        return NoGoodProfile;
     }
 
     void DeviceCreator::scoreDevices()
@@ -605,8 +630,30 @@ namespace og
         return available.find(layer.data()) != end(available);
     }
 
+    bool DeviceCreator::checkDeviceExtension(std::string_view extension, std::unordered_set<char const *> const & available)
+    {
+        return available.find(extension.data()) != end(available);
+    }
 
+    bool DeviceCreator::checkFeatures(std::string_view provider_c, std::vector<std::string_view> const & features_c, VkFeatures const & available)
+    {
+        for (auto const & feature_c : features_c)
+        {
+            if (available.check(provider_c, feature_c) == false)
+                { return false; }
+        }
+        return true;
+    }
 
+    bool DeviceCreator::checkProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & properties_c, VkProperties const & available)
+    {
+        for (auto const & [property_c, op_c, value_c] : properties_c)
+        {
+            if (available.check(provider_c, property_c, op_c, value_c) == false)
+                { return false; }
+        }
+        return true;
+    }
 
 
 

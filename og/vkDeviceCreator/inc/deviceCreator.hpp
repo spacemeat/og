@@ -73,10 +73,13 @@ namespace og
         uint32_t physicalDeviceIdx;
         // one for each profile
         std::vector<ProfileSpecificCriteria> profileCritera;
+        DeviceInfo bestProfileDeviceInfo;
         // one for each queue family on the physical device
         // (once we've chosen the best profile idx)
         std::vector<VkQueueFamilies> queueFamilies;
+
         uint32_t bestProfileIdx;
+        VkFeatures bestProfileFeatures;
         uint32_t bestQueueFamilyGroupIdx;
         QueueFamilyComposition queueFamilyComposition;
     };
@@ -124,7 +127,7 @@ namespace og
         void initExploratoryPhysDevices();
         void matchDeviceAbilities();
 
-        int getBestProfile();
+        int getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & features, VkProperties const & properties);
 
         void scoreDevices();
         void gatherInstanceExtensionsAndLayers();
@@ -134,6 +137,9 @@ namespace og
         bool checkVulkan(std::string_view vulkanVersion, version_t available);
         bool checkExtension(std::string_view extension, std::unordered_set<char const *> const & available);
         bool checkLayer(std::string_view layer, std::unordered_set<char const *> const & available);
+        bool checkDeviceExtension(std::string_view extension, std::unordered_set<char const *> const & available);
+        bool checkFeatures(std::string_view provider_c, std::vector<std::string_view> const & features_c, VkFeatures const & available);
+        bool checkProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & properties_c, VkProperties const & available);
 
         // void initVkInstance();
 

@@ -23,13 +23,19 @@ namespace og
 
         log(fmt::format("Physical device {}:", physIdx));
 
+        std::vector<VkExtensionProperties> availableDeviceExtensionsVect;
+
         uint32_t count = 0;
         vkEnumerateDeviceExtensionProperties(phdev, nullptr, & count, nullptr);
-        std::vector<VkExtensionProperties> & availableDes = availableDeviceExtensions;
-        availableDes.resize(count);
-        vkEnumerateDeviceExtensionProperties(phdev, nullptr, & count, availableDes.data());
+        availableDeviceExtensionsVect.resize(count);
+        vkEnumerateDeviceExtensionProperties(phdev, nullptr, & count, availableDeviceExtensionsVect.data());
+        for (int i = 0; i < count; ++i)
+        {
+            availableDeviceExtensions.insert(
+                availableDeviceExtensionsVect[i].extensionName);
+        }
 
-        for (auto const & elem : availableDes)
+        for (auto const & elem : availableDeviceExtensionsVect)
             { log(fmt::format(". available device extension: {} v{}", elem.extensionName, elem.specVersion)); }
     }
 

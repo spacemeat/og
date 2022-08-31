@@ -248,8 +248,8 @@
                 queueTypesExcluded: { type: optional of: VkQueueFlagBits }
                 features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
                 desiredFeatures: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
-                properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
-                queueFamilyProperties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, reqOperator, stringView] } } ] }
+                properties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, op, stringView] } } ] }
+                queueFamilyProperties: { type: unorderedMap of: [stringView, { type: vector of: { type: tuple of: [stringView, op, stringView] } } ] }
             }
             debugUtilsMessenger_t: {
                 severity: VkDebugUtilsMessageSeverityFlagBitsEXT
