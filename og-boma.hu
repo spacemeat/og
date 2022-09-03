@@ -178,6 +178,7 @@
                 queueVillage: { type: vector of: queueFamilyAttributes }
             }
             queueFamilyAttributes: {
+                name: stringView
                 criteria: { type: optional of: universalCriteria }
                 flags: { type: VkDeviceQueueCreateFlagBits default: 0 }
                 priorities: { type: vector of: float }

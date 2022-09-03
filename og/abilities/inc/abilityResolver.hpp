@@ -112,7 +112,7 @@ namespace og
 
     public:
         template <class ProfileGroup_t, typename VisitorFn, class Accumulator, class Payload>
-        int doProfileGroup(std::string_view profileGroupName, ProfileGroup_t const & profileGroup_c, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true)
+        int doProfileGroup(std::string_view profileGroupName, ProfileGroup_t const & profileGroup_c, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true, int startingProfileIdx = 0)
         {
             int result = 0;
             auto const & criteria_c = profileGroup_c.get_sharedInstanceCriteria();
@@ -124,8 +124,9 @@ namespace og
                 if (profiles_c.size() == 0)
                     { return 0; }   // return 0 for idx 0 or no profile (which is passing)
 
-                for (auto const & profile_c : profiles_c)
+                for (int profileIdx_c = startingProfileIdx; profileIdx_c < profiles_c.size(); ++profileIdx_c)
                 {
+                    auto const & profile_c = profiles_c[profileIdx_c];
                     auto cmark = accum.mark();
                     auto bool [cok, foundProfile] = (doCrit(profile_c.get_name(), profile_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities));
 

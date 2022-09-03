@@ -120,6 +120,7 @@
                     name: gcacat
                     // these come order-independent
                     queueVillage: [ {
+                            name: graphics
                             criteria: {
                                 abilities: [globalPriority]
                                 queueFamilyProperties: {
@@ -133,6 +134,7 @@
                             maxQueueCount: 8
                             globalPriority: high
                         }, {
+                            name: asyncCompute
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
@@ -143,10 +145,10 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
+                            name: asyncTransfer
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
-                                                 [queueFlags hasnot compute_bit]
                                                  [queueFlags has transfer_bit]
                                                  [queueCount ge 1]]
                                 }
@@ -158,6 +160,7 @@
                 }, {
                     name: gacat
                     queueVillage: [ {
+                            name: graphics
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
@@ -168,6 +171,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
+                            name: asyncCompute
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
@@ -178,10 +182,10 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
+                            name: asyncTransfer
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
-                                                 [queueFlags hasnot compute_bit]
                                                  [queueFlags has transfer_bit]
                                                  [queueCount ge 1]]
                                 }
@@ -193,6 +197,7 @@
                 }, {
                     name: gcat
                     queueVillage: [ {
+                            name: graphicsCompute
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
@@ -204,19 +209,21 @@
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
                             criteria: {
+                            name: asyncTransfer
                                 queueFamilyProperties: {
-                                    vulkan_1_0: [[queueFlags has transfer_bit]
-                                                 [queueFlags has compute_bit]
+                                    vulkan_1_0: [[queueFlags hasnot grphics_bit]
+                                                 [queueFlags has transfer_bit]
                                                  [queueCount ge 1]]
                                 }
                             }
-                            maxQueueCount: 8
+                            maxQueueCount: 2
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }
                     ]
                 }, {
                     name: gac
                     queueVillage: [ {
+                            name: graphics
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]
@@ -227,6 +234,7 @@
                             maxQueueCount: 8
                             priorities: [1.0, 0.8, 0.8, 0.4, 1.0, 0.8, 0.8, 0.4]
                         }, {
+                            name: asyncCompute
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags hasnot grphics_bit]
@@ -241,6 +249,7 @@
                 }, {
                     name: gct
                     queueVillage: [ {
+                            name: graphicsCompute
                             criteria: {
                                 queueFamilyProperties: {
                                     vulkan_1_0: [[queueFlags has grphics_bit]

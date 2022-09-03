@@ -80,7 +80,7 @@ namespace og
 
         uint32_t bestProfileIdx;
         VkFeatures bestProfileFeatures;
-        uint32_t bestQueueFamilyGroupIdx;
+        uint32_t bestQueueVillageProfile;
         QueueFamilyComposition queueFamilyComposition;
     };
 
@@ -127,7 +127,10 @@ namespace og
         void initExploratoryPhysDevices();
         void matchDeviceAbilities();
 
-        int getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & features, VkProperties const & properties);
+        int getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & features, VkProperties const & properties, int startingIdx);
+        int getBestQueueVillageProfile(int devGroupIdx, int physDevIdx,
+            VkFeatures const & availbleFeatures, VkProperties const & availableProperties,
+            VkQueueFamilies const & availableQfProperties);
 
         void scoreDevices();
         void gatherInstanceExtensionsAndLayers();
