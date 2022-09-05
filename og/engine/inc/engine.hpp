@@ -72,10 +72,15 @@ namespace og
         hu::Trove appConfigTrove;
         engine::appConfig appConfig;
 
+        hu::Trove deviceConfigTrove;
+
+
         ProviderAliasResolver aliases;
         AbilityCollection abilities;
 
         std::vector<hu::Trove> abilitiesTroves;
+
+        VulkanSubsystem
     };
 
     extern std::optional<Engine> e;

@@ -15,9 +15,33 @@
 
 namespace og
 {
-    struct InstanceInfo
+    struct QueueFamilySubsystem
     {
+        uint32_t qfi;
+        uint32_t count;
+        std::vector<float> priorities;
+        std::optional<VkQueueGlobalPriorityKHR> globalPriority;
+        std::vector<VkQueue> createdQueues;
+    };
 
+    struct DeviceSubsystem
+    {
+        int physicalDeviceIdx;
+        VkPhysicalDevice physicalDevice;
+        VkDevice device;
+        std::vector<char const *> deviceExtensions;
+        VkFeatures features;
+        VkProperties properties;
+        std::vector<QueueFamilyAlloc> queueFamilies;
+    };
+
+    struct VulkanSubsystem
+    {
+        version_t vulkanVersion;
+        VkInstance instance;
+        std::vector<char const *> extensions;
+        std::vector<char const *> layers;
+        std::vector<DeviceSubsystem> devices;
     };
 
     struct DeviceInfo
@@ -84,7 +108,7 @@ namespace og
         QueueFamilyComposition queueFamilyComposition;
     };
 
-    // One of these is stored per physical device group
+    // One of these is stored per device group
     struct DevProfileGroupAssignment
     {
         int groupIdx = -1;
@@ -95,7 +119,12 @@ namespace og
         // one for each enumerated physical device
         std::vector<PhysicalDeviceSuitability> deviceSuitabilities;
         // winning physical device indices
-        std::vector<int> winningDeviceIdxs;
+        //std::vector<int> winningDeviceIdxs;
+    };
+
+    struct CreatedInstance
+    {
+
     };
 
     struct DeviceCapabilities

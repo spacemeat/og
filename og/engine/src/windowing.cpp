@@ -186,6 +186,8 @@ namespace og
         return glfwVulkanSupported() == GLFW_TRUE;
     }
 
+    // TODO: glfwGetPhysicalDevicePresentationSupport should be used to ensure preso
+
     char const ** App::getVkExtensionsForGlfw(uint32_t * count)
     {
         * count = 0;

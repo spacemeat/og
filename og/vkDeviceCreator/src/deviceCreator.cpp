@@ -113,6 +113,66 @@ namespace og
 
     }
 
+    VulkanSubsystem DeviceCreator::createInstanceAndDevices()
+    {
+        initPhysDevices();
+
+        // vec of [groupIdx, numDevices]
+        std::vector<std::tuple<int, int>> deviceSchedule;
+
+        log("Rounding up device profile groups.");
+        auto const & groups = config.get_vkDeviceProfileGroups();
+
+        {
+            //std::stringstream oss;
+            //oss << HumonFormat(groups);
+            //log(fmt::format("{}", oss.str()));
+        }
+
+        auto getGroup = [&](std::string_view groupName)
+        {
+            auto groupIt = find_if(begin(groups), end(groups),
+                                   [& groupName](auto & a){ return a.get_name() == groupName; });
+            if (groupIt == end(groups))
+                { throw Ex(fmt::format("Invalid vkDeviceProfileGroups group name '{}'", groupName)); }
+
+            return groupIt - begin(groups);
+        };
+
+        for (auto const & work : appConfig.get_works())
+        {
+            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            {
+                auto groupIdx = getGroup(groupName);
+                deviceSchedule.emplace_back(groupIdx, needed);
+            }
+        }
+
+        for (auto const & work : appConfig.get_works())
+        {
+            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            {
+                auto groupIdx = getGroup(groupName);
+                deviceSchedule.emplace_back(groupIdx, wanted - needed);
+            }
+        }
+
+        log("Scoring devices for profile groups.");
+        for (auto const & [groupIdx, _] : deviceSchedule)
+        {
+            computeBestProfileGroupDevices(groupIdx);
+        }
+
+        log("Assigning winning devices to profile groups.");
+        for (auto const & [groupIdx, numDevices] : deviceSchedule)
+        {
+            assignDevices(groupIdx, numDevices);
+        }
+
+        log("Creating devices.");
+        createAllVkDevices();
+    }
+
     // TODO: Document this process, because it is involved.
 
     /*
@@ -180,16 +240,6 @@ namespace og
                         { accum.get<0>().push_back(ext_c.data()); }
                 }
             }
-            if (ok && criteria_c.get_desiredExtensions().size() > 0)
-            {
-                auto const & exts_c = criteria_c.get_desiredExtensions();
-                for (auto const & ext_c : exts_c)
-                {
-                    // optional; we're not setting ok here, just adding if it's available
-                    if (ok && checkExtension(ext_c, availableInstanceExtensionNames))
-                        { accum.get<0>().push_back(ext_c.data()); }
-                }
-            }
             if (ok && criteria_c.get_layers().size() > 0)
             {
                 auto const & lays_c = criteria_c.get_extensions();
@@ -203,6 +253,16 @@ namespace og
 
             if (ok)
             {
+                if (criteria_c.get_desiredExtensions().size() > 0)
+                {
+                    auto const & exts_c = criteria_c.get_desiredExtensions();
+                    for (auto const & ext_c : exts_c)
+                    {
+                        // optional; we're not setting ok here, just adding if it's available
+                        if (checkExtension(ext_c, availableInstanceExtensionNames))
+                            { accum.get<0>().push_back(ext_c.data()); }
+                    }
+                }
                 if (criteria_c.get_debugUtilsMessengers().size() > 0)
                 {
                     auto const & dums = criteria_c.get_debugUtilsMessengers();
@@ -616,9 +676,45 @@ namespace og
         return devSuit.bestQueueVillageProfile;
     }
 
-    void DeviceCreator::scoreDevices()
+    void DeviceCreator::assignDevices(int groupIdx, int numDevices)
     {
+        auto const & profileGroups_c = config_c.get_deviceProfileGroups();
+        auto const & group_c = profileGroups_c[groupIdx];
+        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];
 
+        // compute the best numDevices devices for this device group.
+        for (int numAssignments = 0; numAssignments < numDevices; ++numAssignments)
+        {
+            int bestProfileIdx = group_c.get_profiles().size();
+            int bestDeviceIdx = -1;
+            // each time through, find the best available device for this group.
+            for (int devIdx = 0; devIdx < physDevices.size(); ++devIdx)
+            {
+                auto & device = physDevices[devIdx];
+                if (device.isAssignedToDeviceProfileGroup)
+                    { continue; }
+
+                auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
+                if (suitability.bestProfileIdx == -1 ||
+                    suitability.bestQueueVillageProfile == -1)
+                    { continue; }
+
+                if (suitability.bestProfileIdx < bestProfileIdx)
+                {
+                    bestProfileIdx = suitability.bestProfileIdx;
+                    bestDeviceIdx = devIdx;
+                }
+            }
+
+            if (bestDeviceIdx == -1)
+                { return; } // if any assignment fails, they'll fail every time, so bail now
+
+            auto & device = physDevices[bestDeviceIdx];
+            device.isAssignedToDeviceProfileGroup = true;
+            device.groupIdx = groupIdx;
+            device.profileIdx = bestProfileIdx;
+            //deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
+        }
     }
 
     void DeviceCreator::gatherInstanceExtensionsAndLayers()
@@ -755,16 +851,16 @@ namespace og
     {
         auto const & profileGroups_c = config_c.get_deviceProfileGroups();
         auto const & group_c = profileGroups_c[groupIdx];
-        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];  // NOT the assignment index!
+        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];
 
+        // compute the best numDevices devices for this device group.
         for (int numAssignments = 0; numAssignments < numDevices; ++numAssignments)
         {
             int bestProfileIdx = group_c.get_profiles().size();
             int bestDeviceIdx = -1;
-
+            // each time through, find the best available device for this group.
             for (int devIdx = 0; devIdx < physDevices.size(); ++devIdx)
             {
-                // find the best device which is unassigned
                 auto & device = physDevices[devIdx];
                 if (device.isAssignedToDeviceProfileGroup)
                     { continue; }
@@ -788,7 +884,7 @@ namespace og
             device.isAssignedToDeviceProfileGroup = true;
             device.groupIdx = groupIdx;
             device.profileIdx = bestProfileIdx;
-            deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
+            //deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
         }
     }
 
