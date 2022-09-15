@@ -3,6 +3,7 @@
 #include "../../logger/inc/logger.hpp"
 #include "../inc/app.hpp"
 #include "../../abilities/inc/abilityResolver.hpp"
+#include "../../app/inc/troveKeeper.hpp"
 
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -106,11 +107,11 @@ namespace og
     }
 
 
-    DeviceCreator::DeviceCreator(std::string_view configPath, ProviderAliasResolver & aliases, AbilityCollection & abilities,
+    DeviceCreator::DeviceCreator(std::string const & configPath, ProviderAliasResolver & aliases, AbilityCollection & abilities,
                                  std::string_view appName_c, version_t appVersion_c)
-    : aliases(aliases), abilities(abilities)
+    : aliases(aliases), abilities(abilities), appName_c(appName_c), appVersion_c(appVersion_c)
     {
-
+        config_c = vkDeviceCreator::deviceConfig { troves->loadAndKeep(configPath) };
     }
 
     VulkanSubsystem DeviceCreator::createInstanceAndDevices()
@@ -121,17 +122,11 @@ namespace og
         std::vector<std::tuple<int, int>> deviceSchedule;
 
         log("Rounding up device profile groups.");
-        auto const & groups = config.get_vkDeviceProfileGroups();
-
-        {
-            //std::stringstream oss;
-            //oss << HumonFormat(groups);
-            //log(fmt::format("{}", oss.str()));
-        }
+        auto const & groups = config_c.get_deviceProfileGroups();
 
         auto getGroup = [&](std::string_view groupName)
         {
-            auto groupIt = find_if(begin(groups), end(groups),
+            auto groupIt = std::find_if(begin(groups), end(groups),
                                    [& groupName](auto & a){ return a.get_name() == groupName; });
             if (groupIt == end(groups))
                 { throw Ex(fmt::format("Invalid vkDeviceProfileGroups group name '{}'", groupName)); }
@@ -172,6 +167,9 @@ namespace og
         log("Creating devices.");
         createAllVkDevices();
     }
+
+
+    void 
 
     // TODO: Document this process, because it is involved.
 
@@ -396,6 +394,11 @@ namespace og
             }
         }
         return true;
+    }
+
+    void DeviceCreator::consolidateExploratoryCollections()
+    {
+        //... TODO: this
     }
 
     void DeviceCreator::makeExploratoryInstance()

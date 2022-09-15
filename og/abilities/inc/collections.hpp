@@ -2,11 +2,13 @@
 
 #include <vector>
 #include <unordered_map>
+#include <string_view>
 #include "../gen/inc/vkChainStructs.hpp"
 #include "../../abilities/gen/inc/universalCriteria.hpp"
 #include "../../abilities/gen/inc/abilityCollection_t.hpp"
 #include "../inc/providerAliasResolver.hpp"
-#include "vkPhysDevice.hpp"
+#include "../../app/inc/troveKeeper.hpp"
+#include "../../gen/inc/enums.hpp"
 
 namespace og
 {
@@ -27,30 +29,19 @@ namespace og
 
         void loadCollectionFile(std::string const & path)
         {
-            auto tr = hu::Trove::fromFile(path, {hu::Encoding::utf8}, hu::ErrorResponse::stderrAnsiColor);
-            if (auto t = std::get_if<hu::Trove>(& tr))
+            auto bas_c = abilities::abilityCollection_t { troves->loadAndKeep(path) };
+            for (auto const & [libName, lib] : bas_c.get_abilityLibraries())
             {
-                troves.push_back(std::move(* t));
-                auto bas_c = abilities::abilityCollection_t { troves.rbegin()->root() };
-                for (auto const & [libName, lib] : bas_c.get_abilityLibraries())
-                {
-                    libraries_c[libName] = std::move(lib);
-                }
-            }
-            else
-            {
-                throw Ex(fmt::format("Could not load library at {}.", path));
+                libraries_c[libName] = std::move(lib);
             }
         }
 
         abilities::abilityLibrary_t const & getLibrary(std::string_view libraryName) const
         {
-            //return libraries_c[libraryName];
             return libraries_c.find(libraryName)->second;
         }
 
     private:
-        std::vector<hu::Trove> troves;
         std::unordered_map<std::string_view, abilities::abilityLibrary_t> libraries_c;
     };
 }

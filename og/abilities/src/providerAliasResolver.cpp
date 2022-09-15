@@ -1,6 +1,7 @@
 #include "../inc/providerAliasResolver.hpp"
-#include "../../engine/inc/except.hpp"
-#include "../../engine/inc/utils.hpp"
+#include "../../app/inc/except.hpp"
+#include "../../app/inc/utils.hpp"
+#include "../../app/inc/troveKeeper.hpp"
 
 namespace og
 {
@@ -8,16 +9,7 @@ namespace og
 
     void ProviderAliasResolver::loadAliases(std::string const & providerAliasesPath)
     {
-        auto tr = hu::Trove::fromFile(providerAliasesPath, {hu::Encoding::utf8}, hu::ErrorResponse::stderrAnsiColor);
-        if (auto t = std::get_if<hu::Trove>(& tr))
-        {
-            trove = std::move(* t);
-            aliases_c = og::abilities::providerAliases_t { trove.root() };
-        }
-        else
-        {
-            throw Ex(fmt::format("Could not load provider aliases at {}.", providerAliasesPath));
-        }
+        aliases_c = og::abilities::providerAliases_t { troves->loadAndKeep(providerAliasesPath) };
     }
 
     std::string_view ProviderAliasResolver::resolveAlias(std::string_view alias, version_t vulkanVersion, critKinds kind)

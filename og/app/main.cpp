@@ -2,37 +2,41 @@
 #include "inc/engine.hpp"
 #include "inc/app.hpp"
 #include <fmt/format.h>
+#include "inc/troveKeeper.hpp"
 
 namespace og
 {
     std::optional<App> app;
     std::optional<Logger> l;
-    std::optional<Engine> e;
+    std::optional<TroveKeeper> troves;
+    //std::optional<Engine> e;
 
     struct makeGlobOpts
     {
-        makeGlobOpts(std::string_view appConfigPath)
+        makeGlobOpts(std::string const & loggerConfigPath)
         {
-            app.emplace(std::string {appConfigPath});
-            l.emplace(std::string {app->get_config().get_loggerConfigPath()});
-            e.emplace(std::string {app->get_config().get_deviceConfigPath()});
+            troves.emplace(TroveKeeper {});
+            //app.emplace(std::string {appConfigPath});
+            l.emplace(loggerConfigPath);
+            //e.emplace(std::string {app->get_config().get_deviceConfigPath()});
         }
 
         ~makeGlobOpts()
         {
-            e.reset();
+            //e.reset();
             l.reset();
-            app.reset();
+            //app.reset();
+            troves.reset();
         }
     };
 
-    engine::appConfig getAppConfig(std::string_view appConfigPath, hu::Trove & trove)
+    app::appConfig getAppConfig(std::string_view appConfigPath, hu::Trove & trove)
     {
         auto tr = hu::Trove::fromFile(appConfigPath, {hu::Encoding::utf8}, hu::ErrorResponse::mum);
         if (auto && t = std::get_if<hu::Trove>(& tr))
         {
             trove = std::move(*t);
-            return engine::appConfig { trove.root() };
+            return app::appConfig { trove.root() };
         }
         else
         {
@@ -48,14 +52,16 @@ int main(int argc, char * argv[])
 
     try
     {
-        auto globOpts = makeGlobOpts { "appConfig.hu" };
+        App app { "appConfig.hu" };
 
-        app->init();
-        app->run();
+        auto globOpts = makeGlobOpts { app.get_config().get_loggerConfigPath() };
+
+        app.init();
+        app.run();
 
         log("Ended loop. Shutting down.\n");
 
-        e->shutdown();
+        app.shutdown();
     }
     catch (Ex & ex)
     {

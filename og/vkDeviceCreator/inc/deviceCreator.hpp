@@ -27,12 +27,14 @@ namespace og
     struct DeviceSubsystem
     {
         int physicalDeviceIdx;
+        int deviceGroupIdx;
+        std::string_view deviceGroupName;
         VkPhysicalDevice physicalDevice;
         VkDevice device;
         std::vector<char const *> deviceExtensions;
         VkFeatures features;
         VkProperties properties;
-        std::vector<QueueFamilyAlloc> queueFamilies;
+        std::vector<QueueFamilySubsystem> queueFamilies;
     };
 
     struct VulkanSubsystem
@@ -59,7 +61,6 @@ namespace og
         // built by makeDebugMessengersAndValidators()
         std::vector<VkDebugUtilsMessengerCreateInfoEXT> debugMessengerObjects;
         std::optional<VkValidationFeaturesEXT> validationFeatures;
-
 
         void consolidateCollections();
         void * makeDebugMessengersAndValidators();
@@ -122,10 +123,6 @@ namespace og
         //std::vector<int> winningDeviceIdxs;
     };
 
-    struct CreatedInstance
-    {
-
-    };
 
     struct DeviceCapabilities
     {
@@ -143,15 +140,17 @@ namespace og
     class DeviceCreator
     {
     public:
-        DeviceCreator(std::string_view configPath, ProviderAliasResolver & aliases, AbilityCollection & abilities,
-                      std::string_view appName_c, version_t appVersion_c);
+        DeviceCreator(std::string const & configPath, ProviderAliasResolver & aliases,
+                      AbilityCollection & abilities, std::string_view appName_c, version_t appVersion_c);
+
+        VulkanSubsystem DeviceCreator::createInstanceAndDevices();
 
         // new upstart functiopns
         bool gatherExploratoryInstanceExtensions();
         bool requireGlfwExtensions();
         void consolidateExploratoryCollections();
         void makeExploratoryInstance();
-        void * makeDebugMessengersAndValidators(InstanceInfo & instanceInfo);
+        //void * makeDebugMessengersAndValidators(InstanceInfo & instanceInfo);
 
         void initExploratoryPhysDevices();
         void matchDeviceAbilities();
@@ -200,8 +199,6 @@ namespace og
 
 
     private:
-        std::vector<hu::Trove> troves;
-
         ProviderAliasResolver const & aliases;
         AbilityCollection const & abilities;
 

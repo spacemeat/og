@@ -6,8 +6,7 @@
 #include "../../abilities/gen/inc/universalCriteria.hpp"
 #include "../../abilities/gen/inc/abilityLibrary_t.hpp"
 #include "../../abilities/gen/inc/providerAliases_t.hpp"
-#include "vkPhysDevice.hpp"
-#include "../../engine/inc/utils.hpp"
+#include "../../app/inc/utils.hpp"
 
 namespace og
 {

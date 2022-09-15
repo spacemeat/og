@@ -8,7 +8,6 @@
 #include "../../abilities/gen/inc/providerAliases_t.hpp"
 #include "providerAliasResolver.hpp"
 #include "collections.hpp"
-#include "vkPhysDevice.hpp"
 
 namespace og
 {

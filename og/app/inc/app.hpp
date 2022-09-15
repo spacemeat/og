@@ -1,4 +1,23 @@
-#include "engine.hpp"
+#include <cassert>
+#include <chrono>
+#include <string>
+#include <string_view>
+#include <array>
+#include <vector>
+#include <optional>
+
+#include <fmt/format.h>
+
+#include "except.hpp"
+#include "utils.hpp"
+#include "troveKeeper.hpp"
+
+#include "../../gen/inc/og.hpp"
+#include "../../abilities/gen/inc/abilityLibrary_t.hpp"
+#include "../../abilities/inc/providerAliasResolver.hpp"
+#include "../../abilities/inc/collections.hpp"
+#include "../../vkDeviceCreator/gen/inc/deviceConfig.hpp"
+#include "../../engine/inc/engine.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -14,10 +33,10 @@ namespace og
     class App
     {
     public:
-        App(std::string_view configPath);
+        App(std::string const & configPath);
         ~App();
 
-        engine::appConfig const & get_config() { return config; }
+        app::appConfig const & get_config() { return config; }
 
         void init();
         void run();
@@ -25,12 +44,13 @@ namespace og
 
     public:
 
+        void initAbilities();
         void initViews();
         void initWindowEnvironment();
         bool anyWindowViews();
         bool anyVulkanWindowViews();
         void initWindow(int view, std::string_view titleText);
-        void updateWindow(int view, engine::windowConfig_t const & winConfig);
+        void updateWindow(int view, app::windowConfig_t const & winConfig);
         void updateWindowTitle(int view, std::string_view text);
         void destroyWindow(int view);
         bool iterateWindowsLoop();
@@ -40,10 +60,16 @@ namespace og
         char const ** getVkExtensionsForGlfw(uint32_t * count);
 
     private:
-        hu::Trove configTrove;
-        engine::appConfig config;
+        app::appConfig config;
+
+        ProviderAliasResolver providerAliases;
+        AbilityCollection abilities;
+
         std::vector<DisplayView> views;
         int numActiveWindows = 0;
+
+        VulkanSubsystem vk;
+        Engine engine;
     };
 
     extern std::optional<App> app;

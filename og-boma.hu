@@ -85,8 +85,8 @@
         }
     }
 
-    --engine: {
-        namespace: og.engine
+    --app: {
+        namespace: og.app
 
         serializeTo: [humon]
         deserializeFrom: [humon]
@@ -102,9 +102,10 @@
                 name: stringView
                 version: stringView
                 loggerConfigPath: { type: string }
-                deviceConfigPath: { type: string }
                 providerAliasesPath: string
                 abilitiesPaths: { type: vector of: string }
+                deviceConfigPath: { type: string }
+                engineConfigPath: { type: string }
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
                 works: { type: vector of: workUnit }
             }
@@ -134,6 +135,16 @@
                 active: { type: bool default: false }
                 screenFormat: { type: optional of: VkFormat }
             }
+        }
+    }
+
+    --engine: {
+        namespace: og.engine
+
+        serializeTo: [humon]
+        deserializeFrom: [humon]
+
+        types: {
         }
     }
 

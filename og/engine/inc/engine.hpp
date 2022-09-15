@@ -5,16 +5,7 @@
 #include <map>
 #include <fmt/format.h>
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
-#include "../../gen/inc/og.hpp"
-#include "../../abilities/gen/inc/abilityLibrary_t.hpp"
-#include "../../abilities/inc/providerAliasResolver.hpp"
-#include "../../vkDeviceCreator/gen/inc/deviceConfig.hpp"
-#include "except.hpp"
-#include "utils.hpp"
-#include "vkPhysDevice.hpp"
+//#include "vkPhysDevice.hpp"
 
 namespace og
 {
@@ -50,9 +41,6 @@ namespace og
         Engine(std::string configPath);
         ~Engine();
 
-        engine::appConfig const & get_appConfig() { return appConfig; }
-        vkDeviceCreator::deviceConfig const & get_deviceConfig() { return deviceConfig; }
-
         void init();
         void shutdown();
     private:
@@ -63,26 +51,12 @@ namespace og
     private:
         bool iterateLoop();
 
-        void initAbilities();
 
         void waitForIdleVkDevice();
 
     private:
-        hu::Trove configTrove;
-        hu::Trove appConfigTrove;
-        engine::appConfig appConfig;
-
-        hu::Trove deviceConfigTrove;
-
-
-        ProviderAliasResolver aliases;
-        AbilityCollection abilities;
-
-        std::vector<hu::Trove> abilitiesTroves;
-
-        VulkanSubsystem
     };
 
-    extern std::optional<Engine> e;
+    //extern std::optional<Engine> e;
 }
 

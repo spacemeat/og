@@ -4,6 +4,7 @@
 #include <initializer_list>
 #include <string_view>
 #include <vulkan/vulkan_core.h>
+#include <fmt/format.h>
 
 namespace og
 {

@@ -22,11 +22,10 @@
         }
     ]
 
-    // All devices allocated hare are uniqe. This says, first allocate exactly one
-    // device that fits the "graphicsDevices" profile the best. Then
+    // All devices allocated hare are unique. This says, first allocate exactly one
+    // device that fits the "graphicsDevices" profile the best. Then satisfy 
+    // the needed device allocations for all other works the same way. Then
     // allocate up to 16 other devices that fit the "computeDevices" profile.
-    // If there are multiple works, then allocations are distributed according
-    // to needs over wants in order to attempt the most successful works.
     works: [ {
             useDeviceProfileGroups: [[graphicsDevices, 1, 1],   // profile, #need, #want
                                      [computeDevices, 0, 16]]
