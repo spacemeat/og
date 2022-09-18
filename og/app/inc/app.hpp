@@ -36,7 +36,7 @@ namespace og
         App(std::string const & configPath);
         ~App();
 
-        app::appConfig const & get_config() { return config; }
+        app::appConfig const & get_config() { return config_c; }
 
         void init();
         void run();
@@ -59,8 +59,12 @@ namespace og
         bool glfwSupportsVulkan();
         char const ** getVkExtensionsForGlfw(uint32_t * count);
 
+        void createVulkanSubsystem();
     private:
-        app::appConfig config;
+        std::vector<std::tuple<std::string_view, size_t>> const & createSchedule();
+
+    private:
+        app::appConfig config_c;
 
         ProviderAliasResolver providerAliases;
         AbilityCollection abilities;

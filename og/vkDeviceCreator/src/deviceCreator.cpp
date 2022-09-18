@@ -4,6 +4,7 @@
 #include "../inc/app.hpp"
 #include "../../abilities/inc/abilityResolver.hpp"
 #include "../../app/inc/troveKeeper.hpp"
+#include <ranges>
 
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -66,7 +67,7 @@ namespace og
     using crit = abilities::universalCriteria;
     using critKinds = og::abilities::criteriaKinds;
 
-    void * DeviceInfo::makeDebugMessengersAndValidators()
+    void * InstanceDeviceInfo::makeDebugMessengersAndValidators()
     {
         void * createInfo_pNext = nullptr;
 
@@ -82,15 +83,15 @@ namespace og
         if (debugMessengerObjects.size() > 0)
             { createInfo_pNext = & debugMessengerObjects[0]; }
 
-        if (enabledValidation.size() > 0 || disabledValidation.size() > 0)
+        if (enabledValidations.size() > 0 || disabledValidations.size() > 0)
         {
             validationFeatures = VkValidationFeaturesEXT {
                 .sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT,
                 .pNext = createInfo_pNext,
-                .enabledValidationFeatureCount = static_cast<uint32_t>(enabledValidation.size()),
-                .pEnabledValidationFeatures = enabledValidation.data(),
-                .disabledValidationFeatureCount = static_cast<uint32_t>(disabledValidation.size()),
-                .pDisabledValidationFeatures = disabledValidation.data()
+                .enabledValidationFeatureCount = static_cast<uint32_t>(enabledValidations.size()),
+                .pEnabledValidationFeatures = enabledValidations.data(),
+                .disabledValidationFeatureCount = static_cast<uint32_t>(disabledValidations.size()),
+                .pDisabledValidationFeatures = disabledValidations.data()
             };
             createInfo_pNext = & (* validationFeatures);
         }
@@ -98,12 +99,12 @@ namespace og
         return createInfo_pNext;
     }
 
-    void DeviceInfo::consolidateCollections()
+    void InstanceDeviceInfo::consolidateCollections()
     {
         uniquifyVectorOfThings(extensions);
         uniquifyVectorOfThings(layers);
-        uniquifyVectorOfThings(enabledValidation);
-        uniquifyVectorOfThings(disabledValidation);
+        uniquifyVectorOfThings(enabledValidations);
+        uniquifyVectorOfThings(disabledValidations);
     }
 
 
@@ -114,6 +115,7 @@ namespace og
         config_c = vkDeviceCreator::deviceConfig { troves->loadAndKeep(configPath) };
     }
 
+    /*
     VulkanSubsystem DeviceCreator::createInstanceAndDevices()
     {
         initPhysDevices();
@@ -167,9 +169,46 @@ namespace og
         log("Creating devices.");
         createAllVkDevices();
     }
+    */
 
+    VulkanSubsystem DeviceCreator::createVulkanSubsystem(std::vector<std::tuple<std::string_view, size_t>> const & schedule)
+    {
+        VulkanSubsystem vs;
+        gatherExploratoryInstanceExtensions();
+        makeExploratoryInstance();
+        initExploratoryPhysDevices();
 
-    void 
+        std::unordered_set<std::string_view> alreadyMatched;
+        for (auto [deviceGroup, _] : schedule)
+        {
+            auto [_, didInsert] = alreadyMatched.insert(deviceGroup);
+            if (didInsert)
+            {
+                matchDeviceAbilities(deviceGroup);
+            }
+        }
+
+        for (auto [deviceGroup, numPhysDevices] : schedule)
+        {
+            assignDevices(deviceGroup, numPhysDevices);
+        }
+
+        alreadyMatched.clear();
+        for (auto [deviceGroup, _] : schedule)
+        {
+            auto [_, didInsert] = alreadyMatched.insert(deviceGroup);
+            if (didInsert)
+            {
+                gatherFinalCreationSet(deviceGroup, vs);
+            }
+        }
+
+        makeFinalInstance(vs);
+        makeDevices(vs);
+
+        return vs;
+    }
+     
 
     // TODO: Document this process, because it is involved.
 
@@ -213,6 +252,16 @@ namespace og
                 availableInstanceExtensions[i].extensionName);
         }
 
+        count = 0;
+        vkEnumerateInstanceLayerProperties(& count, nullptr);
+        availableLayers.resize(count);
+        vkEnumerateInstanceLayerProperties(& count, availableLayers.data());
+        for (int i = 0; i < count; ++i)
+        {
+            availableLayerNames.insert(
+                availableLayers[i].layerName);
+        }
+
         /*  The rest of this function is about getting all the instance
             extensions that any ability in this device profile might want to use.
         */
@@ -240,7 +289,7 @@ namespace og
             }
             if (ok && criteria_c.get_layers().size() > 0)
             {
-                auto const & lays_c = criteria_c.get_extensions();
+                auto const & lays_c = criteria_c.get_layers();
                 for (auto const & lay_c : lays_c)
                 {
                     ok = ok && checkLayer(lay_c, availableLayerNames);
@@ -332,6 +381,7 @@ namespace og
         if (ok == false)
             { return false; }
 
+        // TODO: Only those device groups we care about
         for (int devGroupIdx = 0; devGroupIdx < config_c.get_deviceProfileGroups().size(); ++devGroupIdx)
         {
             auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
@@ -448,62 +498,59 @@ namespace og
         deviceAssignments.resize(profileGroups_c.size());
     }
 
-    void DeviceCreator::matchDeviceAbilities()
+
+    void DeviceCreator::matchDeviceAbilities(std::string_view deviceGroup)
     {
         AbilityResolver ar(aliases, abilities);
 
-        for (int dpgIdx = 0; dpgIdx < config_c.get_deviceProfileGroups().size(); ++dpgIdx)
+        int dpgIdx = getDeviceGroupIdx(deviceGroup);
+        if (dpgIdx == -1)
+            { return; }
+
+        auto & devAss = deviceAssignments[dpgIdx];
+        devAss.deviceSuitabilities.resize(physDevices.size());
+
+        //  make structure chains based on exploratory device providers
+        VkFeatures allInterestingFeatures;
+        allInterestingFeatures.init(deviceAssignments[dpgIdx].expDeviceInfo.featureProviders);
+        VkProperties allInterestingProperties;
+        allInterestingProperties.init(deviceAssignments[dpgIdx].expDeviceInfo.propertyProviders);
+        VkQueueFamilies allInterestingQfProperties;
+        allInterestingQfProperties.init(deviceAssignments[dpgIdx].expDeviceInfo.queueFamilyPropertyProviders);
+
+        for (int physIdx = 0; physIdx < physDevices.size(); ++physIdx)
         {
-            auto const & profileGroup_c = config_c.get_deviceProfileGroups()[dpgIdx];
-            auto & devAss = deviceAssignments[dpgIdx];
-            devAss.deviceSuitabilities.resize(physDevices.size());
+            auto & physDevice = physDevices[physIdx].physicalDevice;
+            auto const & availableDeviceExts = physDevices[physIdx].availableDeviceExtensions;
+            auto & suitability = devAss.deviceSuitabilities[physIdx];
 
-            //  make structure chains based on exploratory device providers
-            VkFeatures allInterestingFeatures;
-            allInterestingFeatures.init(deviceAssignments[dpgIdx].expDeviceInfo.featureProviders);
-            VkProperties allInterestingProperties;
-            allInterestingProperties.init(deviceAssignments[dpgIdx].expDeviceInfo.propertyProviders);
-            VkQueueFamilies allInterestingQfProperties;
-            allInterestingQfProperties.init(deviceAssignments[dpgIdx].expDeviceInfo.queueFamilyPropertyProviders);
+            suitability.physicalDeviceIdx = physIdx;
 
-            for (int physIdx = 0; physIdx < physDevices.size(); ++physIdx)
+            //  get features, props, etc from device
+            VkFeatures availableFeatures = allInterestingFeatures.copyAndReset();
+            VkProperties availableProperties = allInterestingProperties.copyAndReset();
+            vkGetPhysicalDeviceFeatures2(physDevice, & availableFeatures.mainStruct);
+            vkGetPhysicalDeviceProperties2(physDevice, & availableProperties.mainStruct);
+
+            //  check device against features, props, etc
+            suitability.bestProfileIdx = -1;
+            do
             {
-                auto & physDevice = physDevices[physIdx].physicalDevice;
-                auto const & availableDeviceExts = physDevices[physIdx].availableDeviceExtensions;
-                auto & suitability = devAss.deviceSuitabilities[physIdx];
-
-                suitability.physicalDeviceIdx = physIdx;
-
-                VkFeatures availableFeatures = allInterestingFeatures.copyAndReset();
-                VkProperties availableProperties = allInterestingProperties.copyAndReset();
-
-                //  get features, props, etc from device
-                vkGetPhysicalDeviceFeatures2(physDevice, & availableFeatures.mainStruct);
-                vkGetPhysicalDeviceProperties2(physDevice, & availableProperties.mainStruct);
-
-                //  check device against features, props, etc
-                suitability.bestProfileIdx = -1;
-                do
+                suitability.bestProfileIdx = getBestProfile(dpgIdx, physIdx, availableFeatures,
+                    availableProperties, suitability.bestProfileIdx + 1);
+                if (suitability.bestProfileIdx >= 0)
                 {
-                    suitability.bestProfileIdx = getBestProfile(dpgIdx, physIdx, availableFeatures,
-                        availableProperties, suitability.bestProfileIdx + 1);
-                    if (suitability.bestProfileIdx >= 0)
-                    {
-                        VkQueueFamilies interestingQfProperties = allInterestingQfProperties.copyAndReset();
-                        suitability.bestQueueVillageProfile = getBestQueueVillageProfile(dpgIdx, physIdx,
-                            availableFeatures, availableProperties, interestingQfProperties);
-                        if (suitability.bestQueueVillageProfile < 0)
-                            { suitability.bestProfileIdx = NoGoodProfile; }
-                    }
-                    //  if idx >= 0:
-                    //      find best queue village for this device
-                    //      if no village can be made, suitability.bestProfileIdx = -1
-                } while (suitability.bestProfileIdx < 0);
+                    VkQueueFamilies interestingQfProperties = allInterestingQfProperties.copyAndReset();
+                    suitability.bestQueueVillageProfile = getBestQueueVillageProfile(dpgIdx, physIdx,
+                        availableFeatures, availableProperties, interestingQfProperties);
+                    if (suitability.bestQueueVillageProfile < 0)
+                        { suitability.bestProfileIdx = NoGoodProfile; }
+                }
+            } while (suitability.bestProfileIdx < 0);
 
-                //  if we found a profile:
-                //      da.deviceProfiles[physDevIdx].bestProfileIdx = profileIdx
-                //      da.deviceProfiles[physDevIdx].usedProviders = proUsed
-            }
+            //  if we found a profile:
+            //      da.deviceProfiles[physDevIdx].bestProfileIdx = profileIdx
+            //      da.deviceProfiles[physDevIdx].usedProviders = proUsed
         }
     }
 
@@ -518,7 +565,7 @@ namespace og
         auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
 
         auto fn = [this, & availbleFeatures, & availableProperties, & physDev]
-                    (crit const & criteria_c, decltype(accum) & accum, VkFeatures & features)
+                    (crit const & criteria_c, decltype(accum) & accum, auto _)
         {
             bool ok = true;
             bool foundProfile = true;
@@ -540,7 +587,7 @@ namespace og
             }
             if (ok && criteria_c.get_layers().size() > 0)
             {
-                auto const & lays_c = criteria_c.get_extensions();
+                auto const & lays_c = criteria_c.get_layers();
                 for (auto const & lay_c : lays_c)
                 {
                     if (ok = ok && checkLayer(lay_c, availableLayerNames))
@@ -562,14 +609,12 @@ namespace og
                 for (auto feat_c : criteria_c.get_features())
                 {
                     auto const & [provider_c, features_c] = feat_c;
-                    if (ok = ok && checkFeatures(provider_c, features_c, features))
+                    for (auto feature_c : features_c)
                     {
-                        accum.get<6>().push_back(feat_c.first);
-                        // here we record the features to the structurechain for later use
-                        for (auto const & feature_c : features_c)
-                            { features.set(provider_c, feature_c, VK_TRUE); }
+                        if (ok = ok && checkFeature(provider_c, feature_c, availbleFeatures))
+                            { accum.get<6>().emplace_back(provider_c, feature_c); }
+                        foundProfile = foundProfile && ok;
                     }
-                    foundProfile = foundProfile && ok;
                 }
             }
             if (ok && criteria_c.get_properties().size() > 0)
@@ -588,7 +633,7 @@ namespace og
                 {
                     auto const & dums = criteria_c.get_debugUtilsMessengers();
                     for (auto const & dum : dums)
-                        { accum.get<2>().push_back(dum); }
+                        { accum.get<2>().push_back({criteria_c.get_name(), dum}); }
                 }
 
                 if (criteria_c.get_validationFeatures().has_value())
@@ -612,8 +657,11 @@ namespace og
                 for (auto const & feat_c : criteria_c.get_desiredFeatures())
                 {
                     auto const & [provider_c, features_c] = feat_c;
-                    if (checkFeatures(provider_c, features_c, features))
-                        { accum.get<6>().push_back(feat_c.first); }
+                    for (auto feature_c : features_c)
+                    {
+                        if (checkFeature(provider_c, feature_c, availbleFeatures))
+                            { accum.get<6>().emplace_back(provider_c, feature_c); }
+                    }
                 }
             }
 
@@ -621,10 +669,11 @@ namespace og
         };
 
         bool ok = true;
+        bool _ = false;
 
         auto mark = accum.mark();
 
-        VkFeatures sharedFeatures = availbleFeatures.copyAndReset();
+        //VkFeatures sharedFeatures = availbleFeatures.copyAndReset();
 
         { // nested scope keeping me careful about not reusing ar
             AbilityResolver ar { aliases, abilities };
@@ -634,7 +683,7 @@ namespace og
             if (auto const & criteria_c = config_c.get_sharedInstanceCriteria();
                 criteria_c.has_value())
             {
-                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, sharedFeatures, false);
+                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, _, false);
             }
         }
 
@@ -645,14 +694,11 @@ namespace og
         for (auto inc_c : profileGroup_c.get_include())
             { ar.include(inc_c); }
 
-        VkFeatures profileFeatures = availbleFeatures.copyAndReset();
+        //VkFeatures profileFeatures = availbleFeatures.copyAndReset();
         int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false,
-                                           fn, accum, profileFeatures, false, startingProfileIdx);
+                                           fn, accum, _, false, startingProfileIdx);
         if (profileIdx != NoGoodProfile)
-        {
-            devSuit.bestProfileFeatures = sharedFeatures | profileFeatures;
-            return profileIdx;
-        }
+            { return profileIdx; }
 
         accum.rollBack(mark);
         return NoGoodProfile;
@@ -679,8 +725,9 @@ namespace og
         return devSuit.bestQueueVillageProfile;
     }
 
-    void DeviceCreator::assignDevices(int groupIdx, int numDevices)
+    void DeviceCreator::assignDevices(std::string_view groupName, int numDevices)
     {
+        int groupIdx = getDeviceGroupIdx(groupName);
         auto const & profileGroups_c = config_c.get_deviceProfileGroups();
         auto const & group_c = profileGroups_c[groupIdx];
         auto & deviceAssignmentGroup = deviceAssignments[groupIdx];
@@ -690,6 +737,7 @@ namespace og
         {
             int bestProfileIdx = group_c.get_profiles().size();
             int bestDeviceIdx = -1;
+            VkFeatures * bestDeviceFeatures_p = nullptr;
             // each time through, find the best available device for this group.
             for (int devIdx = 0; devIdx < physDevices.size(); ++devIdx)
             {
@@ -706,6 +754,7 @@ namespace og
                 {
                     bestProfileIdx = suitability.bestProfileIdx;
                     bestDeviceIdx = devIdx;
+                    bestDeviceFeatures_p = & suitability.bestProfileFeatures;
                 }
             }
 
@@ -716,23 +765,170 @@ namespace og
             device.isAssignedToDeviceProfileGroup = true;
             device.groupIdx = groupIdx;
             device.profileIdx = bestProfileIdx;
-            //deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
+            deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
         }
     }
 
-    void DeviceCreator::gatherInstanceExtensionsAndLayers()
+    /*
+    void DeviceCreator::gatherFinalCreationSet(std::string_view deviceGroupName, int numDevices, VulkanSubsystem & vs)
+    {
+    }
+    */
+
+    void DeviceCreator::consolidateFinalCollections(VulkanSubsystem & vs)
+    {
+        vs.vulkanVersion = utilizedVulkanVersion;
+
+        std::unordered_set<char const *> addedExts;
+        std::unordered_set<char const *> addedLayers;
+        std::unordered_set<std::string_view> addedDebugMessengers;
+        std::unordered_set<VkValidationFeatureEnableEXT> addedEnabledValidations;
+        std::unordered_set<VkValidationFeatureDisableEXT> addedDisabledValidations;
+
+        for (int dai = 0; dai < deviceAssignments.size(); ++dai)
+        {
+            auto & ass = deviceAssignments[dai];
+            for (int physDevIdx : ass.winningDeviceIdxs)
+            {
+                std::unordered_set<char const *> addedDevExts;
+                std::unordered_map<std::string_view, 
+                                   std::unordered_set<std::string_view>> addedFeatures;
+                std::unordered_set<std::string_view> addedProperties;
+                std::unordered_set<std::string_view> addedQueueFamilyProperties;
+
+                auto & suit = ass.deviceSuitabilities[physDevIdx];
+                auto & idi = suit.bestProfileDeviceInfo;
+
+                vs.devices.push_back(DeviceSubsystem {});
+                DeviceSubsystem & ds = vs.devices[vs.devices.size() - 1];
+
+                ds.physicalDeviceIdx = physDevIdx;
+                ds.deviceGroupIdx = dai;
+                ds.deviceGroupName = config_c.get_deviceProfileGroups()[dai].get_name();
+                
+                std::vector<std::string_view> fps;
+                for (auto const & [fp, _] : ass.expDeviceInfo.featureProviders)
+                    { fps.push_back(fp); }
+                ds.features.init(fps);
+
+                for (auto val : idi.extensions)
+                {
+                    if (auto [_, didInsert] = addedExts.insert(val); didInsert)
+                        { vs.extensions.push_back(val); }
+                }
+                for (auto val : idi.layers)
+                {
+                    if (auto [_, didInsert] = addedLayers.insert(val); didInsert)
+                        { vs.layers.push_back(val); }
+                }
+                for (auto const & val : idi.debugMessengers)
+                {
+                    if (auto [_, didInsert] = addedDebugMessengers.insert(std::get<0>(val)); didInsert)
+                        { vs.debugMessengers.push_back(std::get<1>(val)); }
+                }
+                for (auto const & val : idi.enabledValidations)
+                {
+                    if (auto [_, didInsert] = addedEnabledValidations.insert(val); didInsert)
+                        { vs.enabledValidations.push_back(val); }
+                }
+                for (auto const & val : idi.disabledValidations)
+                {
+                    if (auto [_, didInsert] = addedDisabledValidations.insert(val); didInsert)
+                        { vs.disabledValidations.push_back(val); }
+                }
+                for (auto val : idi.deviceExtensions)
+                {
+                    if (auto [_, didInsert] = addedDevExts.insert(val); didInsert)
+                        { ds.deviceExtensions.push_back(val); }
+                }
+                for (auto const & [provider, feature] : idi.featureProviders)
+                {
+                    std::unordered_set<std::string_view> newSet {};
+                    auto [itprov, _] = addedFeatures.insert(std::make_pair(provider, newSet));
+                    auto [_, didInsert] = itprov->second.insert(feature);
+                    if (didInsert)
+                        { ds.features.set(provider, feature, VK_TRUE); }
+                }
+            }
+        }
+
+        /*  
+            init instance accumulator sets (exts, layers)
+
+            for each deviceGroup:
+                if deviceAssignments[groupIdx].winningDeviceIdxs.size() == 0:
+                    // this deviceGroup has no suitable physical devices
+                    continue
+                
+                for each physDevIdx in deviceAssignments[groupIdx].winningDeviceIdxs:
+                    init device accumulator sets (devexts, features)
+                    add instance accumulations to device accumulators
+                    auto suit & = deviceAssignments[groupIdx].deviceSuitabilities[physDevIdx]
+                    DeviceInfo & di = suit.bestProfileDeviceInfo
+                    gather di.extensions, layers into instance accumulators
+                    gather di.* into device accumulator sets
+        */
+    }
+
+    void DeviceCreator::makeFinalInstance(VulkanSubsystem & vs)
+    {
+        // TODO NEXT:  vs.debugMessengers stuff instead of expInstInfo
+        void * createInfo_pNext = expInstInfo.makeDebugMessengersAndValidators();
+
+        VkApplicationInfo vai {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pApplicationName = appName_c.data(),
+            .applicationVersion = VK_MAKE_API_VERSION(
+                0, appVersion_c.major(), appVersion_c.minor(), appVersion_c.patch()),
+            .pEngineName = "overground",
+            .engineVersion = VK_MAKE_API_VERSION(
+                0, Engine::version[0], Engine::version[1], Engine::version[2]
+            ),
+            .apiVersion = utilizedVulkanVersion.bits
+        };
+
+        VkInstanceCreateInfo vici {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pNext = createInfo_pNext,
+            .pApplicationInfo = & vai,
+            .enabledLayerCount = static_cast<uint32_t>(expInstInfo.layers.size()),
+            .ppEnabledLayerNames = expInstInfo.layers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(expInstInfo.extensions.size()),
+            .ppEnabledExtensionNames = expInstInfo.extensions.data()
+        };
+
+        VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
+        log("exploratory vulkan instance created.");
+    }
+
+    void DeviceCreator::makeDevices(VulkanSubsystem & vs)
+    {
+
+//                    turn accumulated features into VkFeatures with set() calls
+
+    }
+
+    void DeviceCreator::makeQueues(VulkanSubsystem & vs)
     {
 
     }
 
-    void DeviceCreator::makeFinalInstance()
+
+    int DeviceCreator::getDeviceGroupIdx(std::string_view groupName)
     {
+        int profileGroupIdx = -1;
 
-    }
+        for (int dpgIdx = 0; dpgIdx < config_c.get_deviceProfileGroups().size(); ++dpgIdx)
+        {
+            auto const & profileGroup_c = config_c.get_deviceProfileGroups()[dpgIdx];
+            if (profileGroup_c.get_name() != groupName)
+                { continue; }
+                
+            profileGroupIdx = dpgIdx;
+            break;
+        }
 
-    void DeviceCreator::makeDevices()
-    {
-
+        return profileGroupIdx;
     }
 
     bool DeviceCreator::checkVulkan(std::string_view vulkanVersion, version_t available)
@@ -755,14 +951,9 @@ namespace og
         return available.find(extension.data()) != end(available);
     }
 
-    bool DeviceCreator::checkFeatures(std::string_view provider_c, std::vector<std::string_view> const & features_c, VkFeatures const & available)
+    bool DeviceCreator::checkFeature(std::string_view provider_c, std::string_view feature_c, VkFeatures const & available)
     {
-        for (auto const & feature_c : features_c)
-        {
-            if (available.check(provider_c, feature_c) == false)
-                { return false; }
-        }
-        return true;
+        return available.check(provider_c, feature_c);
     }
 
     bool DeviceCreator::checkProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & properties_c, VkProperties const & available)
@@ -850,46 +1041,6 @@ namespace og
         deviceAssignmentGroup.hasBeenComputed = true;
     }
 
-    void DeviceCreator::assignDevices(int groupIdx, int numDevices)
-    {
-        auto const & profileGroups_c = config_c.get_deviceProfileGroups();
-        auto const & group_c = profileGroups_c[groupIdx];
-        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];
-
-        // compute the best numDevices devices for this device group.
-        for (int numAssignments = 0; numAssignments < numDevices; ++numAssignments)
-        {
-            int bestProfileIdx = group_c.get_profiles().size();
-            int bestDeviceIdx = -1;
-            // each time through, find the best available device for this group.
-            for (int devIdx = 0; devIdx < physDevices.size(); ++devIdx)
-            {
-                auto & device = physDevices[devIdx];
-                if (device.isAssignedToDeviceProfileGroup)
-                    { continue; }
-
-                auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
-                if (suitability.bestProfileIdx == -1 ||
-                    suitability.bestQueueVillageProfile == -1)
-                    { continue; }
-
-                if (suitability.bestProfileIdx < bestProfileIdx)
-                {
-                    bestProfileIdx = suitability.bestProfileIdx;
-                    bestDeviceIdx = devIdx;
-                }
-            }
-
-            if (bestDeviceIdx == -1)
-                { return; } // if any assignment fails, they'll fail every time, so bail now
-
-            auto & device = physDevices[bestDeviceIdx];
-            device.isAssignedToDeviceProfileGroup = true;
-            device.groupIdx = groupIdx;
-            device.profileIdx = bestProfileIdx;
-            //deviceAssignmentGroup.winningDeviceIdxs.push_back(bestDeviceIdx);
-        }
-    }
 
     void DeviceCreator::createAllVkDevices()
     {

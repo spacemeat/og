@@ -7,8 +7,8 @@
 namespace og
 {
     App::App(std::string const & configPath)
-    : config { troves->loadAndKeep(configPath) },
-      engine { config.get_engineConfigPath() }
+    : config_c { troves->loadAndKeep(configPath) },
+      engine { config_c.get_engineConfigPath() }
     {
     }
 
@@ -34,27 +34,21 @@ namespace og
 
         initViews();
 
-        DeviceCreator deviceCreator {
-            config.get_deviceConfigPath(),
-            providerAliases,
-            abilities,
-            config.get_name(),
-            version_t { config.get_version() }
-        };
-        vk = deviceCreator.createInstanceAndDevices();
+        createVulkanSubsystem();
+
 
         engine.init();
     }
 
     void App::initAbilities()
     {
-        providerAliases.loadAliases(config.get_providerAliasesPath());
-        abilities.loadCollectionFiles(config.get_abilitiesPaths());
+        providerAliases.loadAliases(config_c.get_providerAliasesPath());
+        abilities.loadCollectionFiles(config_c.get_abilitiesPaths());
     }
 
     void App::initViews()
     {
-        auto const & viewConfigs = config.get_views();
+        auto const & viewConfigs = config_c.get_views();
         views.resize(viewConfigs.size());
         for (int i = 0; i < viewConfigs.size(); ++i)
         {
@@ -63,13 +57,50 @@ namespace og
             if (std::holds_alternative<app::windowConfig_t>(viewConfig))
             {
                 log(fmt::format("view is windowed"));
-                initWindow(i, std::string { config.get_name() });
+                initWindow(i, std::string { config_c.get_name() });
             }
             else
             {
                 // initHmd(i, ...);
             }
         }
+    }
+
+    void App::createVulkanSubsystem()
+    {
+        DeviceCreator deviceCreator {
+            config_c.get_deviceConfigPath(),
+            providerAliases,
+            abilities,
+            config_c.get_name(),
+            version_t { config_c.get_version() }
+        };
+        //create device schedule
+        auto && sched = createSchedule();
+        vk = deviceCreator.createVulkanSubsystem(sched);
+    }
+
+    std::vector<std::tuple<std::string_view, size_t>> const & App::createSchedule()
+    {
+        std::vector<std::tuple<std::string_view, size_t>> deviceSchedule;
+
+        for (auto const & work : config_c.get_works())
+        {
+            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            {
+                deviceSchedule.emplace_back(groupName, needed);
+            }
+        }
+
+        for (auto const & work : config_c.get_works())
+        {
+            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            {
+                deviceSchedule.emplace_back(groupName, wanted - needed);
+            }
+        }
+
+        return deviceSchedule;
     }
 
     void App::run()
@@ -92,7 +123,7 @@ namespace og
 
         for (int i = 0; i < views.size(); ++i)
         {
-            if (std::holds_alternative<app::windowConfig_t>(config.get_views()[i]))
+            if (std::holds_alternative<app::windowConfig_t>(config_c.get_views()[i]))
             {
                 destroyWindow(i);
             }

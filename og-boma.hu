@@ -246,7 +246,7 @@
                 name: stringView
                 enabled: { type: bool default: true }
                 abilities: { type: vector of: stringView }
-                desiredAbilities: { type: vector of: stringView }
+                //desiredAbilities: { type: vector of: stringView }
                 vulkanVersion: { type: optional of: stringView }
                 extensions: { type: vector of: stringView }
                 desiredExtensions: { type: vector of: stringView }
