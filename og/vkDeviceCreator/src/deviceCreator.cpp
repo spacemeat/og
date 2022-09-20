@@ -340,25 +340,25 @@ namespace og
                 {
                     accum.get<5>().push_back(devExt_c);
                 }
-
                 for (auto devExt_c : criteria_c.get_desiredDeviceExtensions())
                 {
                     accum.get<5>().push_back(devExt_c);
                 }
-
                 for (auto feat_c : criteria_c.get_features())
                 {
                     accum.get<6>().push_back(feat_c.first);
                 }
-
                 for (auto feat_c : criteria_c.get_desiredFeatures())
                 {
                     accum.get<6>().push_back(feat_c.first);
                 }
-
                 for (auto prop_c : criteria_c.get_properties())
                 {
                     accum.get<7>().push_back(prop_c.first);
+                }
+                for (auto qfProp_c : criteria_c.get_queueFamilyProperties())
+                {
+                    accum.get<8>().push_back(qfProp_c.first);
                 }
             }
 
@@ -542,9 +542,9 @@ namespace og
                     availableProperties, suitability.bestProfileIdx + 1);
                 if (suitability.bestProfileIdx >= 0)
                 {
-                    VkQueueFamilies interestingQfProperties = allInterestingQfProperties.copyAndReset();
+                    VkQueueFamilies availableQfProperties = allInterestingQfProperties.copyAndReset();
                     suitability.bestQueueVillageProfile = getBestQueueVillageProfile(dpgIdx, physIdx,
-                        availableFeatures, availableProperties, interestingQfProperties);
+                        availableFeatures, availableProperties, availableQfProperties);
                     if (suitability.bestQueueVillageProfile < 0)
                         { suitability.bestProfileIdx = NoGoodProfile; }
                 }
@@ -781,6 +781,11 @@ namespace og
         auto fn = [this, & availbleFeatures, & availableProperties, & physDev]
                     (crit const & criteria_c, decltype(accum) & accum, auto _)
         {
+            for (auto const & qfProp_c : criteria_c.get_queueFamilyProperties())
+            {
+                accum.get<8>().push_back(qfProp_c.first);
+            }
+
             return checkCriteria(availbleFeatures, availableProperties, physDev, criteria_c, accum, _);
         };
 
@@ -836,6 +841,21 @@ namespace og
 
         auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
 
+        uint32_t devQueueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties2(physDev.physicalDevice, & devQueueFamilyCount, nullptr);
+        std::vector<VkQueueFamilyProperties2> qfPropsVect(devQueueFamilyCount);
+        devSuit.queueFamilies.resize(devQueueFamilyCount);
+        for (int i = 0; i < devQueueFamilyCount; ++i)
+        {
+            devSuit.queueFamilies[i] = availableQfProperties.copyAndReset();
+            qfPropsVect[i] = devSuit.queueFamilies[i].mainStruct;
+        }
+        vkGetPhysicalDeviceQueueFamilyProperties2(physDev.physicalDevice, & devQueueFamilyCount, qfPropsVect.data());
+        for (int i = 0; i < devQueueFamilyCount; ++i)
+        {
+            devSuit.queueFamilies[i].mainStruct = qfPropsVect[i];
+        }
+
         AbilityResolver ar { aliases, abilities };
         for (auto inc_c : profileGroup_c.get_include())
             { ar.include(inc_c); }
@@ -843,13 +863,35 @@ namespace og
         auto check = [this, & availbleFeatures, & availableProperties, & physDev]
                     (crit const & criteria_c, decltype(accum) & accum, auto _)
         {
-            return checkCriteria(availbleFeatures, availableProperties, physDev, criteria_c, accum, _);
+            bool ok = true;
+            bool foundProfile = true;
+
+            // TODO HERE: Check on queue family properties, and then 
+            // pass through to checkCriteria().
+            if (ok && criteria_c.get_queueFamilyProperties().size() > 0)
+            {
+
+                for (auto qfProp_c : criteria_c.get_queueFamilyProperties())
+                {
+                    auto const & [provider_c, qfProperties_c] = qfProp_c;
+                    if (ok = ok && checkQueueFamilyProperties(provider_c, qfProperties_c, availableProperties))
+                        { accum.get<8>().push_back(qfProp_c.first); }
+                    foundProfile = foundProfile && ok;
+                }
+            }
+
+            if (ok)
+                { return checkCriteria(availbleFeatures, availableProperties, physDev, criteria_c, accum, _); }
+            else
+                { return { false, false}; }
         };
 
         auto & suitabilityQfs = devSuit.queueFamilies;
         devSuit.bestQueueVillageProfile = -1;
         for (uint32_t qvProfileIdx_c = 0; qvProfileIdx_c < qvProfiles_c.size(); ++qvProfileIdx_c)
         {
+            auto villageMark = accum.mark();
+
             auto const & qvProfile_c = qvProfiles_c[qvProfileIdx_c];
             auto const & qvillage_c = qvProfile_c.get_queueVillage();
             log(fmt::format(". . . . checking qfprofile {} (index #{})", qvProfile_c.get_name(), qvProfileIdx_c));
@@ -868,14 +910,16 @@ namespace og
             {
                 log(fmt::format(". . . . . checking family {}", qfaIdx_c));
 
+                auto qfaMark = accum.mark();
+
                 auto const & qfAttribs_c = qvillage_c[qfaIdx_c];
                 // starts empty; will collect each qfi that meets the requirements
                 auto & selectable = selectableQueueFamilyIndices[qfaIdx_c];
                 for (int devQfi = 0; devQfi < suitabilityQfs.size(); ++devQfi)
                 {
-                    auto const & devQueueFamily = suitabilityQfs[devQfi];
-                    // TODO: Figure out how to doCrit against actual devQueueFamily data
                     bool ok = false;
+                    auto qfiMark = accum.mark();
+
                     if (qfAttribs_c.get_criteria().has_value())
                     {
                         bool _ = false;
@@ -885,20 +929,27 @@ namespace og
                     {
                         log(fmt::format(". . . . . . qf index {} is selectable", devQfi));
                         selectable.push_back(devQfi);
+                        // TODO: copy accum for this qfi
+
                     }
                     else
                     {
                         log(fmt::format(". . . . . . qf index {} is not selectable", devQfi));
+                        accum.rollBack(qfiMark);
                     }
                 }
 
                 if (selectable.size() == 0)
-                    { qfProfileFail = true; }
+                {
+                    accum.rollBack(qfaMark);
+                    qfProfileFail = true;
+                }
             }
 
             if (qfProfileFail)
             {
                 log(fmt::format(". . . . . Queue family profile {} - no match.", qvProfileIdx_c));
+                accum.rollBack(villageMark);
                 continue;
             }
 
@@ -946,6 +997,7 @@ namespace og
 
             // This monsta lets us recurse to n dimensions to score up a village.
             // We keep a running score, which gets zeroed out for illegal combos.
+            // TODO: This doesn't need to be recursive or a lambda.
             auto scoreVillage = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score) -> void
             {
                 auto scoreVillage_int = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score, auto recurse) -> void
@@ -958,7 +1010,7 @@ namespace og
                         if (busyFamilies[qfi])
                         {
                             score = 0;
-                        }
+                        }                        
                         else
                         {
                             auto numQueuesOnDevice = suitabilityQfs[qfi].mainStruct.queueFamilyProperties.queueCount;
@@ -985,7 +1037,7 @@ namespace og
                             recurse(famIdx + 1, busyFamilies & std::bitset<64> { 1ULL << qfi }, comboIdx, score, recurse);
                         }
     
-                        qfiStack.resize(qfiStack.size() - 1);
+                        qfiStack.pop_back();
                     }
                 };
 
@@ -1029,6 +1081,7 @@ namespace og
             }
 
             // no winner; we move to the next village profile
+            accum.rollBack(villageMark);
         }
 
         if (devSuit.bestQueueVillageProfile < 0)
@@ -1041,21 +1094,6 @@ namespace og
         log(fmt::format(". Best suitable queue village profile found: {} (profile #{})",
             qvProfiles_c[devSuit.bestQueueVillageProfile].get_name(),
             devSuit.bestQueueVillageProfile));
-
-        // TODO: once we have a winning profile, let's add its criteria to the device creation accum
-        // and its queueFamilyComposition to suitability
-        auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
-       
-        AbilityResolver ar { aliases, abilities };
-        for (auto inc_c : config_c.get_instanceInclude())
-            { ar.include(inc_c); }
-
-                //auto const & crit = qfAttribs_c.get_criteria();
-                //if (crit.has_value())
-                //{
-                //    ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), false, fn, accum, _, false);
-                //}
-
 
         return devSuit.bestQueueVillageProfile;
     }
@@ -1202,9 +1240,20 @@ namespace og
                     if (didInsert)
                         { ds.features.set(provider, feature, VK_TRUE); }
                 }
+
+                // while we're here, record qfi stuff to ds
+                for (auto const & qfa : suit.queueFamilyAssignments)
+                {
+                    ds.queueFamilies.push_back( QueueFamilySubsystem {
+                        qfa.qfi,
+                        qfa.count,
+                        qfa.priorities,
+                        qfa.flags,
+                        qfa.globalPriority
+                    });
+                }
             }
         }
-
     }
 
     void DeviceCreator::makeFinalInstance(VulkanSubsystem & vs)
@@ -1243,7 +1292,7 @@ namespace og
         VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
         log("final vulkan instance created.");
 
-        // TODO: recreate the physical devices
+        // TODO: recreate the physical devices if we're recreating
     }
 
     void DeviceCreator::makeDevices(VulkanSubsystem & vs)
@@ -1251,8 +1300,31 @@ namespace og
         for (int dsIdx = 0; dsIdx < vs.devices.size(); ++dsIdx)
         {
             DeviceSubsystem & ds = vs.devices[dsIdx];
+            // TODO: get device features and properties
             
-            // TODO: get queue family drama
+            auto dqcis = std::vector<VkDeviceQueueCreateInfo>(ds.queueFamilies.size());
+            for (int i = 0; i < ds.queueFamilies.size(); ++i)
+            {
+                auto const & qfa = ds.queueFamilies[i];
+
+                void * pNext = NULL;
+                VkDeviceQueueGlobalPriorityCreateInfoKHR globalPriorityStruct = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR, NULL, VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR };
+                if (qfa.globalPriority.has_value()) // TODO: And "globalPriority" ability is >= 0
+                {
+                    pNext = & globalPriorityStruct;
+                    globalPriorityStruct.globalPriority = * qfa.globalPriority;
+                }
+
+                dqcis[i] =
+                {
+                    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                    .pNext = pNext,
+                    .flags = qfa.flags,
+                    .queueFamilyIndex = qfa.qfi,
+                    .queueCount = qfa.count,
+                    .pQueuePriorities = qfa.priorities.data()
+                };
+            }
 
             VkDeviceCreateInfo dci =
             {
@@ -1268,15 +1340,14 @@ namespace og
                 .pEnabledFeatures = NULL
             };
 
-            VKR(vkCreateDevice(physicalDevice, & dci, nullptr, & device));
+            VKR(vkCreateDevice(ds.physicalDevice, & dci, nullptr, & ds.device));
             log("IT WORKED");
-
         }
     }
 
     void DeviceCreator::makeQueues(VulkanSubsystem & vs)
     {
-
+        // TODO: this
     }
 
 
@@ -1332,8 +1403,18 @@ namespace og
         return true;
     }
 
+    bool DeviceCreator::checkQueueFamilyProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & qfProperties_c, VkQueueFamilies const & available)
+    {
+        for (auto const & [qfProperty_c, op_c, value_c] : qfProperties_c)
+        {
+            if (available.check(provider_c, qfProperty_c, op_c, value_c) == false)
+                { return false; }
+        }
+        return true;
+    }
 
 
+    /*
 
     void DeviceCreator::computeBestProfileGroupDevices(int groupIdx)
     {
@@ -1406,7 +1487,7 @@ namespace og
         }
         deviceAssignmentGroup.hasBeenComputed = true;
     }
-
+    */
 
     void DeviceCreator::createAllVkDevices()
     {

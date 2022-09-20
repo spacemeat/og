@@ -37,6 +37,7 @@ namespace og
         std::vector<char const *> deviceExtensions;
         std::vector<std::tuple<std::string_view, std::string_view>> features;
         std::vector<std::string_view> propertyProviders;
+        std::vector<std::string_view> queueFamilyPropertyProviders;
 
         void consolidateCollections();
         VkFeatures makeFeatures(VkFeatures const & templateFeatures);
@@ -54,7 +55,8 @@ namespace og
         {
             return Accumulator { extensions, layers, debugMessengers,
                                  enabledValidations, disabledValidations,
-                                 deviceExtensions, features, propertyProviders };
+                                 deviceExtensions, features, propertyProviders, 
+                                 queueFamilyPropertyProviders };
         }
     };
 
@@ -65,9 +67,9 @@ namespace og
         uint32_t qfi;
         uint32_t count;
         std::vector<float> priorities;
+        VkDeviceQueueCreateFlags flags;
         std::optional<VkQueueGlobalPriorityKHR> globalPriority;
         std::vector<VkQueue> createdQueues;
-        VkQueueFamilyProperties queueFamilyProperties;
     };
 
     struct DeviceSubsystem
@@ -77,10 +79,10 @@ namespace og
         std::string_view deviceGroupName;
         DeviceInfo info;
         VkPhysicalDevice physicalDevice;
-        VkDevice device;
         VkFeatures features;
         VkProperties properties;
         std::vector<QueueFamilySubsystem> queueFamilies;
+        VkDevice device;
     };
 
     struct VulkanSubsystem
@@ -95,6 +97,7 @@ namespace og
     struct QueueFamilyAssignment
     {
         uint32_t qfi;
+        VkQueueFamilies queueFamilyProperties;
         uint32_t count;
         VkDeviceQueueCreateFlags flags;
         std::vector<float> priorities;
@@ -195,6 +198,7 @@ namespace og
         bool checkDeviceExtension(std::string_view extension, std::unordered_set<char const *> const & available);
         bool checkFeature(std::string_view provider_c, std::string_view feature_c, VkFeatures const & available);
         bool checkProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & properties_c, VkProperties const & available);
+        bool checkQueueFamilyProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & qfProperties_c, VkQueueFamilies const & available);
 
     private:
         void destroyVkInstance();
