@@ -204,7 +204,7 @@ namespace og
             return cachedIdx;
         }
 
-        crit gatherInteresting(critKinds kinds);
+        //crit gatherInteresting(critKinds kinds);
 
         void invalidateAbilityCache();
         void invalidateBuiltinCache();

@@ -15,42 +15,9 @@
 
 namespace og
 {
-    struct QueueFamilySubsystem
-    {
-        uint32_t qfi;
-        uint32_t count;
-        std::vector<float> priorities;
-        std::optional<VkQueueGlobalPriorityKHR> globalPriority;
-        std::vector<VkQueue> createdQueues;
-    };
-
-    struct DeviceSubsystem
-    {
-        int physicalDeviceIdx;
-        int deviceGroupIdx;
-        std::string_view deviceGroupName;
-        std::vector<char const *> deviceExtensions;
-        VkPhysicalDevice physicalDevice;
-        VkDevice device;
-        VkFeatures features;
-        VkProperties properties;
-        std::vector<QueueFamilySubsystem> queueFamilies;
-    };
-
-    struct VulkanSubsystem
-    {
-        version_t vulkanVersion;
-        std::vector<char const *> extensions;
-        std::vector<char const *> layers;
-        std::vector<abilities::debugUtilsMessenger_t> debugMessengers;
-        std::vector<VkValidationFeatureEnableEXT> enabledValidations;
-        std::vector<VkValidationFeatureDisableEXT> disabledValidations;
-        VkInstance instance;
-        std::vector<DeviceSubsystem> devices;
-    };
-
     struct InstanceInfo
     {
+        version_t vulkanVersion;
         std::vector<char const *> extensions;
         std::vector<char const *> layers;
         std::vector<std::tuple<std::string_view, abilities::debugUtilsMessenger_t>> debugMessengers;
@@ -68,7 +35,7 @@ namespace og
     struct DeviceInfo
     {
         std::vector<char const *> deviceExtensions;
-        std::vector<std::tuple<std::string_view, std::string_view>> featureProviders;
+        std::vector<std::tuple<std::string_view, std::string_view>> features;
         std::vector<std::string_view> propertyProviders;
 
         void consolidateCollections();
@@ -87,11 +54,45 @@ namespace og
         {
             return Accumulator { extensions, layers, debugMessengers,
                                  enabledValidations, disabledValidations,
-                                 deviceExtensions, featureProviders, propertyProviders };
+                                 deviceExtensions, features, propertyProviders };
         }
     };
 
-    struct QueueFamilyAlloc
+    // ----------------------------------------------
+
+    struct QueueFamilySubsystem
+    {
+        uint32_t qfi;
+        uint32_t count;
+        std::vector<float> priorities;
+        std::optional<VkQueueGlobalPriorityKHR> globalPriority;
+        std::vector<VkQueue> createdQueues;
+        VkQueueFamilyProperties queueFamilyProperties;
+    };
+
+    struct DeviceSubsystem
+    {
+        int physicalDeviceIdx;
+        int deviceGroupIdx;
+        std::string_view deviceGroupName;
+        DeviceInfo info;
+        VkPhysicalDevice physicalDevice;
+        VkDevice device;
+        VkFeatures features;
+        VkProperties properties;
+        std::vector<QueueFamilySubsystem> queueFamilies;
+    };
+
+    struct VulkanSubsystem
+    {
+        InstanceInfo info;
+        VkInstance instance;
+        std::vector<DeviceSubsystem> devices;
+    };
+
+    // ----------------------------------------------
+
+    struct QueueFamilyAssignment
     {
         uint32_t qfi;
         uint32_t count;
@@ -100,10 +101,12 @@ namespace og
         std::optional<VkQueueGlobalPriorityKHR> globalPriority;
     };
 
+    /*
     struct QueueFamilyComposition
     {
         std::vector<QueueFamilyAlloc> queueFamilies;
     };
+    */
 
     struct ProfileSpecificCriteria
     {
@@ -124,7 +127,7 @@ namespace og
         uint32_t bestProfileIdx;
         VkFeatures bestProfileFeatures;
         uint32_t bestQueueVillageProfile;
-        QueueFamilyComposition queueFamilyComposition;
+        std::vector<QueueFamilyAssignment> queueFamilyAssignments;
     };
 
     // One of these is stored per device group
@@ -152,7 +155,7 @@ namespace og
         VkFeatures features;
         VkProperties properties;
         std::vector<VkQueueFamilies> queueFamilies;
-        QueueFamilyComposition queueFamilyComposition;
+        std::vector<QueueFamilyAssignment> queueFamilyComposition;
     };
 
     class DeviceCreator

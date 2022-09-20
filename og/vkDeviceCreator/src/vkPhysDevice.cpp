@@ -39,6 +39,7 @@ namespace og
             { log(fmt::format(". available device extension: {} v{}", elem.extensionName, elem.specVersion)); }
     }
 
+    /*
     // Check profiles one by one until the device can meet the profile's requirements.
     // That's the best profile the device can do; the device with the best profile idx
     // will win.
@@ -208,6 +209,7 @@ namespace og
 
         return selectedProfileIdx;
     }
+    */
 
     std::tuple<int, QueueFamilyComposition>
         PhysVkDevice::findBestQueueFamilyAllocation(int groupIdx,
@@ -455,7 +457,6 @@ namespace og
         return {-1, {}};
     }
 
-
     void PhysVkDevice::createVkDevice()
     {
         if (groupIdx == -1)
@@ -529,8 +530,8 @@ namespace og
 
         createdCapabilities.queueFamilies = std::move(suitability.queueFamilies);
         suitability.queueFamilies.clear();
-        createdCapabilities.queueFamilyComposition = std::move(suitability.queueFamilyComposition);
-        suitability.queueFamilyComposition = {};
+        createdCapabilities.queueFamilyComposition = std::move(suitability.queueFamilyAssignments);
+        suitability.queueFamilyAssignments = {};
 
         log(". using device extensions: ");
         for (auto & re : requiredDeviceExtensions)
@@ -593,6 +594,7 @@ namespace og
         }
     }
 
+    /*
     bool PhysVkDevice::checkDeviceExtension(std::string_view deviceExtension)
     {
         // If we haven't made our device yet, check against available device extensions.
@@ -636,6 +638,7 @@ namespace og
         return (queueTypesAvailable & queueTypesIncluded) == queueTypesIncluded &&
                (queueTypesAvailable & queueTypesExcluded) == 0;
     }
+    */
 }
 
 /*

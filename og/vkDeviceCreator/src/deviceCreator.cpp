@@ -5,6 +5,8 @@
 #include "../../abilities/inc/abilityResolver.hpp"
 #include "../../app/inc/troveKeeper.hpp"
 #include <ranges>
+#include <fmt/format.h>
+#include <numeric>
 
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -512,11 +514,11 @@ namespace og
 
         //  make structure chains based on exploratory device providers
         VkFeatures allInterestingFeatures;
-        allInterestingFeatures.init(deviceAssignments[dpgIdx].expDeviceInfo.featureProviders);
+        allInterestingFeatures.init(devAss.expDeviceInfo.features);
         VkProperties allInterestingProperties;
-        allInterestingProperties.init(deviceAssignments[dpgIdx].expDeviceInfo.propertyProviders);
+        allInterestingProperties.init(devAss.expDeviceInfo.propertyProviders);
         VkQueueFamilies allInterestingQfProperties;
-        allInterestingQfProperties.init(deviceAssignments[dpgIdx].expDeviceInfo.queueFamilyPropertyProviders);
+        allInterestingQfProperties.init(devAss.expDeviceInfo.queueFamilyPropertyProviders);
 
         for (int physIdx = 0; physIdx < physDevices.size(); ++physIdx)
         {
@@ -554,6 +556,114 @@ namespace og
         }
     }
 
+
+    static auto checkCriteria(
+        VkFeatures const & availbleFeatures, VkProperties const & availableProperties, 
+        VkPhysicalDevice & physDev, crit const & criteria_c, decltype(InstanceDeviceInfo().makeAccumulator()) & accum, auto _)
+    {
+        bool ok = true;
+        bool foundProfile = true;
+
+        if (ok && criteria_c.get_vulkanVersion().has_value())
+        {
+            ok = ok && checkVulkan(* criteria_c.get_vulkanVersion(), utilizedVulkanVersion);
+            foundProfile = foundProfile && ok;
+        }
+        if (ok && criteria_c.get_extensions().size() > 0)
+        {
+            auto const & exts_c = criteria_c.get_extensions();
+            for (auto const & ext_c : exts_c)
+            {
+                if (ok = ok && checkExtension(ext_c, availableInstanceExtensionNames))
+                    { accum.get<0>().push_back(ext_c.data()); }
+                foundProfile = foundProfile && ok;
+            }
+        }
+        if (ok && criteria_c.get_layers().size() > 0)
+        {
+            auto const & lays_c = criteria_c.get_layers();
+            for (auto const & lay_c : lays_c)
+            {
+                if (ok = ok && checkLayer(lay_c, availableLayerNames))
+                    { accum.get<1>().push_back(lay_c.data()); }
+                foundProfile = foundProfile && ok;
+            }
+        }
+        if (ok && criteria_c.get_deviceExtensions().size() > 0)
+        {
+            for (auto devExt_c : criteria_c.get_deviceExtensions())
+            {
+                if (ok = ok && checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
+                    { accum.get<5>().push_back(devExt_c); }
+                foundProfile = foundProfile && ok;
+            }
+        }
+        if (ok && criteria_c.get_features().size() > 0)
+        {
+            for (auto feat_c : criteria_c.get_features())
+            {
+                auto const & [provider_c, features_c] = feat_c;
+                for (auto feature_c : features_c)
+                {
+                    if (ok = ok && checkFeature(provider_c, feature_c, availbleFeatures))
+                        { accum.get<6>().emplace_back(provider_c, feature_c); }
+                    foundProfile = foundProfile && ok;
+                }
+            }
+        }
+        if (ok && criteria_c.get_properties().size() > 0)
+        {
+            for (auto prop_c : criteria_c.get_properties())
+            {
+                auto const & [provider_c, properties_c] = prop_c;
+                if (ok = ok && checkProperties(provider_c, properties_c, availableProperties))
+                    { accum.get<7>().push_back(prop_c.first); }
+                foundProfile = foundProfile && ok;
+            }
+        }
+        if (ok)
+        {
+            if (criteria_c.get_debugUtilsMessengers().size() > 0)
+            {
+                auto const & dums = criteria_c.get_debugUtilsMessengers();
+                for (auto const & dum : dums)
+                    { accum.get<2>().push_back({criteria_c.get_name(), dum}); }
+            }
+
+            if (criteria_c.get_validationFeatures().has_value())
+            {
+                auto const & valFeats = * criteria_c.get_validationFeatures();
+                for (auto const & evf : valFeats.get_enabled())
+                    { accum.get<3>().push_back(evf); }
+                for (auto const & dvf : valFeats.get_disabled())
+                    { accum.get<4>().push_back(dvf); }
+            }
+            for (auto ext_c : criteria_c.get_desiredExtensions())
+            {
+                if (checkExtension(ext_c, availableInstanceExtensionNames))
+                    { accum.get<0>().push_back(ext_c.data()); }
+            }
+            for (auto devExt_c : criteria_c.get_desiredDeviceExtensions())
+            {
+                if (checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
+                    { accum.get<5>().push_back(devExt_c); }
+            }
+            for (auto const & feat_c : criteria_c.get_desiredFeatures())
+            {
+                auto const & [provider_c, features_c] = feat_c;
+                for (auto feature_c : features_c)
+                {
+                    if (checkFeature(provider_c, feature_c, availbleFeatures))
+                        { accum.get<6>().emplace_back(provider_c, feature_c); }
+                }
+            }
+        }
+
+        return std::make_tuple(ok, foundProfile);
+    }
+
+
+
     int DeviceCreator::getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & availbleFeatures,
                                       VkProperties const & availableProperties, int startingProfileIdx)
     {
@@ -563,7 +673,7 @@ namespace og
         auto & physDev = physDevices[physDevIdx];
 
         auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
-
+        /*
         auto fn = [this, & availbleFeatures, & availableProperties, & physDev]
                     (crit const & criteria_c, decltype(accum) & accum, auto _)
         {
@@ -667,6 +777,12 @@ namespace og
 
             return std::make_tuple(ok, foundProfile);
         };
+        */
+        auto fn = [this, & availbleFeatures, & availableProperties, & physDev]
+                    (crit const & criteria_c, decltype(accum) & accum, auto _)
+        {
+            return checkCriteria(availbleFeatures, availableProperties, physDev, criteria_c, accum, _);
+        };
 
         bool ok = true;
         bool _ = false;
@@ -698,7 +814,9 @@ namespace og
         int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false,
                                            fn, accum, _, false, startingProfileIdx);
         if (profileIdx != NoGoodProfile)
-            { return profileIdx; }
+        {
+            return profileIdx;
+        }
 
         accum.rollBack(mark);
         return NoGoodProfile;
@@ -708,22 +826,240 @@ namespace og
         VkFeatures const & availbleFeatures, VkProperties const & availableProperties,
         VkQueueFamilies const & availableQfProperties)
     {
+
         auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
+        auto const & qvProfiles_c = profileGroup_c.get_queueVillageProfiles();
         auto & devAss = deviceAssignments[devGroupIdx];
         auto & devSuit = devAss.deviceSuitabilities[physDevIdx];
+        int bestDevProfileIdx = devSuit.bestProfileIdx;
         auto & physDev = physDevices[physDevIdx];
 
         auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
 
-        int bestProfileIdx = devSuit.bestProfileIdx;
+        AbilityResolver ar { aliases, abilities };
+        for (auto inc_c : profileGroup_c.get_include())
+            { ar.include(inc_c); }
 
-        // TODO: this
+        auto check = [this, & availbleFeatures, & availableProperties, & physDev]
+                    (crit const & criteria_c, decltype(accum) & accum, auto _)
+        {
+            return checkCriteria(availbleFeatures, availableProperties, physDev, criteria_c, accum, _);
+        };
+
+        auto & suitabilityQfs = devSuit.queueFamilies;
+        devSuit.bestQueueVillageProfile = -1;
+        for (uint32_t qvProfileIdx_c = 0; qvProfileIdx_c < qvProfiles_c.size(); ++qvProfileIdx_c)
+        {
+            auto const & qvProfile_c = qvProfiles_c[qvProfileIdx_c];
+            auto const & qvillage_c = qvProfile_c.get_queueVillage();
+            log(fmt::format(". . . . checking qfprofile {} (index #{})", qvProfile_c.get_name(), qvProfileIdx_c));
+
+            if (suitabilityQfs.size() < qvillage_c.size())
+            {
+                log(fmt::format(". . . . . Queue family profile {} - no match (too few queue families on device).", qvProfileIdx_c));
+                continue;
+            }
+
+            bool qfProfileFail = false;
+            // Populate a list of qfis that match the queue spec for each queue.
+            // For each queueFamily_c, a list of qfis that meet reqs.
+            auto selectableQueueFamilyIndices = std::vector<std::vector<uint32_t>> (qvillage_c.size());
+            for (uint32_t qfaIdx_c = 0; qfaIdx_c < qvillage_c.size(); ++qfaIdx_c)
+            {
+                log(fmt::format(". . . . . checking family {}", qfaIdx_c));
+
+                auto const & qfAttribs_c = qvillage_c[qfaIdx_c];
+                // starts empty; will collect each qfi that meets the requirements
+                auto & selectable = selectableQueueFamilyIndices[qfaIdx_c];
+                for (int devQfi = 0; devQfi < suitabilityQfs.size(); ++devQfi)
+                {
+                    auto const & devQueueFamily = suitabilityQfs[devQfi];
+                    // TODO: Figure out how to doCrit against actual devQueueFamily data
+                    bool ok = false;
+                    if (qfAttribs_c.get_criteria().has_value())
+                    {
+                        bool _ = false;
+                        ok = ok && ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), false, check, accum, _, false);
+                    }
+                    if (ok)
+                    {
+                        log(fmt::format(". . . . . . qf index {} is selectable", devQfi));
+                        selectable.push_back(devQfi);
+                    }
+                    else
+                    {
+                        log(fmt::format(". . . . . . qf index {} is not selectable", devQfi));
+                    }
+                }
+
+                if (selectable.size() == 0)
+                    { qfProfileFail = true; }
+            }
+
+            if (qfProfileFail)
+            {
+                log(fmt::format(". . . . . Queue family profile {} - no match.", qvProfileIdx_c));
+                continue;
+            }
+
+            /*  At this point, selectableQueueFamilyIndices has at least one 
+                qfi in each of its vectors. Now we try to find vectors of qfis
+                which are mutually unique, each element of which comes from 
+                selectableQueueFamilyIndices. For instance,
+                
+                selectableQueueFamilyIndices: [
+                        [ 0, 1, 2 ] // these qfis can work for qf 0
+                        [ 2, 3 ]    // these qfis can work for qf 1
+                        [ 0, 4, 5 ] // these qfis can work fro qf 2
+                    ]
+                unique entries are: [
+                    [0, 2, 4]
+                    [0, 2, 5]
+                    [0, 3, 4]
+                    [0, 3, 5]
+                    [1, 2, 0]
+                    [1, 2, 4]
+                    [1, 2, 5]
+                    [1, 3, 0]
+                    [1, 3, 4]
+                    [1, 3, 5]
+                    [2, 3, 0]
+                    [2, 3, 4]
+                    [2, 3, 5]
+                ]
+
+                Each of these is in turn scored, and the best fitting one is
+                selected as the winner.
+            */
+            
+            auto numCombos = std::accumulate(begin(selectableQueueFamilyIndices), end(selectableQueueFamilyIndices),
+                1, [](uint32_t b, auto & sub){ return static_cast<uint32_t>(sub.size()) * b; });
+            auto comboScores = std::vector<uint32_t>(numCombos, 0);
+            uint32_t winningScore = 0;
+            uint32_t winningCombo = -1;
+
+            // Now find the best unique qfi assignment for each queue.
+            // If there is not one, go to next qfprofile.
+            //std::vector<QueueFamilyAssignment> qfiAllocs;
+            std::vector<uint32_t> qfiStack;
+            std::vector<uint32_t> winningQfis;
+
+            // This monsta lets us recurse to n dimensions to score up a village.
+            // We keep a running score, which gets zeroed out for illegal combos.
+            auto scoreVillage = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score) -> void
+            {
+                auto scoreVillage_int = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score, auto recurse) -> void
+                {
+                    auto const & qfis = selectableQueueFamilyIndices[famIdx];
+                    for (uint32_t qfi : qfis)
+                    {
+                        qfiStack.push_back(qfi);
+
+                        if (busyFamilies[qfi])
+                        {
+                            score = 0;
+                        }
+                        else
+                        {
+                            auto numQueuesOnDevice = suitabilityQfs[qfi].mainStruct.queueFamilyProperties.queueCount;
+                            auto numQueuesDesired = qvProfile_c.get_queueVillage()[famIdx].get_maxQueueCount();
+                            score *= std::min(numQueuesOnDevice, numQueuesDesired);
+                            busyFamilies[qfi] = true;
+                        }
+
+                        // if this was a last one to check
+                        if (famIdx + 1 == selectableQueueFamilyIndices.size())
+                        {
+                            comboScores[comboIdx] = score;
+                            if (score > winningScore)
+                            {
+                                winningScore = score;
+                                winningCombo = comboIdx;
+                                winningQfis = qfiStack;
+                                log(fmt::format("@ leading combo: {} score {}", winningCombo, winningScore));
+                            }
+                            comboIdx += 1;
+                        }
+                        else
+                        {
+                            recurse(famIdx + 1, busyFamilies & std::bitset<64> { 1ULL << qfi }, comboIdx, score, recurse);
+                        }
+    
+                        qfiStack.resize(qfiStack.size() - 1);
+                    }
+                };
+
+                scoreVillage_int(famIdx, busyFamilies, comboIdx, score, scoreVillage_int);
+            };
+
+            uint32_t comboIdx = 0;
+            scoreVillage(0, 0, comboIdx, 1);
+
+            if (winningCombo != -1)
+            {
+                devSuit.bestQueueVillageProfile = qvProfileIdx_c;
+
+                log(fmt::format("@ winning combo: {}", winningCombo));
+                
+                devSuit.queueFamilyAssignments.resize(winningQfis.size());
+                for (int allocIdx = 0; allocIdx < winningQfis.size(); ++allocIdx)
+                {
+                    auto & alloc = devSuit.queueFamilyAssignments[allocIdx];
+                    alloc.qfi = winningQfis[allocIdx];
+
+                    auto const & qf_c = qvProfile_c.get_queueVillage()[allocIdx];
+
+                    auto numQueuesOnDevice = suitabilityQfs[alloc.qfi].mainStruct.queueFamilyProperties.queueCount;
+                    auto numQueuesDesired = qf_c.get_maxQueueCount();
+                    alloc.count = std::min(numQueuesOnDevice, numQueuesDesired);
+                    alloc.flags = qf_c.get_flags();
+
+                    std::vector<float> ctdPriorities(alloc.count);
+                    auto const & priorities_c = qf_c.get_priorities();
+                    for (int i = 0; i < alloc.count; ++i)
+                    {
+                        ctdPriorities[i] = priorities_c[i % (priorities_c.size())];
+                    }
+                    alloc.priorities = std::move(ctdPriorities);
+                    alloc.globalPriority = qf_c.get_globalPriority();
+                }
+
+                // we found a winner and recorded the qfi data, now bail
+                break;
+            }
+
+            // no winner; we move to the next village profile
+        }
+
+        if (devSuit.bestQueueVillageProfile < 0)
+        {
+            log(fmt::format(". Could not find a suitable queue family combination for profile group '{}'.", profileGroup_c.get_name()));
+            // Not necessarily an error; a given profile group may just be a nice-to-have (require 0 devices).
+            return -1;
+        }
+
+        log(fmt::format(". Best suitable queue village profile found: {} (profile #{})",
+            qvProfiles_c[devSuit.bestQueueVillageProfile].get_name(),
+            devSuit.bestQueueVillageProfile));
 
         // TODO: once we have a winning profile, let's add its criteria to the device creation accum
         // and its queueFamilyComposition to suitability
+        auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
+       
+        AbilityResolver ar { aliases, abilities };
+        for (auto inc_c : config_c.get_instanceInclude())
+            { ar.include(inc_c); }
+
+                //auto const & crit = qfAttribs_c.get_criteria();
+                //if (crit.has_value())
+                //{
+                //    ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), false, fn, accum, _, false);
+                //}
+
 
         return devSuit.bestQueueVillageProfile;
     }
+
 
     void DeviceCreator::assignDevices(std::string_view groupName, int numDevices)
     {
@@ -775,9 +1111,26 @@ namespace og
     }
     */
 
+
     void DeviceCreator::consolidateFinalCollections(VulkanSubsystem & vs)
     {
-        vs.vulkanVersion = utilizedVulkanVersion;
+        /*  
+            init instance accumulator sets (exts, layers)
+
+            for each deviceGroup:
+                if deviceAssignments[groupIdx].winningDeviceIdxs.size() == 0:
+                    // this deviceGroup has no suitable physical devices
+                    continue
+                
+                for each physDevIdx in deviceAssignments[groupIdx].winningDeviceIdxs:
+                    init device accumulator sets (devexts, features)
+                    add instance accumulations to device accumulators
+                    auto suit & = deviceAssignments[groupIdx].deviceSuitabilities[physDevIdx]
+                    DeviceInfo & di = suit.bestProfileDeviceInfo
+                    gather di.extensions, layers into instance accumulators
+                    gather di.* into device accumulator sets
+        */
+        vs.info.vulkanVersion = utilizedVulkanVersion;
 
         std::unordered_set<char const *> addedExts;
         std::unordered_set<char const *> addedLayers;
@@ -807,41 +1160,41 @@ namespace og
                 ds.deviceGroupName = config_c.get_deviceProfileGroups()[dai].get_name();
                 
                 std::vector<std::string_view> fps;
-                for (auto const & [fp, _] : ass.expDeviceInfo.featureProviders)
+                for (auto const & [fp, _] : ass.expDeviceInfo.features)
                     { fps.push_back(fp); }
                 ds.features.init(fps);
 
                 for (auto val : idi.extensions)
                 {
                     if (auto [_, didInsert] = addedExts.insert(val); didInsert)
-                        { vs.extensions.push_back(val); }
+                        { vs.info.extensions.push_back(val); }
                 }
                 for (auto val : idi.layers)
                 {
                     if (auto [_, didInsert] = addedLayers.insert(val); didInsert)
-                        { vs.layers.push_back(val); }
+                        { vs.info.layers.push_back(val); }
                 }
                 for (auto const & val : idi.debugMessengers)
                 {
                     if (auto [_, didInsert] = addedDebugMessengers.insert(std::get<0>(val)); didInsert)
-                        { vs.debugMessengers.push_back(std::get<1>(val)); }
+                        { vs.info.debugMessengers.push_back(val); }
                 }
                 for (auto const & val : idi.enabledValidations)
                 {
                     if (auto [_, didInsert] = addedEnabledValidations.insert(val); didInsert)
-                        { vs.enabledValidations.push_back(val); }
+                        { vs.info.enabledValidations.push_back(val); }
                 }
                 for (auto const & val : idi.disabledValidations)
                 {
                     if (auto [_, didInsert] = addedDisabledValidations.insert(val); didInsert)
-                        { vs.disabledValidations.push_back(val); }
+                        { vs.info.disabledValidations.push_back(val); }
                 }
                 for (auto val : idi.deviceExtensions)
                 {
                     if (auto [_, didInsert] = addedDevExts.insert(val); didInsert)
-                        { ds.deviceExtensions.push_back(val); }
+                        { ds.info.deviceExtensions.push_back(val); }
                 }
-                for (auto const & [provider, feature] : idi.featureProviders)
+                for (auto const & [provider, feature] : idi.features)
                 {
                     std::unordered_set<std::string_view> newSet {};
                     auto [itprov, _] = addedFeatures.insert(std::make_pair(provider, newSet));
@@ -852,28 +1205,18 @@ namespace og
             }
         }
 
-        /*  
-            init instance accumulator sets (exts, layers)
-
-            for each deviceGroup:
-                if deviceAssignments[groupIdx].winningDeviceIdxs.size() == 0:
-                    // this deviceGroup has no suitable physical devices
-                    continue
-                
-                for each physDevIdx in deviceAssignments[groupIdx].winningDeviceIdxs:
-                    init device accumulator sets (devexts, features)
-                    add instance accumulations to device accumulators
-                    auto suit & = deviceAssignments[groupIdx].deviceSuitabilities[physDevIdx]
-                    DeviceInfo & di = suit.bestProfileDeviceInfo
-                    gather di.extensions, layers into instance accumulators
-                    gather di.* into device accumulator sets
-        */
     }
 
     void DeviceCreator::makeFinalInstance(VulkanSubsystem & vs)
     {
-        // TODO NEXT:  vs.debugMessengers stuff instead of expInstInfo
-        void * createInfo_pNext = expInstInfo.makeDebugMessengersAndValidators();
+        // TODO: Consider caching the interesting providers to prevent
+        //       double-instancing every time.
+
+        // TODO: Don't bother recreating if the extensions and layers are identical
+
+        // TODO: kill the exploratory shit if we are recreating.
+
+        void * createInfo_pNext = vs.info.makeDebugMessengersAndValidators();
 
         VkApplicationInfo vai {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -891,21 +1234,44 @@ namespace og
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pNext = createInfo_pNext,
             .pApplicationInfo = & vai,
-            .enabledLayerCount = static_cast<uint32_t>(expInstInfo.layers.size()),
-            .ppEnabledLayerNames = expInstInfo.layers.data(),
-            .enabledExtensionCount = static_cast<uint32_t>(expInstInfo.extensions.size()),
-            .ppEnabledExtensionNames = expInstInfo.extensions.data()
+            .enabledLayerCount = static_cast<uint32_t>(vs.info.layers.size()),
+            .ppEnabledLayerNames = vs.info.layers.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(vs.info.extensions.size()),
+            .ppEnabledExtensionNames = vs.info.extensions.data()
         };
 
         VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
-        log("exploratory vulkan instance created.");
+        log("final vulkan instance created.");
+
+        // TODO: recreate the physical devices
     }
 
     void DeviceCreator::makeDevices(VulkanSubsystem & vs)
     {
+        for (int dsIdx = 0; dsIdx < vs.devices.size(); ++dsIdx)
+        {
+            DeviceSubsystem & ds = vs.devices[dsIdx];
+            
+            // TODO: get queue family drama
 
-//                    turn accumulated features into VkFeatures with set() calls
+            VkDeviceCreateInfo dci =
+            {
+                .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+                .pNext = & ds.features.mainStruct,
+                .flags = 0,
+                .queueCreateInfoCount = static_cast<uint32_t>(dqcis.size()),
+                .pQueueCreateInfos = dqcis.data(),
+                .enabledLayerCount = static_cast<uint32_t>(vs.info.layers.size()),
+                .ppEnabledLayerNames = vs.info.layers.data(),
+                .enabledExtensionCount = static_cast<uint32_t>(ds.info.deviceExtensions.size()),
+                .ppEnabledExtensionNames = ds.info.deviceExtensions.data(),
+                .pEnabledFeatures = NULL
+            };
 
+            VKR(vkCreateDevice(physicalDevice, & dci, nullptr, & device));
+            log("IT WORKED");
+
+        }
     }
 
     void DeviceCreator::makeQueues(VulkanSubsystem & vs)
@@ -1034,7 +1400,7 @@ namespace og
                 suitability.bestQueueVillageProfile = queueFamilyGroupIdx;
                 if (queueFamilyGroupIdx >= 0)
                 {
-                    suitability.queueFamilyComposition = std::move(queueFamilyAlloc);
+                    suitability.queueFamilyAssignments = std::move(queueFamilyAlloc);
                 }
             }
         }
