@@ -98,8 +98,10 @@ namespace og
         using critKinds = og::abilities::criteriaKinds;
 
     public:
-        AbilityResolver(ProviderAliasResolver const & aliasResolver,
-                        AbilityCollection const & abilityCollection);
+        AbilityResolver();
+
+        void init(ProviderAliasResolver const & aliasResolver,
+                  AbilityCollection const & abilityCollection);
 
         void include(std::string_view group);
         //void addProfileGroup(crit const & criteria);
@@ -170,8 +172,6 @@ namespace og
             return ok;
         }
 
-        bool caching = true;
-
         template <class ProfileGroup_t, typename VisitorFn, class Accumulator, class Payload>
         int doAbility(std::string_view abilityName, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true)
         {
@@ -204,20 +204,17 @@ namespace og
             return cachedIdx;
         }
 
-        //crit gatherInteresting(critKinds kinds);
-
+        int getCachesize() { return abilities.size(); }
         void invalidateAbilityCache();
-        void invalidateBuiltinCache();
 
-        int get_ability(std::string_view abilityName);
+        int getAbility(std::string_view abilityName);
 
     private:
-        ProviderAliasResolver const & aliasResolver;
-        AbilityCollection const & abilityCollection;
+        ProviderAliasResolver const * aliasResolver;
+        AbilityCollection const * abilityCollection;
         std::vector<std::string_view> builtinIncludes;
         std::vector<std::string_view> abilityIncludes;
 
-        //std::unordered_map<std::string_view, std::tuple<og::abilities::abilityProfileGroup_t const *, int>> builtins;
         std::unordered_map<std::string_view,
                            std::tuple<abilities::abilityProfileGroup_t const *,
                                       int>> abilities;

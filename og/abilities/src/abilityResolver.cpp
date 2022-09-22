@@ -7,11 +7,15 @@ namespace og
     using crit = abilities::universalCriteria;
     using critKinds = og::abilities::criteriaKinds;
 
-    AbilityResolver::AbilityResolver(ProviderAliasResolver const & aliasResolver,
-                                     AbilityCollection const & abilityCollection)
-    : aliasResolver(aliasResolver),
-      abilityCollection(abilityCollection)
+    AbilityResolver::AbilityResolver()
     {
+    }
+
+    void AbilityResolver::init(ProviderAliasResolver const & aliasResolver,
+                               AbilityCollection const & abilityCollection)
+    {
+        aliasResolver = & aliasResolver;
+        abilityCollection = & abilityCollection;
     }
 
     void AbilityResolver::include(std::string_view libraryName)
@@ -20,7 +24,7 @@ namespace og
             == end(abilityIncludes))
         {
             abilityIncludes.push_back(libraryName);
-            auto const & group = abilityCollection.getLibrary(libraryName);
+            auto const & group = abilityCollection->getLibrary(libraryName);
             for (auto const & include : group.get_include())
             {
                 this->include(include);
@@ -35,7 +39,7 @@ namespace og
         {
             for (auto & libraryName : abilityIncludes)
             {
-                auto & group = abilityCollection.getLibrary(libraryName);
+                auto & group = abilityCollection->getLibrary(libraryName);
                 auto & abilities_c = group.get_abilities();
                 auto & ability = abilities_c.at(abilityName);
 

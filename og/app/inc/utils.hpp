@@ -57,13 +57,49 @@ namespace og
     const int NotYetCached = -3;
     const int NoGoodProfile = -1;
 
-    template<class T>
-    void uniquifyVectorOfThings(std::vector<T> & things)
+    template <class T>
+    std::vector<T> makeUnique(std::vector<T> const & inv)
     {
-        std::unordered_set<T> s;
-        for (auto const & th : things)
-            { s.insert(th); }
+        std::unordered_set<T> added;
+        std::vector<T> pared;
 
-        things.assign(begin(s), end(s));
+        for (auto val : inv)
+        {
+            if (auto [_, didInsert] = added.insert(val); didInsert)
+                { pared.push_back(val); }
+        }
+        return pared;
+    }
+
+    template <class T>
+    bool containTheSame(std::vector<T> const & lhs, std::vector<T> const & rhs)
+    {
+        std::unordered_set<T> lhsu { begin(lhs), end(lhs) };
+        std::unordered_set<T> rhsu { begin(rhs), end(rhs) };
+
+        return false == std::any_of(begin(rhsu), end(rhsu), 
+            [&lhsu](auto && rhse)
+                { return lhsu.find(rhse) == end(lhsu); });
+    }
+
+    /*
+    template <class TupleType, std::size_t I>
+    std::vector<T> getElement(std::vector<T> const & rhs)
+    {
+        std::vector<T> res;
+        std::transform(begin(rhs), end(rhs), 
+            begin(res), [](auto elem) { return get<I>(elem); } );
+        return res;
+    }
+    */
+
+    template <std::size_t I, class T>
+    auto getElement(std::vector<T> const & rhs)
+    {
+        using TT = std::tuple_element<0, T>::type;
+        std::vector<TT> res;
+        std::transform(begin(rhs), end(rhs), 
+            begin(res), [](auto elem) { return std::get<I>(elem); } );
+        return res;
     }
 }

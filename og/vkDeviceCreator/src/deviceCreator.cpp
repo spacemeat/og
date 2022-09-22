@@ -69,7 +69,7 @@ namespace og
     using crit = abilities::universalCriteria;
     using critKinds = og::abilities::criteriaKinds;
 
-    void * InstanceDeviceInfo::makeDebugMessengersAndValidators()
+    void * InstanceInfo::makeDebugMessengersAndValidators()
     {
         void * createInfo_pNext = nullptr;
 
@@ -77,7 +77,7 @@ namespace og
         for (int i = 0; i < debugMessengerObjects.size(); ++i)
         {
             auto const & cfg_c = debugMessengers[i];
-            debugMessengerObjects[i] = std::move(makeDebugMessengerCreateInfo(cfg_c));
+            debugMessengerObjects[i] = std::move(makeDebugMessengerCreateInfo(std::get<1>(cfg_c)));
             debugMessengerObjects[i].pNext = nullptr;
             if (i > 0)
                 { debugMessengerObjects[i - 1].pNext = & debugMessengerObjects[i]; }
@@ -100,15 +100,6 @@ namespace og
 
         return createInfo_pNext;
     }
-
-    void InstanceDeviceInfo::consolidateCollections()
-    {
-        uniquifyVectorOfThings(extensions);
-        uniquifyVectorOfThings(layers);
-        uniquifyVectorOfThings(enabledValidations);
-        uniquifyVectorOfThings(disabledValidations);
-    }
-
 
     DeviceCreator::DeviceCreator(std::string const & configPath, ProviderAliasResolver & aliases, AbilityCollection & abilities,
                                  std::string_view appName_c, version_t appVersion_c)
@@ -178,7 +169,7 @@ namespace og
         VulkanSubsystem vs;
         gatherExploratoryInstanceExtensions();
         makeExploratoryInstance();
-        initExploratoryPhysDevices();
+        initPhysDevices();
 
         std::unordered_set<std::string_view> alreadyMatched;
         for (auto [deviceGroup, _] : schedule)
@@ -195,18 +186,11 @@ namespace og
             assignDevices(deviceGroup, numPhysDevices);
         }
 
-        alreadyMatched.clear();
-        for (auto [deviceGroup, _] : schedule)
-        {
-            auto [_, didInsert] = alreadyMatched.insert(deviceGroup);
-            if (didInsert)
-            {
-                gatherFinalCreationSet(deviceGroup, vs);
-            }
-        }
+        consolidateFinalCollections(vs);
 
         makeFinalInstance(vs);
         makeDevices(vs);
+        makeQueues(vs);
 
         return vs;
     }
@@ -369,7 +353,8 @@ namespace og
         bool _ = false;
 
         { // nested scope keeping me careful about not reusing ar
-            AbilityResolver ar { aliases, abilities };
+            auto & ar = sharedInstanceAbilityResolver;
+            ar.init(aliases, abilities);
             for (auto inc_c : config_c.get_instanceInclude())
                 { ar.include(inc_c); }
 
@@ -389,12 +374,12 @@ namespace og
             auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
             auto mark = accum.mark();
 
-            AbilityResolver ar { aliases, abilities };
+            auto & ar = deviceAssignments[devGroupIdx].abilityResolver;
+            ar.init(aliases, abilities);
             for (auto inc_c : profileGroup_c.get_include())
                 { ar.include(inc_c); }
 
             auto & deviceInfo = deviceAssignments[devGroupIdx].expDeviceInfo;
-            //deviceInfo = expInstInfo;
 
             auto devAccum = deviceInfo.makeAccumulator();
 
@@ -450,7 +435,36 @@ namespace og
 
     void DeviceCreator::consolidateExploratoryCollections()
     {
-        //... TODO: this
+        std::unordered_set<char const *> addedExts;
+        std::unordered_set<char const *> addedLayers;
+        std::unordered_set<std::string_view> addedDebugMessengers;
+        std::unordered_set<VkValidationFeatureEnableEXT> addedEnabledValidations;
+        std::unordered_set<VkValidationFeatureDisableEXT> addedDisabledValidations;
+        std::unordered_set<char const *> addedDevExts;
+        std::unordered_map<std::string_view, 
+                            std::unordered_set<std::string_view>> addedFeatures;
+        std::unordered_set<std::string_view> addedProperties;
+        std::unordered_set<std::string_view> addedQueueFamilyProperties;
+
+        auto & idi = expInstInfo;
+
+        idi.extensions = makeUnique(idi.extensions);
+        idi.layers = makeUnique(idi.layers);
+        idi.debugMessengers = makeUnique(idi.debugMessengers);
+        idi.enabledValidations = makeUnique(idi.enabledValidations);
+        idi.disabledValidations = makeUnique(idi.disabledValidations);
+        idi.deviceExtensions = makeUnique(idi.deviceExtensions);
+        idi.features;
+        for (auto const & [provider, feature] : idi.features)
+        {
+            std::unordered_set<std::string_view> newSet {};
+            auto [itprov, _] = addedFeatures.insert(std::make_pair(provider, newSet));
+            auto [_, didInsert] = itprov->second.insert(feature);
+            if (didInsert)
+                { idi.features.push_back(std::make_tuple(provider, feature)); }
+        }
+        idi.propertyProviders = makeUnique(idi.propertyProviders);
+        idi.queueFamilyPropertyProviders = makeUnique(idi.queueFamilyPropertyProviders);
     }
 
     void DeviceCreator::makeExploratoryInstance()
@@ -483,7 +497,7 @@ namespace og
         log("exploratory vulkan instance created.");
     }
 
-    void DeviceCreator::initExploratoryPhysDevices()
+    void DeviceCreator::initPhysDevices()
     {
         uint32_t physCount = 0;
         vkEnumeratePhysicalDevices(vkInstance, & physCount, nullptr);
@@ -500,10 +514,10 @@ namespace og
         deviceAssignments.resize(profileGroups_c.size());
     }
 
-
     void DeviceCreator::matchDeviceAbilities(std::string_view deviceGroup)
     {
-        AbilityResolver ar(aliases, abilities);
+        AbilityResolver ar;
+        ar.init(aliases, abilities);
 
         int dpgIdx = getDeviceGroupIdx(deviceGroup);
         if (dpgIdx == -1)
@@ -513,12 +527,14 @@ namespace og
         devAss.deviceSuitabilities.resize(physDevices.size());
 
         //  make structure chains based on exploratory device providers
+        /*
         VkFeatures allInterestingFeatures;
-        allInterestingFeatures.init(devAss.expDeviceInfo.features);
+        allInterestingFeatures.init(devAss.get_expFeatureProviders());
         VkProperties allInterestingProperties;
-        allInterestingProperties.init(devAss.expDeviceInfo.propertyProviders);
+        allInterestingProperties.init(devAss.get_expPropertyProviders());
         VkQueueFamilies allInterestingQfProperties;
-        allInterestingQfProperties.init(devAss.expDeviceInfo.queueFamilyPropertyProviders);
+        allInterestingQfProperties.init(devAss.get_expQueueFamilyPropertyProviders());
+        */
 
         for (int physIdx = 0; physIdx < physDevices.size(); ++physIdx)
         {
@@ -529,8 +545,10 @@ namespace og
             suitability.physicalDeviceIdx = physIdx;
 
             //  get features, props, etc from device
-            VkFeatures availableFeatures = allInterestingFeatures.copyAndReset();
-            VkProperties availableProperties = allInterestingProperties.copyAndReset();
+            VkFeatures availableFeatures;
+            availableFeatures.init(devAss.get_expFeatureProviders());
+            VkProperties availableProperties;
+            availableProperties.init(devAss.get_expPropertyProviders());
             vkGetPhysicalDeviceFeatures2(physDevice, & availableFeatures.mainStruct);
             vkGetPhysicalDeviceProperties2(physDevice, & availableProperties.mainStruct);
 
@@ -542,7 +560,8 @@ namespace og
                     availableProperties, suitability.bestProfileIdx + 1);
                 if (suitability.bestProfileIdx >= 0)
                 {
-                    VkQueueFamilies availableQfProperties = allInterestingQfProperties.copyAndReset();
+                    VkQueueFamilies availableQfProperties;
+                    availableQfProperties.init(devAss.get_expQueueFamilyPropertyProviders());
                     suitability.bestQueueVillageProfile = getBestQueueVillageProfile(dpgIdx, physIdx,
                         availableFeatures, availableProperties, availableQfProperties);
                     if (suitability.bestQueueVillageProfile < 0)
@@ -555,7 +574,6 @@ namespace og
             //      da.deviceProfiles[physDevIdx].usedProviders = proUsed
         }
     }
-
 
     static auto checkCriteria(
         VkFeatures const & availbleFeatures, VkProperties const & availableProperties, 
@@ -662,8 +680,6 @@ namespace og
         return std::make_tuple(ok, foundProfile);
     }
 
-
-
     int DeviceCreator::getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & availbleFeatures,
                                       VkProperties const & availableProperties, int startingProfileIdx)
     {
@@ -673,111 +689,6 @@ namespace og
         auto & physDev = physDevices[physDevIdx];
 
         auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
-        /*
-        auto fn = [this, & availbleFeatures, & availableProperties, & physDev]
-                    (crit const & criteria_c, decltype(accum) & accum, auto _)
-        {
-            bool ok = true;
-            bool foundProfile = true;
-
-            if (ok && criteria_c.get_vulkanVersion().has_value())
-            {
-                ok = ok && checkVulkan(* criteria_c.get_vulkanVersion(), utilizedVulkanVersion);
-                foundProfile = foundProfile && ok;
-            }
-            if (ok && criteria_c.get_extensions().size() > 0)
-            {
-                auto const & exts_c = criteria_c.get_extensions();
-                for (auto const & ext_c : exts_c)
-                {
-                    if (ok = ok && checkExtension(ext_c, availableInstanceExtensionNames))
-                        { accum.get<0>().push_back(ext_c.data()); }
-                    foundProfile = foundProfile && ok;
-                }
-            }
-            if (ok && criteria_c.get_layers().size() > 0)
-            {
-                auto const & lays_c = criteria_c.get_layers();
-                for (auto const & lay_c : lays_c)
-                {
-                    if (ok = ok && checkLayer(lay_c, availableLayerNames))
-                        { accum.get<1>().push_back(lay_c.data()); }
-                    foundProfile = foundProfile && ok;
-                }
-            }
-            if (ok && criteria_c.get_deviceExtensions().size() > 0)
-            {
-                for (auto devExt_c : criteria_c.get_deviceExtensions())
-                {
-                    if (ok = ok && checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
-                        { accum.get<5>().push_back(devExt_c); }
-                    foundProfile = foundProfile && ok;
-                }
-            }
-            if (ok && criteria_c.get_features().size() > 0)
-            {
-                for (auto feat_c : criteria_c.get_features())
-                {
-                    auto const & [provider_c, features_c] = feat_c;
-                    for (auto feature_c : features_c)
-                    {
-                        if (ok = ok && checkFeature(provider_c, feature_c, availbleFeatures))
-                            { accum.get<6>().emplace_back(provider_c, feature_c); }
-                        foundProfile = foundProfile && ok;
-                    }
-                }
-            }
-            if (ok && criteria_c.get_properties().size() > 0)
-            {
-                for (auto prop_c : criteria_c.get_properties())
-                {
-                    auto const & [provider_c, properties_c] = prop_c;
-                    if (ok = ok && checkProperties(provider_c, properties_c, availableProperties))
-                        { accum.get<7>().push_back(prop_c.first); }
-                    foundProfile = foundProfile && ok;
-                }
-            }
-            if (ok)
-            {
-                if (criteria_c.get_debugUtilsMessengers().size() > 0)
-                {
-                    auto const & dums = criteria_c.get_debugUtilsMessengers();
-                    for (auto const & dum : dums)
-                        { accum.get<2>().push_back({criteria_c.get_name(), dum}); }
-                }
-
-                if (criteria_c.get_validationFeatures().has_value())
-                {
-                    auto const & valFeats = * criteria_c.get_validationFeatures();
-                    for (auto const & evf : valFeats.get_enabled())
-                        { accum.get<3>().push_back(evf); }
-                    for (auto const & dvf : valFeats.get_disabled())
-                        { accum.get<4>().push_back(dvf); }
-                }
-                for (auto ext_c : criteria_c.get_desiredExtensions())
-                {
-                    if (checkExtension(ext_c, availableInstanceExtensionNames))
-                        { accum.get<0>().push_back(ext_c.data()); }
-                }
-                for (auto devExt_c : criteria_c.get_desiredDeviceExtensions())
-                {
-                    if (checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
-                        { accum.get<5>().push_back(devExt_c); }
-                }
-                for (auto const & feat_c : criteria_c.get_desiredFeatures())
-                {
-                    auto const & [provider_c, features_c] = feat_c;
-                    for (auto feature_c : features_c)
-                    {
-                        if (checkFeature(provider_c, feature_c, availbleFeatures))
-                            { accum.get<6>().emplace_back(provider_c, feature_c); }
-                    }
-                }
-            }
-
-            return std::make_tuple(ok, foundProfile);
-        };
-        */
         auto fn = [this, & availbleFeatures, & availableProperties, & physDev]
                     (crit const & criteria_c, decltype(accum) & accum, auto _)
         {
@@ -794,10 +705,8 @@ namespace og
 
         auto mark = accum.mark();
 
-        //VkFeatures sharedFeatures = availbleFeatures.copyAndReset();
-
         { // nested scope keeping me careful about not reusing ar
-            AbilityResolver ar { aliases, abilities };
+            auto & ar = sharedInstanceAbilityResolver;
             for (auto inc_c : config_c.get_instanceInclude())
                 { ar.include(inc_c); }
 
@@ -811,11 +720,10 @@ namespace og
         if (ok == false)
             { return NoGoodProfile; }
 
-        AbilityResolver ar { aliases, abilities };
+        auto & ar = devAss.abilityResolver;
         for (auto inc_c : profileGroup_c.get_include())
             { ar.include(inc_c); }
 
-        //VkFeatures profileFeatures = availbleFeatures.copyAndReset();
         int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false,
                                            fn, accum, _, false, startingProfileIdx);
         if (profileIdx != NoGoodProfile)
@@ -855,10 +763,6 @@ namespace og
         {
             devSuit.queueFamilies[i].mainStruct = qfPropsVect[i];
         }
-
-        AbilityResolver ar { aliases, abilities };
-        for (auto inc_c : profileGroup_c.get_include())
-            { ar.include(inc_c); }
 
         auto check = [this, & availbleFeatures, & availableProperties, & physDev]
                     (crit const & criteria_c, decltype(accum) & accum, auto _)
@@ -923,14 +827,13 @@ namespace og
                     if (qfAttribs_c.get_criteria().has_value())
                     {
                         bool _ = false;
+                        auto & ar = devAss.abilityResolver;
                         ok = ok && ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), false, check, accum, _, false);
                     }
                     if (ok)
                     {
                         log(fmt::format(". . . . . . qf index {} is selectable", devQfi));
                         selectable.push_back(devQfi);
-                        // TODO: copy accum for this qfi
-
                     }
                     else
                     {
@@ -1098,7 +1001,6 @@ namespace og
         return devSuit.bestQueueVillageProfile;
     }
 
-
     void DeviceCreator::assignDevices(std::string_view groupName, int numDevices)
     {
         int groupIdx = getDeviceGroupIdx(groupName);
@@ -1143,13 +1045,6 @@ namespace og
         }
     }
 
-    /*
-    void DeviceCreator::gatherFinalCreationSet(std::string_view deviceGroupName, int numDevices, VulkanSubsystem & vs)
-    {
-    }
-    */
-
-
     void DeviceCreator::consolidateFinalCollections(VulkanSubsystem & vs)
     {
         /*  
@@ -1191,7 +1086,13 @@ namespace og
                 auto & idi = suit.bestProfileDeviceInfo;
 
                 vs.devices.push_back(DeviceSubsystem {});
-                DeviceSubsystem & ds = vs.devices[vs.devices.size() - 1];
+                auto & ds = vs.devices[vs.devices.size() - 1];
+
+                // Okay to copy; ds.abilityResolver.abilities normally would have 
+                // to be rebuilt, but at this point we haven't been caching anything 
+                // anyway, so it should be empty.
+                assert(ass.abilityResolver.getCachesize() == 0);
+                ds.abilityResolver = ass.abilityResolver;
 
                 ds.physicalDeviceIdx = physDevIdx;
                 ds.deviceGroupIdx = dai;
@@ -1202,44 +1103,25 @@ namespace og
                     { fps.push_back(fp); }
                 ds.features.init(fps);
 
-                for (auto val : idi.extensions)
-                {
-                    if (auto [_, didInsert] = addedExts.insert(val); didInsert)
-                        { vs.info.extensions.push_back(val); }
-                }
-                for (auto val : idi.layers)
-                {
-                    if (auto [_, didInsert] = addedLayers.insert(val); didInsert)
-                        { vs.info.layers.push_back(val); }
-                }
-                for (auto const & val : idi.debugMessengers)
-                {
-                    if (auto [_, didInsert] = addedDebugMessengers.insert(std::get<0>(val)); didInsert)
-                        { vs.info.debugMessengers.push_back(val); }
-                }
-                for (auto const & val : idi.enabledValidations)
-                {
-                    if (auto [_, didInsert] = addedEnabledValidations.insert(val); didInsert)
-                        { vs.info.enabledValidations.push_back(val); }
-                }
-                for (auto const & val : idi.disabledValidations)
-                {
-                    if (auto [_, didInsert] = addedDisabledValidations.insert(val); didInsert)
-                        { vs.info.disabledValidations.push_back(val); }
-                }
-                for (auto val : idi.deviceExtensions)
-                {
-                    if (auto [_, didInsert] = addedDevExts.insert(val); didInsert)
-                        { ds.info.deviceExtensions.push_back(val); }
-                }
+                vs.info.extensions = makeUnique(idi.extensions);
+                vs.info.layers = makeUnique(idi.layers);
+                vs.info.debugMessengers = makeUnique(idi.debugMessengers);
+                vs.info.enabledValidations = makeUnique(idi.enabledValidations);
+                vs.info.disabledValidations = makeUnique(idi.disabledValidations);
+                ds.info.deviceExtensions = makeUnique(idi.deviceExtensions);
+
                 for (auto const & [provider, feature] : idi.features)
                 {
                     std::unordered_set<std::string_view> newSet {};
                     auto [itprov, _] = addedFeatures.insert(std::make_pair(provider, newSet));
                     auto [_, didInsert] = itprov->second.insert(feature);
                     if (didInsert)
-                        { ds.features.set(provider, feature, VK_TRUE); }
+                        { ds.info.features.push_back(std::make_tuple(provider, feature));
+                          ds.features.set(provider, feature, VK_TRUE); }
                 }
+
+                ds.info.propertyProviders = makeUnique(idi.propertyProviders);
+                ds.info.queueFamilyPropertyProviders = makeUnique(idi.queueFamilyPropertyProviders);
 
                 // while we're here, record qfi stuff to ds
                 for (auto const & qfa : suit.queueFamilyAssignments)
@@ -1261,10 +1143,15 @@ namespace og
         // TODO: Consider caching the interesting providers to prevent
         //       double-instancing every time.
 
-        // TODO: Don't bother recreating if the extensions and layers are identical
+        // Don't bother recreating if the extensions and layers are identical
+        if (containTheSame(expInstInfo.extensions, vs.info.extensions)
+         && containTheSame(expInstInfo.layers, vs.info.layers))
+            { return; }
 
-        // TODO: kill the exploratory shit if we are recreating.
-
+        // kill the exploratory shit if we are recreating.
+        vkDestroyInstance(vkInstance, nullptr);
+        vkInstance = nullptr;
+        
         void * createInfo_pNext = vs.info.makeDebugMessengersAndValidators();
 
         VkApplicationInfo vai {
@@ -1292,7 +1179,7 @@ namespace og
         VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
         log("final vulkan instance created.");
 
-        // TODO: recreate the physical devices if we're recreating
+        initPhysDevices();
     }
 
     void DeviceCreator::makeDevices(VulkanSubsystem & vs)
@@ -1300,17 +1187,40 @@ namespace og
         for (int dsIdx = 0; dsIdx < vs.devices.size(); ++dsIdx)
         {
             DeviceSubsystem & ds = vs.devices[dsIdx];
-            // TODO: get device features and properties
+
+            ds.features.init(getElement<0>(expInstInfo.features));
+            ds.properties.init(expInstInfo.propertyProviders);
+            vkGetPhysicalDeviceFeatures2(ds.physicalDevice, & ds.features.mainStruct);
+            vkGetPhysicalDeviceProperties2(ds.physicalDevice, & ds.properties.mainStruct);
             
-            auto dqcis = std::vector<VkDeviceQueueCreateInfo>(ds.queueFamilies.size());
-            for (int i = 0; i < ds.queueFamilies.size(); ++i)
+            // get VkQueueFamilies
+            uint32_t devQueueFamilyCount = ds.queueFamilies.size();
+            std::vector<VkQueueFamilyProperties2> qfPropsVect(devQueueFamilyCount);
+            for (int i = 0; i < devQueueFamilyCount; ++i)
             {
-                auto const & qfa = ds.queueFamilies[i];
+                VkQueueFamilies & vkqf = ds.queueFamilies[i].queueFamilyProperties;
+                vkqf.init(expInstInfo.queueFamilyPropertyProviders);
+                qfPropsVect[i] = vkqf.mainStruct;
+            }
+            vkGetPhysicalDeviceQueueFamilyProperties2(ds.physicalDevice, & devQueueFamilyCount, qfPropsVect.data());
+
+            // make the VkDeviceQueueCreateInfos
+            auto dqcis = std::vector<VkDeviceQueueCreateInfo>(ds.queueFamilies.size());
+  
+            std::vector<VkDeviceQueueGlobalPriorityCreateInfoKHR> dqgpcis;
+            for (int i = 0; i < devQueueFamilyCount; ++i)
+            {
+                auto & qfa = ds.queueFamilies[i];
+
+                qfa.queueFamilyProperties.mainStruct = qfPropsVect[i];
 
                 void * pNext = NULL;
-                VkDeviceQueueGlobalPriorityCreateInfoKHR globalPriorityStruct = { VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR, NULL, VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR };
                 if (qfa.globalPriority.has_value()) // TODO: And "globalPriority" ability is >= 0
                 {
+                    if (ds.abilities.getAbility("globalPriority") < 0)
+                        { log(logger::logTags::warn, "attempting to use globalPriority without the ability."); }
+                    dqgpcis.push_back(VkDeviceQueueGlobalPriorityCreateInfoKHR { VK_STRUCTURE_TYPE_DEVICE_QUEUE_GLOBAL_PRIORITY_CREATE_INFO_KHR, NULL, VK_QUEUE_GLOBAL_PRIORITY_MEDIUM_KHR });
+                    auto & globalPriorityStruct = dqgpcis[dqgpcis.size() - 1];
                     pNext = & globalPriorityStruct;
                     globalPriorityStruct.globalPriority = * qfa.globalPriority;
                 }

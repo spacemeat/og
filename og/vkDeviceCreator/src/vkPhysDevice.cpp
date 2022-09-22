@@ -37,6 +37,8 @@ namespace og
 
         for (auto const & elem : availableDeviceExtensionsVect)
             { log(fmt::format(". available device extension: {} v{}", elem.extensionName, elem.specVersion)); }
+
+            
     }
 
     /*

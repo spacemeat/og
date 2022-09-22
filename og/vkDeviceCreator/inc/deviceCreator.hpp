@@ -28,8 +28,6 @@ namespace og
         // built by makeDebugMessengersAndValidators()
         std::vector<VkDebugUtilsMessengerCreateInfoEXT> debugMessengerObjects;
         std::optional<VkValidationFeaturesEXT> validationFeatures;
-
-        void consolidateCollections();
     };
 
     struct DeviceInfo
@@ -39,18 +37,11 @@ namespace og
         std::vector<std::string_view> propertyProviders;
         std::vector<std::string_view> queueFamilyPropertyProviders;
 
-        void consolidateCollections();
         VkFeatures makeFeatures(VkFeatures const & templateFeatures);
     };
 
     struct InstanceDeviceInfo : public InstanceInfo, public DeviceInfo
     {
-        void consolidateCollections()
-        {
-            static_cast<InstanceInfo *>(this)->consolidateCollections();
-            static_cast<DeviceInfo *>(this)->consolidateCollections();
-        }
-
         auto makeAccumulator()
         {
             return Accumulator { extensions, layers, debugMessengers,
@@ -70,6 +61,7 @@ namespace og
         VkDeviceQueueCreateFlags flags;
         std::optional<VkQueueGlobalPriorityKHR> globalPriority;
         std::vector<VkQueue> createdQueues;
+        VkQueueFamilies queueFamilyProperties;
     };
 
     struct DeviceSubsystem
@@ -79,10 +71,12 @@ namespace og
         std::string_view deviceGroupName;
         DeviceInfo info;
         VkPhysicalDevice physicalDevice;
+        std::vector<QueueFamilySubsystem> queueFamilies;
+
         VkFeatures features;
         VkProperties properties;
-        std::vector<QueueFamilySubsystem> queueFamilies;
         VkDevice device;
+        AbilityResolver abilityResolver;
     };
 
     struct VulkanSubsystem
@@ -138,8 +132,24 @@ namespace og
     {
         int groupIdx = -1;
         bool hasBeenComputed = false;
+        AbilityResolver abilityResolver;
 
         InstanceDeviceInfo expDeviceInfo;
+
+        std::vector<std::string_view> get_expFeatureProviders()
+        {
+            return getElement<0>(expDeviceInfo.features);
+        }
+
+        std::vector<std::string_view> get_expPropertyProviders()
+        {
+            return expDeviceInfo.propertyProviders;
+        }
+
+        std::vector<std::string_view> get_expQueueFamilyPropertyProviders()
+        {
+            return expDeviceInfo.queueFamilyPropertyProviders;
+        }
 
         // one for each enumerated physical device
         std::vector<PhysicalDeviceSuitability> deviceSuitabilities;
@@ -176,7 +186,7 @@ namespace og
         void makeExploratoryInstance();
         //void * makeDebugMessengersAndValidators(InstanceInfo & instanceInfo);
 
-        void initExploratoryPhysDevices();
+        void initPhysDevices();
         void matchDeviceAbilities(std::string_view deviceGroup);
         int getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & features, VkProperties const & properties, int startingIdx);
         int getBestQueueVillageProfile(int devGroupIdx, int physDevIdx,
@@ -253,5 +263,6 @@ namespace og
         // vector of [groupIdx, vector of [phIdx, profileIdx], winningPhysIdx]
         // matches 1-1 with groups
         std::vector<DevProfileGroupAssignment> deviceAssignments;
+        AbilityResolver sharedInstanceAbilityResolver;
     };
 }
