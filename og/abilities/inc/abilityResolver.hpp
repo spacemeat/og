@@ -178,36 +178,26 @@ namespace og
             // TODO: interpret query syntax here: '? multiview >= 2+1'
 
             abilities::abilityProfileGroup_t const * pProfileGroup = nullptr;
-            int cachedIdx = NotYetCached;
-
-            if (auto it = abilities.find(abilityName);
-                it == abilities.end())
+            if (auto it = cache.find(abilityName);
+                it == cache.end())
             {
                 // look up the ability in libraries
                 pProfileGroup = findAbility(abilityName, cacheAbilities);
             }
             else
             {
-                std::tie(pProfileGroup, cachedIdx) = * it;
+                pProfileGroup = it->second;
             }
 
             if (pProfileGroup == nullptr)
                 { return NoGoodProfile; }
 
-            if (cachedIdx == NotYetCached)
-            {
-                // cachedIdx = doProfleGroup(...)
-                cachedIdx = doProfileGroup(abilityName, * pProfileGroup, builtinsOnly,
-                    std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
-            }
-
-            return cachedIdx;
+            return doProfileGroup(abilityName, * pProfileGroup, builtinsOnly,
+                std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
         }
 
-        int getCachesize() { return abilities.size(); }
-        void invalidateAbilityCache();
-
-        int getAbility(std::string_view abilityName);
+        int getCachesize() { return cache.size(); }
+        void invalidateAbilityProfileCache();
 
     private:
         ProviderAliasResolver const * aliasResolver;
@@ -216,8 +206,7 @@ namespace og
         std::vector<std::string_view> abilityIncludes;
 
         std::unordered_map<std::string_view,
-                           std::tuple<abilities::abilityProfileGroup_t const *,
-                                      int>> abilities;
+                           abilities::abilityProfileGroup_t const *> cache;
     };
 
 

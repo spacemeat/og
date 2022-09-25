@@ -45,7 +45,7 @@ namespace og
     // Check profiles one by one until the device can meet the profile's requirements.
     // That's the best profile the device can do; the device with the best profile idx
     // will win.
-    int PhysVkDevice::findBestProfileIdx(int groupIdx, vkDeviceCreator::physDeviceProfileGroup const & group_c, PhysicalDeviceSuitability & suitability)
+    int PhysVkDevice::findBestProfileIdx(int groupIdx, vkSubsystem::physDeviceProfileGroup const & group_c, PhysicalDeviceSuitability & suitability)
     {
         bool reportAll = true;
 
@@ -215,7 +215,7 @@ namespace og
 
     std::tuple<int, QueueFamilyComposition>
         PhysVkDevice::findBestQueueFamilyAllocation(int groupIdx,
-            vkDeviceCreator::physDeviceProfileGroup const & group_c,
+            vkSubsystem::physDeviceProfileGroup const & group_c,
             int profileIdx)
     {
         bool reportAll = true;

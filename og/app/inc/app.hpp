@@ -16,7 +16,7 @@
 #include "../../abilities/gen/inc/abilityLibrary_t.hpp"
 #include "../../abilities/inc/providerAliasResolver.hpp"
 #include "../../abilities/inc/collections.hpp"
-#include "../../vkDeviceCreator/gen/inc/deviceConfig.hpp"
+#include "../../vkSubsystem/gen/inc/deviceConfig.hpp"
 #include "../../engine/inc/engine.hpp"
 
 #define GLFW_INCLUDE_VULKAN
@@ -72,7 +72,7 @@ namespace og
         std::vector<DisplayView> views;
         int numActiveWindows = 0;
 
-        VulkanSubsystem vk;
+        InstanceSubsystem vk;
         Engine engine;
     };
 

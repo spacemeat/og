@@ -26,7 +26,8 @@
     // device that fits the "graphicsDevices" profile the best. Then satisfy 
     // the needed device allocations for all other works the same way. Then
     // allocate up to 16 other devices that fit the "computeDevices" profile.
-    works: [ {
+    engine: [ {
+            name: graphicsEngine
             useDeviceProfileGroups: [[graphicsDevices, 1, 1],   // profile, #need, #want
                                      [computeDevices, 0, 16]]
             targetViews: [{

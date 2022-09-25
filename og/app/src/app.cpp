@@ -2,7 +2,7 @@
 
 #include "../inc/app.hpp"
 #include "../../logger/inc/logger.hpp"
-#include "../../vkDeviceCreator/inc/deviceCreator.hpp"
+#include "../../vkSubsystem/inc/deviceCreator.hpp"
 
 namespace og
 {

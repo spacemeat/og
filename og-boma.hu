@@ -107,9 +107,9 @@
                 deviceConfigPath: { type: string }
                 engineConfigPath: { type: string }
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
-                works: { type: vector of: workUnit }
+                engines: { type: vector of: engineSpec }
             }
-            workUnit: {
+            engineSpec: {
                 useDeviceProfileGroups: { type: vector of: { type: tuple of: [stringView, int, int ]}}
                 targetViews: { type: vector of: workView }
             }
@@ -148,8 +148,8 @@
         }
     }
 
-    --vkDeviceCreator: {
-        namespace: og.vkDeviceCreator
+    --vkSubsystem: {
+        namespace: og.vkSubsystem
 
         deserializeFrom: [humon]
 

@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
-#include "../gen/inc/vkChainStructs.hpp"
+#include "../../gen/inc/vkChainStructs.hpp"
 #include "../../abilities/gen/inc/universalCriteria.hpp"
 #include "../../abilities/gen/inc/providerAliases_t.hpp"
 #include "../../abilities/gen/inc/abilityLibrary_t.hpp"
@@ -62,11 +62,14 @@ namespace og
         std::optional<VkQueueGlobalPriorityKHR> globalPriority;
         std::vector<VkQueue> createdQueues;
         VkQueueFamilies queueFamilyProperties;
+
+        // TODO: cleanup methods here
     };
 
     struct DeviceSubsystem
     {
         int physicalDeviceIdx;
+        std::string_view engineName;
         int deviceGroupIdx;
         std::string_view deviceGroupName;
         DeviceInfo info;
@@ -77,13 +80,17 @@ namespace og
         VkProperties properties;
         VkDevice device;
         AbilityResolver abilityResolver;
+
+        // TODO: cleanup methods here
     };
 
-    struct VulkanSubsystem
+    struct InstanceSubsystem
     {
         InstanceInfo info;
         VkInstance instance;
         std::vector<DeviceSubsystem> devices;
+
+        // TODO: cleanup methods here
     };
 
     // ----------------------------------------------
@@ -154,7 +161,7 @@ namespace og
         // one for each enumerated physical device
         std::vector<PhysicalDeviceSuitability> deviceSuitabilities;
         // winning physical device indices
-        std::vector<int> winningDeviceIdxs;
+        std::vector<std::tuple<std::string_view, int>> winningDeviceIdxs;
     };
 
 
@@ -177,10 +184,22 @@ namespace og
         DeviceCreator(std::string const & configPath, ProviderAliasResolver & aliases,
                       AbilityCollection & abilities, std::string_view appName_c, version_t appVersion_c);
 
-        VulkanSubsystem createVulkanSubsystem(std::vector<std::tuple<std::string_view, size_t>> const & schedule);
+        InstanceSubsystem const & createVulkanSubsystem(
+            std::vector<std::tuple<std::string_view, size_t>> const & schedule,
+            std::vector<char const *> const & requiredExtensions,
+            std::vector<char const *> const & requiredLayers);
 
+        InstanceSubsystem const & getCreatedObjects()
+        {
+            return vs;
+        }
+
+    private:
         // new upstart functiopns
-        bool gatherExploratoryInstanceExtensions();
+        bool gatherExploratoryInstanceCriteria(
+            std::vector<std::string_view> const & deviceGroups,
+            std::vector<char const *> const & requiredExtensions,
+            std::vector<char const *> const & requiredLayers);
         bool requireGlfwExtensions();
         void consolidateExploratoryCollections();
         void makeExploratoryInstance();
@@ -193,13 +212,13 @@ namespace og
             VkFeatures const & availbleFeatures, VkProperties const & availableProperties,
             VkQueueFamilies const & availableQfProperties);
 
-        void assignDevices(std::string_view deviceGroupName, int numDevices);
+        void assignDevices(std::string_view engineName, std::string_view deviceGroupName, int numDevices);
 
         //void gatherFinalCreationSet(std::string_view deviceGroupName, int numDevices, VulkanSubsystem & vs);
-        void consolidateFinalCollections(VulkanSubsystem & vs);
-        void makeFinalInstance(VulkanSubsystem & vs);
-        void makeDevices(VulkanSubsystem & vs);
-        void makeQueues(VulkanSubsystem & vs);
+        void consolidateFinalCollections();
+        void makeFinalInstance();
+        void makeDevices();
+        void makeQueues();
 
         int getDeviceGroupIdx(std::string_view deviceGroupName);
         bool checkVulkan(std::string_view vulkanVersion, version_t available);
@@ -210,27 +229,17 @@ namespace og
         bool checkProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & properties_c, VkProperties const & available);
         bool checkQueueFamilyProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & qfProperties_c, VkQueueFamilies const & available);
 
-    private:
         void destroyVkInstance();
 
-    public:
         void createDebugMessengers(std::vector<VkDebugUtilsMessengerCreateInfoEXT> const & dbgMsgrs);
         void destroyDebugMessengers();
 
-
-    public:
         // old confuesd functions
-        std::vector<std::string_view> const & get_utilizedExtensions() { return utilizedExtensions; }
-        std::vector<std::string_view> const & get_utilizedLayers() { return utilizedLayers; }
+        // void computeBestProfileGroupDevices(int groupIdx);
+        //void createAllVkDevices();
 
-    private:
-
-        // old confuesd functions
-        void computeBestProfileGroupDevices(int groupIdx);
-        void createAllVkDevices();
-
-        void destroyAllDevices();
-        void destroyDevice(int deviceIdx);
+        //void destroyAllDevices();
+        //void destroyDevice(int deviceIdx);
 
 
     private:
@@ -240,7 +249,7 @@ namespace og
         std::string_view appName_c;
         version_t appVersion_c;
 
-        vkDeviceCreator::deviceConfig config_c;
+        vkSubsystem::deviceConfig config_c;
 
         version_t availableVulkanVersion;
         version_t utilizedVulkanVersion;
@@ -264,5 +273,7 @@ namespace og
         // matches 1-1 with groups
         std::vector<DevProfileGroupAssignment> deviceAssignments;
         AbilityResolver sharedInstanceAbilityResolver;
+
+        InstanceSubsystem vs;
     };
 }

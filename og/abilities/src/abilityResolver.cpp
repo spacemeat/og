@@ -1,6 +1,6 @@
 #include "../inc/abilityResolver.hpp"
-#include "../../engine/inc/except.hpp"
-#include "../../engine/inc/utils.hpp"
+#include "../../app/inc/except.hpp"
+#include "../../app/inc/utils.hpp"
 
 namespace og
 {
@@ -14,8 +14,8 @@ namespace og
     void AbilityResolver::init(ProviderAliasResolver const & aliasResolver,
                                AbilityCollection const & abilityCollection)
     {
-        aliasResolver = & aliasResolver;
-        abilityCollection = & abilityCollection;
+        this->aliasResolver = & aliasResolver;
+        this->abilityCollection = & abilityCollection;
     }
 
     void AbilityResolver::include(std::string_view libraryName)
@@ -35,18 +35,23 @@ namespace og
     abilities::abilityProfileGroup_t const * AbilityResolver::findAbility(std::string_view abilityName, bool caching)
     {
         // check for cached value
-        if (auto cachedIt = abilities.find(abilityName); cachedIt == abilities.end())
+        if (auto cachedIt = cache.find(abilityName); cachedIt != cache.end())
+        {
+            auto group_p = cachedIt->second;
+            return group_p;
+        }
+        else
         {
             for (auto & libraryName : abilityIncludes)
             {
                 auto & group = abilityCollection->getLibrary(libraryName);
                 auto & abilities_c = group.get_abilities();
-                auto & ability = abilities_c.at(abilityName);
+                auto & ability_c = abilities_c.at(abilityName);
 
                 if (caching)
-                    { abilities[abilityName] = { & ability, NotYetCached }; }
+                    { cache[abilityName] = & ability_c; }
 
-                return & ability;
+                return & ability_c;
             }
         }
 
@@ -54,14 +59,9 @@ namespace og
     }
 
 
-    void AbilityResolver::invalidateAbilityCache()
+    void AbilityResolver::invalidateAbilityProfileCache()
     {
-
-    }
-
-    void AbilityResolver::invalidateBuiltinCache()
-    {
-
+        cache.clear();
     }
 }
 

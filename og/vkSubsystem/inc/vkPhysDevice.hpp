@@ -18,8 +18,8 @@ namespace og
     public:
         PhysVkDevice(DeviceCreator & deviceCreator);
         void init(int physicalDeviceIdx, VkPhysicalDevice phdev);
-        int findBestProfileIdx(int groupIdx, vkDeviceCreator::physDeviceProfileGroup const & profileGroup, PhysicalDeviceSuitability & suitability);
-        std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, vkDeviceCreator::physDeviceProfileGroup const & group, int profileIdx);
+        int findBestProfileIdx(int groupIdx, vkSubsystem::physDeviceProfileGroup const & profileGroup, PhysicalDeviceSuitability & suitability);
+        std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, vkSubsystem::physDeviceProfileGroup const & group, int profileIdx);
 
         bool checkDeviceExtension(std::string_view deviceExtension);
         bool checkQueueTypes(VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);
