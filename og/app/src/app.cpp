@@ -37,7 +37,7 @@ namespace og
         createVulkanSubsystem();
 
 
-        engine.init();
+        //engine.init();
     }
 
     void App::initAbilities()
@@ -68,33 +68,36 @@ namespace og
 
     void App::createVulkanSubsystem()
     {
-        DeviceCreator deviceCreator {
+        vk.emplace(
             config_c.get_deviceConfigPath(),
             providerAliases,
             abilities,
             config_c.get_name(),
-            version_t { config_c.get_version() }
-        };
+            version_t { config_c.get_version() });
+
         //create device schedule
         auto && sched = createSchedule();
-        vk = deviceCreator.createVulkanSubsystem(sched);
+        std::vector<char const *> requiredExtensions;
+        std::vector<char const *> requiredLayers;
+        // TODO: get GLFW extensions here
+        vk->create(sched, requiredExtensions, requiredLayers);
     }
 
     std::vector<std::tuple<std::string_view, size_t>> const & App::createSchedule()
     {
         std::vector<std::tuple<std::string_view, size_t>> deviceSchedule;
 
-        for (auto const & work : config_c.get_works())
+        for (auto const & engine_c : config_c.get_engines())
         {
-            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            for (auto const & [groupName, needed, wanted] : engine_c.get_useDeviceProfileGroups())
             {
                 deviceSchedule.emplace_back(groupName, needed);
             }
         }
 
-        for (auto const & work : config_c.get_works())
+        for (auto const & engine_c : config_c.get_engines())
         {
-            for (auto const & [groupName, needed, wanted] : work.get_useDeviceProfileGroups())
+            for (auto const & [groupName, needed, wanted] : engine_c.get_useDeviceProfileGroups())
             {
                 deviceSchedule.emplace_back(groupName, wanted - needed);
             }
@@ -105,21 +108,16 @@ namespace og
 
     void App::run()
     {
-        // for each work, ...
-        engine.enterLoop();
+        // for each engine_c, ...
+        //engine.enterLoop();
     }
 
     void App::shutdown()
     {
-        engine.shutdown();
+        // for each engine_c, ...
+        //engine.shutdown();
 
-        // TODO: Turn this into VulkanSubsystem::~()
-        if (vkInstance)
-        {
-            destroyAllVkDevices();
-            destroyDebugMessengers();
-            destroyVkInstance();
-        }
+        vk->destroy();
 
         for (int i = 0; i < views.size(); ++i)
         {

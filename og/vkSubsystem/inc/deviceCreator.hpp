@@ -181,18 +181,13 @@ namespace og
     class DeviceCreator
     {
     public:
-        DeviceCreator(std::string const & configPath, ProviderAliasResolver & aliases,
-                      AbilityCollection & abilities, std::string_view appName_c, version_t appVersion_c);
+        DeviceCreator(vkSubsystem::deviceConfig const & config_c, ProviderAliasResolver const & aliases,
+                      AbilityCollection const & abilities, std::string_view appName_c, version_t appVersion_c);
 
-        InstanceSubsystem const & createVulkanSubsystem(
-            std::vector<std::tuple<std::string_view, size_t>> const & schedule,
+        InstanceSubsystem createVulkanSubsystem(
+            std::vector<std::tuple<std::string_view, std::string_view, size_t>> const & schedule,
             std::vector<char const *> const & requiredExtensions,
             std::vector<char const *> const & requiredLayers);
-
-        InstanceSubsystem const & getCreatedObjects()
-        {
-            return vs;
-        }
 
     private:
         // new upstart functiopns
@@ -215,10 +210,10 @@ namespace og
         void assignDevices(std::string_view engineName, std::string_view deviceGroupName, int numDevices);
 
         //void gatherFinalCreationSet(std::string_view deviceGroupName, int numDevices, VulkanSubsystem & vs);
-        void consolidateFinalCollections();
-        void makeFinalInstance();
-        void makeDevices();
-        void makeQueues();
+        void consolidateFinalCollections(InstanceSubsystem & vs);
+        void makeFinalInstance(InstanceSubsystem & vs);
+        void makeDevices(InstanceSubsystem & vs);
+        void makeQueues(InstanceSubsystem & vs);
 
         int getDeviceGroupIdx(std::string_view deviceGroupName);
         bool checkVulkan(std::string_view vulkanVersion, version_t available);
@@ -249,7 +244,7 @@ namespace og
         std::string_view appName_c;
         version_t appVersion_c;
 
-        vkSubsystem::deviceConfig config_c;
+        vkSubsystem::deviceConfig const & config_c;
 
         version_t availableVulkanVersion;
         version_t utilizedVulkanVersion;
@@ -273,7 +268,5 @@ namespace og
         // matches 1-1 with groups
         std::vector<DevProfileGroupAssignment> deviceAssignments;
         AbilityResolver sharedInstanceAbilityResolver;
-
-        InstanceSubsystem vs;
     };
 }

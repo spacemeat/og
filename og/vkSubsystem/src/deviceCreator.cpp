@@ -101,11 +101,10 @@ namespace og
         return createInfo_pNext;
     }
 
-    DeviceCreator::DeviceCreator(std::string const & configPath, ProviderAliasResolver & aliases, AbilityCollection & abilities,
-                                 std::string_view appName_c, version_t appVersion_c)
-    : aliases(aliases), abilities(abilities), appName_c(appName_c), appVersion_c(appVersion_c)
+    DeviceCreator::DeviceCreator(vkSubsystem::deviceConfig const & config_c, ProviderAliasResolver const & aliases, 
+                                 AbilityCollection const & abilities, std::string_view appName_c, version_t appVersion_c)
+    : config_c(config_c), aliases(aliases), abilities(abilities), appName_c(appName_c), appVersion_c(appVersion_c)
     {
-        config_c = vkSubsystem::deviceConfig { troves->loadAndKeep(configPath) };
     }
 
     /*
@@ -164,7 +163,7 @@ namespace og
     }
     */
    
-    InstanceSubsystem const & DeviceCreator::createVulkanSubsystem(
+    InstanceSubsystem DeviceCreator::createVulkanSubsystem(
         std::vector<std::tuple<std::string_view, std::string_view, size_t>> const & schedule,
         std::vector<char const *> const & requiredExtensions,
         std::vector<char const *> const & requiredLayers)
@@ -194,10 +193,11 @@ namespace og
             assignDevices(engineName, deviceGroup, numPhysDevices);
         }
 
-        consolidateFinalCollections();
-        makeFinalInstance();
-        makeDevices();
-        makeQueues();
+        InstanceSubsystem vs;
+        consolidateFinalCollections(vs);
+        makeFinalInstance(vs);
+        makeDevices(vs);
+        makeQueues(vs);
 
         return vs;
     }
@@ -1034,7 +1034,7 @@ namespace og
         }
     }
 
-    void DeviceCreator::consolidateFinalCollections()
+    void DeviceCreator::consolidateFinalCollections(InstanceSubsystem & vs)
     {
         /*  
             init instance accumulator sets (exts, layers)
@@ -1128,7 +1128,7 @@ namespace og
         }
     }
 
-    void DeviceCreator::makeFinalInstance()
+    void DeviceCreator::makeFinalInstance(InstanceSubsystem & vs)
     {
         // TODO: Consider caching the interesting providers to prevent
         //       double-instancing every time.
@@ -1172,7 +1172,7 @@ namespace og
         initPhysDevices();
     }
 
-    void DeviceCreator::makeDevices()
+    void DeviceCreator::makeDevices(InstanceSubsystem & vs)
     {
         for (int dsIdx = 0; dsIdx < vs.devices.size(); ++dsIdx)
         {
@@ -1243,7 +1243,7 @@ namespace og
         }
     }
 
-    void DeviceCreator::makeQueues()
+    void DeviceCreator::makeQueues(InstanceSubsystem & vs)
     {
         // TODO: this
     }
