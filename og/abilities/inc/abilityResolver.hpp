@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <unordered_map>
-#include "../gen/inc/vkChainStructs.hpp"
+#include "../../gen/inc/vkChainStructs.hpp"
 #include "../../abilities/gen/inc/universalCriteria.hpp"
 #include "../../abilities/gen/inc/abilityLibrary_t.hpp"
 #include "../../abilities/gen/inc/providerAliases_t.hpp"
@@ -46,13 +46,13 @@ namespace og
         }
 
         template<class ...Args, std::size_t... I>
-        void extender_impl(std::tuple<Args & ...> & collections, std::tuple<Args & ...> & rhs, std::index_sequence<I...>)
+        void extender_impl(std::tuple<Args & ...> & collections, std::tuple<Args & ...> const & rhs, std::index_sequence<I...>)
         {
             [[maybe_unused]] auto foo = { (std::get<I>(collections).extend(std::get<I>(rhs))) ...};
         }
 
         template<class ...Args, typename Indices = std::make_index_sequence<sizeof...(Args)>>
-        void extender(std::tuple<Args & ...> & collections, std::tuple<Args & ...> & rhs)
+        void extender(std::tuple<Args & ...> & collections, std::tuple<Args & ...> const & rhs)
         {
             extender_impl(collections, rhs, Indices{});
         }
@@ -116,9 +116,13 @@ namespace og
         int doProfileGroup(std::string_view profileGroupName, ProfileGroup_t const & profileGroup_c, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true, int startingProfileIdx = 0)
         {
             int result = 0;
-            auto const & criteria_c = profileGroup_c.get_sharedInstanceCriteria();
+            bool ok = true;
             auto mark = accum.mark();
-            auto bool [ok, _] = doCrit(profileGroupName, criteria_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
+            auto const & criteria_c = profileGroup_c.get_sharedCriteria();
+            if (criteria_c.has_value())
+            {
+                ok = doCrit(profileGroupName, * criteria_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
+            }
             if (ok)
             {
                 auto const & profiles_c = profileGroup_c.get_profiles();
@@ -129,10 +133,10 @@ namespace og
                 {
                     auto const & profile_c = profiles_c[profileIdx_c];
                     auto cmark = accum.mark();
-                    auto bool [cok, foundProfile] = (doCrit(profile_c.get_name(), profile_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities));
+                    auto [cok, foundProfile] = (doCrit(profile_c.get_name(), profile_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities));
 
                     if (cok == false)
-                        { accum.rollBack(csize); }
+                        { accum.rollBack(cmark); }
 
                     if (foundProfile)
                     {
@@ -157,14 +161,15 @@ namespace og
             //  ok = doEachAbility(profileGroupName, profileGroup.sharedCriteria, builtinsOnly, fn) != -1
             for (auto const & abilityName_c : criteria_c.get_abilities())
             {
-                int idx = doAbility(abilityName_c, builtinsOnly, std::formward<VisitorFn>(fn), accum, payload, cacheAbilities);
+                int idx = doAbility(abilityName_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
                 ok = idx != NoGoodProfile;
                 if (! ok)
                     { break; }
             }
 
             //  ok = ok && fn(profileGroup.sharedCriteria)
-            ok = ok && fn(criteria_c, accum, payload);
+            auto [fnok, _] = fn(criteria_c, accum, payload);
+            ok = ok && fnok;
 
             if (ok == false)
                 { accum.rollBack(mark); }
@@ -172,7 +177,7 @@ namespace og
             return ok;
         }
 
-        template <class ProfileGroup_t, typename VisitorFn, class Accumulator, class Payload>
+        template <typename VisitorFn, class Accumulator, class Payload>
         int doAbility(std::string_view abilityName, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true)
         {
             // TODO: interpret query syntax here: '? multiview >= 2+1'
@@ -196,7 +201,7 @@ namespace og
                 std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
         }
 
-        int getCachesize() { return cache.size(); }
+        int getCachesize() const { return cache.size(); }
         void invalidateAbilityProfileCache();
 
     private:

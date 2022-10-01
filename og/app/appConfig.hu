@@ -26,19 +26,27 @@
     // device that fits the "graphicsDevices" profile the best. Then satisfy 
     // the needed device allocations for all other works the same way. Then
     // allocate up to 16 other devices that fit the "computeDevices" profile.
-    engine: [ {
+    engines: [ {
             name: graphicsEngine
             useDeviceProfileGroups: [[graphicsDevices, 1, 1],   // profile, #need, #want
                                      [computeDevices, 0, 16]]
-            targetViews: [{
-                    views: [mainWindow]
-                    tableau: cubeland
-                    renderPlan: drawWimple
+            targetViews: [ {
+                    swapchains: [ {
+                            name: stringView
+                            view: mianWindow
+                            device: [graphicsDevices, 0]
+                            //...
+                        }
+                    ]
+                    
+                    // tableau: cubeland
+                    // renderPlan: drawWimple
                 }/*, {
                     views: [mainWindow, hmd]
                     tableau: cubeland
                     renderPlan: drawWimple_hmd
-            }*/]
+                }*/
+            ]
         }
     ]
 }

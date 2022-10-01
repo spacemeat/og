@@ -13,7 +13,7 @@ namespace og
         destroy();
     }
 
-    void VkEngineSubsystem::create(og::DeviceSubsystem const & pack)
+    void VkEngineSubsystem::create(og::DeviceSubsystem & pack)
     {
         auto it = deviceGroupIdxs.find(pack.deviceGroupName);
         std::size_t idx = -1;

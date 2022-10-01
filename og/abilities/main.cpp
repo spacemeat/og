@@ -1,8 +1,6 @@
 #include "../logger/inc/logger.hpp"
 #include <fmt/format.h>
 #include "gen/inc/providerAliases_t.hpp"
-#include "gen/inc/abilities_t.hpp"
-#include "gen/inc/builtinAbilities_t.hpp"
 
 namespace og
 {

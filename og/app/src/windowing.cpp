@@ -1,8 +1,7 @@
-#include "../inc/engine.hpp"
+#include "../inc/app.hpp"
 #include <fmt/format.h>
 #include <thread>
 #include "../../logger/inc/logger.hpp"
-#include "../inc/app.hpp"
 
 using namespace std::chrono_literals;
 
@@ -15,9 +14,9 @@ namespace og
 
     bool App::anyWindowViews()
     {
-        for (int i = 0; i < config.get_views().size(); ++i)
+        for (int i = 0; i < config_c.get_views().size(); ++i)
         {
-            if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
+            if (std::holds_alternative<app::windowConfig_t>(config_c.get_views()[i]))
                 { return true; }
         }
 
@@ -26,9 +25,9 @@ namespace og
 
     bool App::anyVulkanWindowViews()
     {
-        for (int i = 0; i < config.get_views().size(); ++i)
+        for (int i = 0; i < config_c.get_views().size(); ++i)
         {
-            if (auto const v = std::get_if<engine::windowConfig_t>(& config.get_views()[i]); v && v->get_provideVulkanSurface())
+            if (auto const v = std::get_if<app::windowConfig_t>(& config_c.get_views()[i]); v && v->get_provideVulkanSurface())
                 { return true; }
         }
 
@@ -37,9 +36,9 @@ namespace og
 
     void App::initWindow(int view, std::string_view titleText)
     {
-        auto const & appConfig = app->get_config();
-        auto const & viewObj = config.get_views()[view];
-        auto const & winConfig = std::get<engine::windowConfig_t>(viewObj);
+        auto const & appConfig = get_config();
+        auto const & viewObj = config_c.get_views()[view];
+        auto const & winConfig = std::get<app::windowConfig_t>(viewObj);
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
@@ -48,7 +47,7 @@ namespace og
 
         int count;
         GLFWmonitor * monitor = nullptr;
-        if (winConfig.get_mode() == engine::windowMode::fullScreen)
+        if (winConfig.get_mode() == app::windowMode::fullScreen)
         {
             auto const & defaultMonitor = winConfig.get_defaultMonitor();
 
@@ -72,11 +71,11 @@ namespace og
         numActiveWindows += 1;
     }
 
-    void App::updateWindow(int view, engine::windowConfig_t const & newWinConfig)
+    void App::updateWindow(int view, app::windowConfig_t const & newWinConfig)
     {
         auto window = views[view].window;
-        auto const & viewObj = config.get_views()[view];
-        auto const & oldWinConfig = std::get<engine::windowConfig_t>(viewObj);
+        auto const & viewObj = config_c.get_views()[view];
+        auto const & oldWinConfig = std::get<app::windowConfig_t>(viewObj);
         auto const & oldExtents = oldWinConfig.get_extents();
         auto const & newExtents = newWinConfig.get_extents();
 
@@ -87,7 +86,7 @@ namespace og
             int refreshRate = GLFW_DONT_CARE;
             int count;
             GLFWmonitor * monitor = nullptr;
-            if (newWinConfig.get_mode() == engine::windowMode::fullScreen)
+            if (newWinConfig.get_mode() == app::windowMode::fullScreen)
             {
                 auto const & newDefaultMonitor = newWinConfig.get_defaultMonitor();
                 auto const & newRefreshRate = newWinConfig.get_refreshRate();
@@ -148,7 +147,7 @@ namespace og
     {
         for (int i = 0; i < views.size(); ++i)
         {
-            if (std::holds_alternative<engine::windowConfig_t>(config.get_views()[i]))
+            if (std::holds_alternative<app::windowConfig_t>(config_c.get_views()[i]))
             {
                 if (iterateWindowsLoop(i) == false)
                     { destroyWindow(i); }
@@ -188,18 +187,17 @@ namespace og
 
     // TODO: glfwGetPhysicalDevicePresentationSupport should be used to ensure preso
 
-    char const ** App::getVkExtensionsForGlfw(uint32_t * count)
+    void App::getVkExtensionsForGlfw(std::vector<char const *> & extensions)
     {
-        * count = 0;
+        uint32_t count = 0;
 
-        char const ** extensions;
-        extensions = glfwGetRequiredInstanceExtensions(count);
+        char const ** exts;
+        exts = glfwGetRequiredInstanceExtensions(& count);
 
-        for (int i = 0; i < * count; ++i)
+        for (int i = 0; i < count; ++i)
         {
-            log(fmt::format("Extension required for GLFW: {}\n", extensions[i]));
+            extensions.push_back(exts[i]);
+            log(fmt::format("Extension required for GLFW: {}\n", exts[i]));
         }
-
-        return extensions;
     }
 }

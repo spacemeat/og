@@ -32,7 +32,6 @@ namespace og
         debugMessengers = std::move(vkPacket.info.debugMessengers);
         enabledValidations = std::move(vkPacket.info.enabledValidations);
         disabledValidations = std::move(vkPacket.info.disabledValidations);
-
         debugMessengerObjects = std::move(vkPacket.info.debugMessengerObjects);
         validationFeatures = validationFeatures;
 
@@ -61,6 +60,4 @@ namespace og
 
         isCreated = false;
     }
-
-    
 }

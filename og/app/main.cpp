@@ -1,12 +1,11 @@
 #include "../logger/inc/logger.hpp"
-#include "inc/engine.hpp"
 #include "inc/app.hpp"
 #include <fmt/format.h>
 #include "inc/troveKeeper.hpp"
 
 namespace og
 {
-    std::optional<App> app;
+    //std::optional<App> app;
     std::optional<Logger> l;
     std::optional<TroveKeeper> troves;
     //std::optional<Engine> e;

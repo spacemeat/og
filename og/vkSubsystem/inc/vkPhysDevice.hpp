@@ -7,25 +7,25 @@
 
 #include "../gen/inc/physDeviceProfileGroup.hpp"
 #include "../../gen/inc/vkChainStructs.hpp"
-#include "../inc/deviceCreator.hpp"
+//#include "deviceCreator.hpp"
 
 namespace og
 {
     class PhysVkDevice  // naming is hard
     {
-       DeviceCreator & deviceCreator;
+       //DeviceCreator & deviceCreator;
 
     public:
-        PhysVkDevice(DeviceCreator & deviceCreator);
+        PhysVkDevice();
         void init(int physicalDeviceIdx, VkPhysicalDevice phdev);
-        int findBestProfileIdx(int groupIdx, vkSubsystem::physDeviceProfileGroup const & profileGroup, PhysicalDeviceSuitability & suitability);
-        std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, vkSubsystem::physDeviceProfileGroup const & group, int profileIdx);
+        //int findBestProfileIdx(int groupIdx, vkSubsystem::physDeviceProfileGroup const & profileGroup, PhysicalDeviceSuitability & suitability);
+        //std::tuple<int, QueueFamilyComposition> findBestQueueFamilyAllocation(int groupIdx, vkSubsystem::physDeviceProfileGroup const & group, int profileIdx);
 
-        bool checkDeviceExtension(std::string_view deviceExtension);
-        bool checkQueueTypes(VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);
+        //bool checkDeviceExtension(std::string_view deviceExtension);
+        //bool checkQueueTypes(VkQueueFlagBits queueTypesIncluded, VkQueueFlagBits queueTypesExcluded);
 
-        void createVkDevice();
-        void destroyVkDevice();
+        //void createVkDevice();
+        //void destroyVkDevice();
 
         int physicalDeviceIdx = -1;
         VkPhysicalDevice physicalDevice = nullptr;
@@ -50,10 +50,10 @@ namespace og
 
         int groupIdx = -1;
         int profileIdx = -1;
-        VkDevice device = nullptr;
+        //VkDevice device = nullptr;
 
 
-        DeviceCapabilities createdCapabilities;
+        //DeviceCapabilities createdCapabilities;
 
         //std::vector<std::string_view> utilizedDeviceExtensions;
         //VkFeatures utilizedDeviceFeatures;

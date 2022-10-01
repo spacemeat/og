@@ -61,6 +61,7 @@
         }
     }
 
+    /*
     --cmd: {
         namespace: og.command
         serializeTo: []
@@ -84,6 +85,7 @@
             ]
         }
     }
+    */
 
     --app: {
         namespace: og.app
@@ -107,16 +109,23 @@
                 deviceConfigPath: { type: string }
                 engineConfigPath: { type: string }
                 views: { type: vector of: { type: variant of: [windowConfig_t, hmdConfig_t] } }
-                engines: { type: vector of: engineSpec }
+                engines: { type: vector of: engine_t }
             }
-            engineSpec: {
+            engine_t: {
+                name: stringView
                 useDeviceProfileGroups: { type: vector of: { type: tuple of: [stringView, int, int ]}}
-                targetViews: { type: vector of: workView }
+                targetViews: { type: vector of: targetView }
             }
-            workView: {
+            targetView: {
+                swapchains: { type: vector of: swapchain_t }
                 views: { type: vector of: stringView }
                 tableau: { type: stringView }
                 renderPlan: { type: stringView }
+            }
+            swapchain_t: {
+                view: { type: stringView }
+                device: { type: tuple of: [stringView, int] }
+                //...
             }
             windowConfig_t: {
                 name: stringView
@@ -135,16 +144,6 @@
                 active: { type: bool default: false }
                 screenFormat: { type: optional of: VkFormat }
             }
-        }
-    }
-
-    --engine: {
-        namespace: og.engine
-
-        serializeTo: [humon]
-        deserializeFrom: [humon]
-
-        types: {
         }
     }
 
@@ -215,8 +214,12 @@
             }
         }
 
-        enums: {
-            op: [in, nin, eq, ne, lt, gt, le, ge, has, hasnot]
+        --opEnums: {
+            namespace: og.abilities
+            serializeTo: [humon]
+            enums: {
+                op: [in, nin, eq, ne, lt, gt, le, ge, has, hasnot]
+            }
         }
         types: {
             providerAliases_t: {
@@ -233,7 +236,7 @@
             }
             abilityLibrary_t: {
                 enabled: { type: bool default: true }
-                mutable: { type: bool default: true }
+                isMutable: { type: bool default: true }
                 include: { type: vector of: stringView }
                 abilities: { type: unorderedMap of: [stringView, abilityProfileGroup_t] }
             }
@@ -248,14 +251,14 @@
                 abilities: { type: vector of: stringView }
                 //desiredAbilities: { type: vector of: stringView }
                 vulkanVersion: { type: optional of: stringView }
-                extensions: { type: vector of: stringView }
-                desiredExtensions: { type: vector of: stringView }
+                extensions: { type: vector of: string }
+                desiredExtensions: { type: vector of: string }
                 debugUtilsMessengers: { type: vector of: debugUtilsMessenger_t }
                 validationFeatures: { type: optional of: validationFeatures_t }
-                layers: { type: vector of: stringView }
-                desiredLayers: { type: vector of: stringView }
-                deviceExtensions: { type: vector of: stringView }
-                desiredDeviceExtensions: { type: vector of: stringView }
+                layers: { type: vector of: string }
+                desiredLayers: { type: vector of: string }
+                deviceExtensions: { type: vector of: string }
+                desiredDeviceExtensions: { type: vector of: string }
                 queueTypesIncluded: { type: optional of: VkQueueFlagBits }
                 queueTypesExcluded: { type: optional of: VkQueueFlagBits }
                 features: { type: unorderedMap of: [stringView, { type: vector of: stringView } ] }
@@ -271,9 +274,6 @@
                 enabled: { type: vector of: VkValidationFeatureEnableEXT }
                 disabled: { type: vector of: VkValidationFeatureDisableEXT }
             }
-
-
-
         }
     }
 
@@ -748,13 +748,16 @@
             // schedule
             featureSchedule: {
                 schedule: { type: vector of: { type: variant of: [
-                    setAssetDbWindowCommand,
-                    transferCachedAssetCommand,
-                    stageCachedAssetCommand,
-                    scheduleStagedTransfersCommand,
-                    scheduleMemoryMoveCommand,
-                    /*... other shader / pipeline / other uses (even audio)
-                    -- anything that needs to be scheduled from cache, really. */]}}
+                            setAssetDbWindowCommand,
+                            transferCachedAssetCommand,
+                            stageCachedAssetCommand,
+                            scheduleStagedTransfersCommand,
+                            scheduleMemoryMoveCommand,
+                            //... other shader / pipeline / other uses (even audio)
+                            // -- anything that needs to be scheduled from cache, really. 
+                        ]
+                    }
+                }
             }
 
             setAssetDbWindowCommand: {

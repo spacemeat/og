@@ -3,8 +3,11 @@
 #include <array>
 #include <initializer_list>
 #include <string_view>
+#include <unordered_set>
 #include <vulkan/vulkan_core.h>
-#include <fmt/format.h>
+#include <fmt/core.h>
+#include <fmt/ostream.h>
+#include <humon/humon.hpp>
 
 namespace og
 {
@@ -43,8 +46,20 @@ namespace hu
         {
             return og::version_t(node.value().str());
         }
+
+        static inline og::version_t extract(std::string_view valStr)
+        {
+            return og::version_t(valStr);
+        }
     };
 }
+
+namespace og
+{
+    std::ostream & operator <<(std::ostream & out, const HumonFormat<og::version_t> & obj);
+}
+
+template <> struct fmt::formatter<og::HumonFormat<og::version_t>> : ostream_formatter {};
 
 namespace og
 {
@@ -67,6 +82,20 @@ namespace og
         {
             if (auto [_, didInsert] = added.insert(val); didInsert)
                 { pared.push_back(val); }
+        }
+        return pared;
+    }
+
+    template <class T, class U>
+    std::vector<std::tuple<T, U>> makeUnique(std::vector<std::tuple<T, U>> const & inv)
+    {
+        std::unordered_set<T> added;
+        std::vector<std::tuple<T, U>> pared;
+
+        for (auto const & [name, val] : inv)
+        {
+            if (auto [_, didInsert] = added.insert(name); didInsert)
+                { pared.emplace_back(name, val); }
         }
         return pared;
     }

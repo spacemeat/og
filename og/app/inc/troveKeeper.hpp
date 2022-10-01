@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 #include <humon/humon.hpp>
 #include <unordered_map>

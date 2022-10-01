@@ -1,18 +1,17 @@
-#include "../inc/engine.hpp"
+#include "../inc/deviceCreator.hpp"
+#include "../../app/inc/app.hpp"
 #include "../../logger/inc/logger.hpp"
 #include "../../gen/inc/og.hpp"
 #include <map>
 #include <algorithm>
 #include <numeric>
-#include "../inc/utils.hpp"
-#include "../inc/deviceCreator.hpp"
 
 using namespace std::literals::string_view_literals;
 
 namespace og
 {
-    PhysVkDevice::PhysVkDevice(DeviceCreator & deviceCreator)
-     : deviceCreator(deviceCreator)
+    PhysVkDevice::PhysVkDevice()
+    // : deviceCreator(deviceCreator)
     {
     }
 
@@ -213,6 +212,7 @@ namespace og
     }
     */
 
+   /*
     std::tuple<int, QueueFamilyComposition>
         PhysVkDevice::findBestQueueFamilyAllocation(int groupIdx,
             vkSubsystem::physDeviceProfileGroup const & group_c,
@@ -459,6 +459,7 @@ namespace og
         return {-1, {}};
     }
 
+
     void PhysVkDevice::createVkDevice()
     {
         if (groupIdx == -1)
@@ -595,6 +596,7 @@ namespace og
             vkDestroyDevice(device, nullptr);
         }
     }
+    */
 
     /*
     bool PhysVkDevice::checkDeviceExtension(std::string_view deviceExtension)

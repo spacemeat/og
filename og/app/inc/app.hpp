@@ -1,3 +1,5 @@
+#pragma once
+
 #include <cassert>
 #include <chrono>
 #include <string>
@@ -58,11 +60,11 @@ namespace og
         bool iterateWindowsLoop(int view);
         bool shouldClose(int view);
         bool glfwSupportsVulkan();
-        char const ** getVkExtensionsForGlfw(uint32_t * count);
+        void getVkExtensionsForGlfw(std::vector<char const *> & extensions);
 
         void createVulkanSubsystem();
     private:
-        std::vector<std::tuple<std::string_view, size_t>> const & createSchedule();
+        std::vector<std::tuple<std::string_view, std::string_view, size_t>> createSchedule();
 
     private:
         app::appConfig config_c;
@@ -76,5 +78,5 @@ namespace og
         std::optional<VkSubsystem> vk;
     };
 
-    extern std::optional<App> app;
+    //extern std::optional<App> app;
 }

@@ -1,5 +1,5 @@
-#include <fmt/format.h>
-#include "../../engine/inc/except.hpp"
+#include <fmt/core.h>
+#include "../../app/inc/except.hpp"
 #include "../inc/logger.hpp"
 
 namespace og
@@ -51,11 +51,10 @@ namespace og
         auto const & colors = listener.get_colors();
         if (colors.has_value())
         {
-            for (auto const & c: * colors)
+            for (auto const & [logParts, colorName]: * colors)
             {
-                auto const & colorName = c.second;
                 auto const & color = colorTable.at(colorName);
-                LogPartInt i = static_cast<LogPartInt>(c.first);
+                LogPartInt i = static_cast<LogPartInt>(logParts);
                 colorsFormatted[i] = fmt::format("\x1b[38;2;{};{};{}m",
                     color[0], color[1], color[2]);
             }
@@ -104,8 +103,8 @@ namespace og
                     { continue; }
             }
 
-            auto const & format = genListener.get_format();
-            auto fullMessage = fmt::format(format,
+            auto const formit = genListener.get_format();
+            auto fullMessage = fmt::format(fmt::runtime(formit),
                 fmt::arg("beg", listener.bgColorFormatted),
                 fmt::arg("tc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::time)]),
                 fmt::arg("mc", listener.colorsFormatted[static_cast<LogPartInt>(logger::logParts::message)]),

@@ -13,15 +13,15 @@ namespace og
         destroy();
     }
 
-    void VkDeviceGroup::create(og::DeviceSubsystem const & pack)
+    void VkDeviceGroup::create(og::DeviceSubsystem & pack)
     {
         idx = pack.deviceGroupIdx;
         name = pack.deviceGroupName;
 
         if (devices.size() == 0)
-            { abilityResolver = pack.abilityResolver; }
+            { abilityResolver = std::move(pack.abilityResolver); pack.abilityResolver = {}; }
 
-        VkDeviceSubsystem ds;
+        VkDeviceSubsystem ds { abilityResolver };
         ds.create(pack);
 
         devices.push_back(std::move(ds));

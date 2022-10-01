@@ -202,6 +202,9 @@ namespace og
 
         void initPhysDevices();
         void matchDeviceAbilities(std::string_view deviceGroup);
+        std::tuple<bool, bool> checkCriteria(
+            VkFeatures const & availbleFeatures, VkProperties const & availableProperties, 
+            PhysVkDevice & physDev, abilities::universalCriteria const & criteria_c, decltype(InstanceDeviceInfo().makeAccumulator()) & accum, auto _);
         int getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & features, VkProperties const & properties, int startingIdx);
         int getBestQueueVillageProfile(int devGroupIdx, int physDevIdx,
             VkFeatures const & availbleFeatures, VkProperties const & availableProperties,

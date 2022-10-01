@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 #include <string_view>
-#include "../gen/inc/vkChainStructs.hpp"
+#include "../../gen/inc/vkChainStructs.hpp"
 #include "../../abilities/gen/inc/universalCriteria.hpp"
 #include "../../abilities/gen/inc/abilityCollection_t.hpp"
 #include "../inc/providerAliasResolver.hpp"

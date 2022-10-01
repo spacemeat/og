@@ -1,10 +1,10 @@
 #include "../../logger/inc/logger.hpp"
-#include "../inc/engine.hpp"
 #include "../inc/app.hpp"
 
 
 namespace og
 {
+    /*
     void Engine::enterLoop()
     {
         while(iterateLoop());
@@ -24,4 +24,5 @@ namespace og
         //log("das loop()!");
         return true;
     }
+    */
 }

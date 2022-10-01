@@ -1,4 +1,4 @@
-#include "../inc/engine.hpp"
+#include "../inc/app.hpp"
 #include "../../logger/inc/logger.hpp"
 
 namespace og

@@ -7,8 +7,7 @@
 namespace og
 {
     App::App(std::string const & configPath)
-    : config_c { troves->loadAndKeep(configPath) },
-      engine { config_c.get_engineConfigPath() }
+    : config_c { troves->loadAndKeep(configPath) }
     {
     }
 
@@ -79,19 +78,22 @@ namespace og
         auto && sched = createSchedule();
         std::vector<char const *> requiredExtensions;
         std::vector<char const *> requiredLayers;
+
+        getVkExtensionsForGlfw(requiredExtensions);
+
         // TODO: get GLFW extensions here
         vk->create(sched, requiredExtensions, requiredLayers);
     }
 
-    std::vector<std::tuple<std::string_view, size_t>> const & App::createSchedule()
+    std::vector<std::tuple<std::string_view, std::string_view, size_t>> App::createSchedule()
     {
-        std::vector<std::tuple<std::string_view, size_t>> deviceSchedule;
+        std::vector<std::tuple<std::string_view, std::string_view, size_t>> deviceSchedule;
 
         for (auto const & engine_c : config_c.get_engines())
         {
             for (auto const & [groupName, needed, wanted] : engine_c.get_useDeviceProfileGroups())
             {
-                deviceSchedule.emplace_back(groupName, needed);
+                deviceSchedule.emplace_back(engine_c.get_name(), groupName, needed);
             }
         }
 
@@ -99,7 +101,7 @@ namespace og
         {
             for (auto const & [groupName, needed, wanted] : engine_c.get_useDeviceProfileGroups())
             {
-                deviceSchedule.emplace_back(groupName, wanted - needed);
+                deviceSchedule.emplace_back(engine_c.get_name(), groupName, wanted - needed);
             }
         }
 

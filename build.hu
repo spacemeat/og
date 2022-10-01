@@ -58,6 +58,7 @@
         }
     }
 
+    /*
     --assetDb: {
         version: 0.0.1
         includeDirs: [
@@ -118,6 +119,7 @@
             libs: [humon, c, !..lib!$outputLibPath]
         }
     }
+    */
 
     --abilities: {
         version: 0.0.1
@@ -153,29 +155,29 @@
         }
     }
 
-    --abilities: {
+    --vkSubsystem: {
         version: 0.0.1
         includeDirs: [
-            'og/abilities/gen/inc'
+            'og/vkSubsystem/gen/inc'
         ]
         --lib: {
             buildType: staticLib
             outputDir: $libDir
-            outputName: abilities
+            outputName: vkSubsystem
             depends: [
                 og-boma.hu
             ]
             sources: [
-                'og/abilities/gen/src/*.cpp'
-                //'og/abilities/src/*.cpp'
+                'og/vkSubsystem/gen/src/*.cpp'
+                'og/vkSubsystem/src/*.cpp'
             ]
         }
         --test: {
             buildType: exe
             outputDir: $testDir
-            outputName: test.abilities
+            outputName: test.vkSubsystem
             sources: [
-                'og/abilities/main.cpp'
+                'og/vkSubsystem/main.cpp'
             ]
             libDirs: [$libDir]
             libs: [!..lib!$outputLibPath,
@@ -187,33 +189,34 @@
         }
     }
 
-    --deviceCreator: {
+    --app: {
         version: 0.0.1
         includeDirs: [
-            'og/deviceCreator/gen/inc'
+            'og/app/gen/inc'
         ]
         --lib: {
             buildType: staticLib
             outputDir: $libDir
-            outputName: deviceCreator
+            outputName: app
             depends: [
                 og-boma.hu
             ]
             sources: [
-                'og/deviceCreator/gen/src/*.cpp'
-                'og/deviceCreator/src/*.cpp'
+                'og/app/gen/src/*.cpp'
+                'og/app/src/*.cpp'
             ]
         }
         --test: {
             buildType: exe
             outputDir: $testDir
-            outputName: test.deviceCreator
+            outputName: test.app
             sources: [
-                'og/deviceCreator/main.cpp'
+                'og/app/main.cpp'
             ]
             libDirs: [$libDir]
             libs: [!..lib!$outputLibPath,
                    !...logger.lib!$outputLibPath,
+                   !...abilities.lib!$outputLibPath,
                    !...og.lib!$outputLibPath,
                    fmt, humon,
                    glfw, vulkan, dl, pthread, X11, Xxf86vm, Xrandr, Xi,
@@ -221,6 +224,7 @@
         }
     }
 
+    /*
     --engine: {
         version: 0.0.1
         includeDirs: [
@@ -239,16 +243,15 @@
             ]
         }
         --test: {
-            /* packages:
-                vulkan-tools
-                libvulkan-dev
-                vulkan-validationlayers-dev
-                spirv-tools
-                libglfw3-dev
-                libglm-dev
-                libxxf86vm-dev
-                libxi-dev
-            */
+            // packages:
+            //    vulkan-tools
+            //    libvulkan-dev
+            //    vulkan-validationlayers-dev
+            //    spirv-tools
+            //    libglfw3-dev
+            //    libglm-dev
+            //    libxxf86vm-dev
+            //    libxi-dev
             buildType: exe
             outputDir: $testDir
             outputName: test.engine
@@ -267,7 +270,9 @@
                    c]
         }
     }
+    */
 
+    /*
     --playground: {
         buildType: exe
         outputDir: $testDir
@@ -283,4 +288,5 @@
                !..og.lib!$outputLibPath
                ]
     }
+    */
 }

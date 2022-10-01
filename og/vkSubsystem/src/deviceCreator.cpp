@@ -1,7 +1,6 @@
 #include "../inc/deviceCreator.hpp"
-#include "../../engine/inc/engine.hpp"
+#include "../../app/inc/app.hpp"
 #include "../../logger/inc/logger.hpp"
-#include "../inc/app.hpp"
 #include "../../abilities/inc/abilityResolver.hpp"
 #include "../../app/inc/troveKeeper.hpp"
 #include <ranges>
@@ -67,7 +66,7 @@ static VkDebugUtilsMessengerCreateInfoEXT makeDebugMessengerCreateInfo(
 namespace og
 {
     using crit = abilities::universalCriteria;
-    using critKinds = og::abilities::criteriaKinds;
+    using critKinds = abilities::criteriaKinds;
 
     void * InstanceInfo::makeDebugMessengersAndValidators()
     {
@@ -170,7 +169,7 @@ namespace og
     {
         std::unordered_set<std::string_view> alreadyMatched;
         std::vector<std::string_view> deviceGroups;
-        for (auto [_, deviceGroup, _] : schedule)
+        for (auto [_0, deviceGroup, _1] : schedule)
         {
             auto [_, didInsert] = alreadyMatched.insert(deviceGroup);
             if (didInsert)
@@ -229,7 +228,7 @@ namespace og
         availableVulkanVersion = version_t { vulkanVersion };
         if (availableVulkanVersion < config_c.get_minVulkanVersion())
             { Ex(fmt::format("Vulkan version supported ({}) does not meet the minimum specified ({}).",
-                availableVulkanVersion, config_c.get_minVulkanVersion())); }
+                HumonFormat(availableVulkanVersion), HumonFormat(config_c.get_minVulkanVersion()))); }
         utilizedVulkanVersion = availableVulkanVersion;
         if (availableVulkanVersion.bits > version_t { config_c.get_maxVulkanVersion() }.bits)
             { utilizedVulkanVersion = config_c.get_maxVulkanVersion(); }
@@ -296,7 +295,7 @@ namespace og
                         { accum.get<0>().push_back(ext_c.data()); }
                 }
                 for (auto const & dum : criteria_c.get_debugUtilsMessengers())
-                    { accum.get<2>().push_back(dum); }
+                    { accum.get<2>().emplace_back(criteria_c.get_name(), dum); }
                 if (criteria_c.get_validationFeatures().has_value())
                 {
                     auto const & valFeats = * criteria_c.get_validationFeatures();
@@ -308,13 +307,13 @@ namespace og
                 // Here we're identifying all the interesting criteria providers
                 // that we'll possibly want to query about in device selection.
                 for (auto devExt_c : criteria_c.get_deviceExtensions())
-                    { accum.get<5>().push_back(devExt_c); }
+                    { accum.get<5>().push_back(devExt_c.data()); }
                 for (auto devExt_c : criteria_c.get_desiredDeviceExtensions())
-                    { accum.get<5>().push_back(devExt_c); }
+                    { accum.get<5>().push_back(devExt_c.data()); }
                 for (auto feat_c : criteria_c.get_features())
-                    { accum.get<6>().push_back(feat_c.first); }
+                    { accum.get<6>().emplace_back(feat_c.first, feat_c.second); }
                 for (auto feat_c : criteria_c.get_desiredFeatures())
-                    { accum.get<6>().push_back(feat_c.first); }
+                    { accum.get<6>().emplace_back(feat_c.first, feat_c.second); }
                 for (auto prop_c : criteria_c.get_properties())
                     { accum.get<7>().push_back(prop_c.first); }
                 for (auto qfProp_c : criteria_c.get_queueFamilyProperties())
@@ -378,7 +377,7 @@ namespace og
 
             auto & deviceInfo = deviceAssignments[devGroupIdx].expDeviceInfo;
 
-            auto devAccum = deviceInfo.makeAccumulator();
+            auto && devAccum = deviceInfo.makeAccumulator();
 
             int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, devAccum, _, false);
             if (profileIdx != NoGoodProfile)
@@ -407,31 +406,6 @@ namespace og
         consolidateExploratoryCollections();
     }
 
-    bool DeviceCreator::requireGlfwExtensions()
-    {
-        // get GLFW extensions
-        // TODO: THis function should no longer be called; instead, pass getVkExtensionsForGlfw() 
-        // as requiredExtensions
-        uint32_t numGlfwExts = 0;
-        char const ** glfwExts = nullptr;
-        if (app->anyVulkanWindowViews())
-        {
-            glfwExts = app->getVkExtensionsForGlfw(& numGlfwExts);
-            for (uint32_t i = 0; i < numGlfwExts; ++i)
-            {
-                char const * extName = glfwExts[i];
-                if (checkExtension(std::string_view {extName}, availableInstanceExtensionNames))
-                    { expInstInfo.extensions.push_back(extName); }
-                else
-                {
-                    log(fmt::format("Could not find necessary GLFW extension '{}'", extName));
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
     void DeviceCreator::consolidateExploratoryCollections()
     {
         std::unordered_set<char const *> addedExts;
@@ -457,8 +431,8 @@ namespace og
         for (auto const & [provider, feature] : idi.features)
         {
             std::unordered_set<std::string_view> newSet {};
-            auto [itprov, _] = addedFeatures.insert(std::make_pair(provider, newSet));
-            auto [_, didInsert] = itprov->second.insert(feature);
+            auto [itprov, _0] = addedFeatures.insert(std::make_pair(provider, newSet));
+            auto [_1, didInsert] = itprov->second.insert(feature);
             if (didInsert)
                 { idi.features.push_back(std::make_tuple(provider, feature)); }
         }
@@ -564,9 +538,10 @@ namespace og
         }
     }
 
-    static auto checkCriteria(
+    //static auto checkCriteria(
+    std::tuple<bool, bool> DeviceCreator::checkCriteria(
         VkFeatures const & availbleFeatures, VkProperties const & availableProperties, 
-        VkPhysicalDevice & physDev, crit const & criteria_c, decltype(InstanceDeviceInfo().makeAccumulator()) & accum, auto _)
+        PhysVkDevice & physDev, crit const & criteria_c, decltype(InstanceDeviceInfo().makeAccumulator()) & accum, auto _)
     {
         bool ok = true;
         bool foundProfile = true;
@@ -601,7 +576,7 @@ namespace og
             for (auto devExt_c : criteria_c.get_deviceExtensions())
             {
                 if (ok = ok && checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
-                    { accum.get<5>().push_back(devExt_c); }
+                    { accum.get<5>().push_back(devExt_c.data()); }
                 foundProfile = foundProfile && ok;
             }
         }
@@ -653,7 +628,7 @@ namespace og
             for (auto devExt_c : criteria_c.get_desiredDeviceExtensions())
             {
                 if (checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
-                    { accum.get<5>().push_back(devExt_c); }
+                    { accum.get<5>().push_back(devExt_c.data()); }
             }
             for (auto const & feat_c : criteria_c.get_desiredFeatures())
             {
@@ -753,7 +728,7 @@ namespace og
             devSuit.queueFamilies[i].mainStruct = qfPropsVect[i];
         }
 
-        auto check = [this, & availbleFeatures, & availableProperties, & physDev]
+        auto check = [this, & availbleFeatures, & availableProperties, & availableQfProperties, & physDev]
                     (crit const & criteria_c, decltype(accum) & accum, auto _)
         {
             bool ok = true;
@@ -767,7 +742,7 @@ namespace og
                 for (auto qfProp_c : criteria_c.get_queueFamilyProperties())
                 {
                     auto const & [provider_c, qfProperties_c] = qfProp_c;
-                    if (ok = ok && checkQueueFamilyProperties(provider_c, qfProperties_c, availableProperties))
+                    if (ok = ok && checkQueueFamilyProperties(provider_c, qfProperties_c, availableQfProperties))
                         { accum.get<8>().push_back(qfProp_c.first); }
                     foundProfile = foundProfile && ok;
                 }
@@ -1089,7 +1064,7 @@ namespace og
                 ds.deviceGroupName = config_c.get_deviceProfileGroups()[dai].get_name();
                 
                 std::vector<std::string_view> fps;
-                for (auto const & [fp, _] : ass.expDeviceInfo.features)
+                for (auto const & [fp, _0] : ass.expDeviceInfo.features)
                     { fps.push_back(fp); }
                 ds.features.init(fps);
 
@@ -1103,8 +1078,8 @@ namespace og
                 for (auto const & [provider, feature] : idi.features)
                 {
                     std::unordered_set<std::string_view> newSet {};
-                    auto [itprov, _] = addedFeatures.insert(std::make_pair(provider, newSet));
-                    auto [_, didInsert] = itprov->second.insert(feature);
+                    auto [itprov, _1] = addedFeatures.insert(std::make_pair(provider, newSet));
+                    auto [_2, didInsert] = itprov->second.insert(feature);
                     if (didInsert)
                         { ds.info.features.push_back(std::make_tuple(provider, feature));
                           ds.features.set(provider, feature, VK_TRUE); }
