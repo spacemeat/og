@@ -67,4 +67,13 @@ namespace og
     {
         return lhs.bits <= rhs.bits;
     }
+
+    std::ostream & operator <<(std::ostream & out, const HumonFormat<og::version_t> & obj)
+    {
+        out << static_cast<int>(obj->major()) << "." 
+            << static_cast<int>(obj->minor()) << "." 
+            << static_cast<int>(obj->patch());
+        
+        return out;
+    }
 }

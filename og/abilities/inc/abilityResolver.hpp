@@ -48,7 +48,8 @@ namespace og
         template<class ...Args, std::size_t... I>
         void extender_impl(std::tuple<Args & ...> & collections, std::tuple<Args & ...> const & rhs, std::index_sequence<I...>)
         {
-            [[maybe_unused]] auto foo = { (std::get<I>(collections).extend(std::get<I>(rhs))) ...};
+            [[maybe_unused]] auto foo = 
+            { ((std::get<I>(collections).insert(end(std::get<I>(collections)), begin(std::get<I>(rhs)), end(std::get<I>(rhs)))), 0) ...};
         }
 
         template<class ...Args, typename Indices = std::make_index_sequence<sizeof...(Args)>>
@@ -86,7 +87,7 @@ namespace og
 
         void extend(Accumulator<Args...> const & rhs)
         {
-            internal::extender(collections, rhs);
+            internal::extender(collections, rhs.collections);
         }
 
         std::tuple<Args &...> collections;
@@ -121,7 +122,7 @@ namespace og
             auto const & criteria_c = profileGroup_c.get_sharedCriteria();
             if (criteria_c.has_value())
             {
-                ok = doCrit(profileGroupName, * criteria_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
+                ok = doCrit(profileGroupName, * criteria_c, builtinsOnly, fn, accum, payload, cacheAbilities);
             }
             if (ok)
             {
@@ -133,16 +134,11 @@ namespace og
                 {
                     auto const & profile_c = profiles_c[profileIdx_c];
                     auto cmark = accum.mark();
-                    auto [cok, foundProfile] = (doCrit(profile_c.get_name(), profile_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities));
-
-                    if (cok == false)
+                    auto cok = doCrit(profile_c.get_name(), profile_c, builtinsOnly, fn, accum, payload, cacheAbilities);
+                    if (cok)
+                        { return profileIdx_c; }
+                    else
                         { accum.rollBack(cmark); }
-
-                    if (foundProfile)
-                    {
-                        int idx = & profile_c - profiles_c.data();
-                        return idx;
-                    }
                 }
             }
 
@@ -161,15 +157,14 @@ namespace og
             //  ok = doEachAbility(profileGroupName, profileGroup.sharedCriteria, builtinsOnly, fn) != -1
             for (auto const & abilityName_c : criteria_c.get_abilities())
             {
-                int idx = doAbility(abilityName_c, builtinsOnly, std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
+                int idx = doAbility(abilityName_c, builtinsOnly, fn, accum, payload, cacheAbilities);
                 ok = idx != NoGoodProfile;
                 if (! ok)
                     { break; }
             }
 
             //  ok = ok && fn(profileGroup.sharedCriteria)
-            auto [fnok, _] = fn(criteria_c, accum, payload);
-            ok = ok && fnok;
+            ok = ok && fn(criteria_c, accum, payload);
 
             if (ok == false)
                 { accum.rollBack(mark); }
@@ -198,7 +193,7 @@ namespace og
                 { return NoGoodProfile; }
 
             return doProfileGroup(abilityName, * pProfileGroup, builtinsOnly,
-                std::forward<VisitorFn>(fn), accum, payload, cacheAbilities);
+                fn, accum, payload, cacheAbilities);
         }
 
         int getCachesize() const { return cache.size(); }

@@ -1,10 +1,9 @@
-#include "../inc/engine.hpp"
-#include "../../logger/inc/logger.hpp"
-#include "../inc/app.hpp"
-#include "../../abilities/inc/abilityResolver.hpp"
+//#include "../../logger/inc/logger.hpp"
+//#include "../../inc/app.hpp"
+//#include "../../abilities/inc/abilityResolver.hpp"
 
 
-
+/*
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -386,3 +385,4 @@ namespace og
         }
     }
 }
+    */

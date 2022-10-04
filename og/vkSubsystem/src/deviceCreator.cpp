@@ -217,7 +217,7 @@ namespace og
     set, as well as the layers if we're debugging.
     */
 
-    bool DeviceCreator::gatherExploratoryInstanceCriteria(
+    void DeviceCreator::gatherExploratoryInstanceCriteria(
         std::vector<std::string_view> const & interestingDeviceGroups,
         std::vector<char const *> const & requiredExtensions,
         std::vector<char const *> const & requiredLayers)
@@ -228,13 +228,13 @@ namespace og
         availableVulkanVersion = version_t { vulkanVersion };
         if (availableVulkanVersion < config_c.get_minVulkanVersion())
             { Ex(fmt::format("Vulkan version supported ({}) does not meet the minimum specified ({}).",
-                HumonFormat(availableVulkanVersion), HumonFormat(config_c.get_minVulkanVersion()))); }
+                HumonFormat(availableVulkanVersion), HumonFormat(version_t {config_c.get_minVulkanVersion()}))); }
         utilizedVulkanVersion = availableVulkanVersion;
         if (availableVulkanVersion.bits > version_t { config_c.get_maxVulkanVersion() }.bits)
             { utilizedVulkanVersion = config_c.get_maxVulkanVersion(); }
 
-        log(fmt::format("System supports Vulkan API version ({})", availableVulkanVersion));
-        log(fmt::format("Using Vulkan API version ({})", utilizedVulkanVersion));
+        log(fmt::format("System supports Vulkan API version ({})", HumonFormat(availableVulkanVersion)));
+        log(fmt::format("Using Vulkan API version ({})", HumonFormat(utilizedVulkanVersion)));
 
         // get available instance extensions
         uint32_t count = 0;
@@ -266,12 +266,10 @@ namespace og
         auto fn = [this](crit const & criteria_c, decltype(accum) & accum, auto _)
         {
             bool ok = true;
-            bool foundProfile = false;
 
             if (criteria_c.get_vulkanVersion().has_value())
             {
                 ok = ok && checkVulkan(* criteria_c.get_vulkanVersion(), utilizedVulkanVersion);
-                foundProfile = ok;
             }
             for (auto const & ext_c : criteria_c.get_extensions())
             {
@@ -310,17 +308,23 @@ namespace og
                     { accum.get<5>().push_back(devExt_c.data()); }
                 for (auto devExt_c : criteria_c.get_desiredDeviceExtensions())
                     { accum.get<5>().push_back(devExt_c.data()); }
-                for (auto feat_c : criteria_c.get_features())
-                    { accum.get<6>().emplace_back(feat_c.first, feat_c.second); }
-                for (auto feat_c : criteria_c.get_desiredFeatures())
-                    { accum.get<6>().emplace_back(feat_c.first, feat_c.second); }
+                for (auto featProv_c : criteria_c.get_features())
+                {
+                    for (auto feat_c : featProv_c.second)
+                        { accum.get<6>().emplace_back(featProv_c.first, feat_c); }
+                }
+                for (auto featProv_c : criteria_c.get_desiredFeatures())
+                {
+                    for (auto feat_c : featProv_c.second)
+                        { accum.get<6>().emplace_back(featProv_c.first, feat_c); }
+                }
                 for (auto prop_c : criteria_c.get_properties())
                     { accum.get<7>().push_back(prop_c.first); }
                 for (auto qfProp_c : criteria_c.get_queueFamilyProperties())
                     { accum.get<8>().push_back(qfProp_c.first); }
             }
 
-            return std::make_tuple(ok, foundProfile);
+            return ok;
         };
 
         bool ok = true;
@@ -360,7 +364,10 @@ namespace og
         }
 
         if (ok == false)
-            { return false; }
+        {
+            log(fmt::format("Shared instance ability reqs are too strict for this machine."));
+            return;
+        }
 
         for (auto interestingDevGroupIdx = 0; interestingDevGroupIdx < interestingDeviceGroups.size(); ++interestingDevGroupIdx)
         {
@@ -402,7 +409,6 @@ namespace og
             }
         }
 
-        requireGlfwExtensions();
         consolidateExploratoryCollections();
     }
 
@@ -419,25 +425,23 @@ namespace og
         std::unordered_set<std::string_view> addedProperties;
         std::unordered_set<std::string_view> addedQueueFamilyProperties;
 
-        auto & idi = expInstInfo;
-
-        idi.extensions = makeUnique(idi.extensions);
-        idi.layers = makeUnique(idi.layers);
-        idi.debugMessengers = makeUnique(idi.debugMessengers);
-        idi.enabledValidations = makeUnique(idi.enabledValidations);
-        idi.disabledValidations = makeUnique(idi.disabledValidations);
-        idi.deviceExtensions = makeUnique(idi.deviceExtensions);
-        idi.features;
-        for (auto const & [provider, feature] : idi.features)
+        expInstInfo.extensions = makeUnique(expInstInfo.extensions);
+        expInstInfo.layers = makeUnique(expInstInfo.layers);
+        expInstInfo.debugMessengers = makeUnique(expInstInfo.debugMessengers);
+        expInstInfo.enabledValidations = makeUnique(expInstInfo.enabledValidations);
+        expInstInfo.disabledValidations = makeUnique(expInstInfo.disabledValidations);
+        expInstInfo.deviceExtensions = makeUnique(expInstInfo.deviceExtensions);
+        expInstInfo.features;
+        for (auto const & [provider, feature] : expInstInfo.features)
         {
             std::unordered_set<std::string_view> newSet {};
             auto [itprov, _0] = addedFeatures.insert(std::make_pair(provider, newSet));
             auto [_1, didInsert] = itprov->second.insert(feature);
             if (didInsert)
-                { idi.features.push_back(std::make_tuple(provider, feature)); }
+                { expInstInfo.features.push_back(std::make_tuple(provider, feature)); }
         }
-        idi.propertyProviders = makeUnique(idi.propertyProviders);
-        idi.queueFamilyPropertyProviders = makeUnique(idi.queueFamilyPropertyProviders);
+        expInstInfo.propertyProviders = makeUnique(expInstInfo.propertyProviders);
+        expInstInfo.queueFamilyPropertyProviders = makeUnique(expInstInfo.queueFamilyPropertyProviders);
     }
 
     void DeviceCreator::makeExploratoryInstance()
@@ -539,17 +543,15 @@ namespace og
     }
 
     //static auto checkCriteria(
-    std::tuple<bool, bool> DeviceCreator::checkCriteria(
+    bool DeviceCreator::checkCriteria(
         VkFeatures const & availbleFeatures, VkProperties const & availableProperties, 
         PhysVkDevice & physDev, crit const & criteria_c, decltype(InstanceDeviceInfo().makeAccumulator()) & accum, auto _)
     {
         bool ok = true;
-        bool foundProfile = true;
 
         if (ok && criteria_c.get_vulkanVersion().has_value())
         {
             ok = ok && checkVulkan(* criteria_c.get_vulkanVersion(), utilizedVulkanVersion);
-            foundProfile = foundProfile && ok;
         }
         if (ok && criteria_c.get_extensions().size() > 0)
         {
@@ -558,7 +560,6 @@ namespace og
             {
                 if (ok = ok && checkExtension(ext_c, availableInstanceExtensionNames))
                     { accum.get<0>().push_back(ext_c.data()); }
-                foundProfile = foundProfile && ok;
             }
         }
         if (ok && criteria_c.get_layers().size() > 0)
@@ -568,7 +569,6 @@ namespace og
             {
                 if (ok = ok && checkLayer(lay_c, availableLayerNames))
                     { accum.get<1>().push_back(lay_c.data()); }
-                foundProfile = foundProfile && ok;
             }
         }
         if (ok && criteria_c.get_deviceExtensions().size() > 0)
@@ -577,7 +577,6 @@ namespace og
             {
                 if (ok = ok && checkDeviceExtension(devExt_c, physDev.availableDeviceExtensions))
                     { accum.get<5>().push_back(devExt_c.data()); }
-                foundProfile = foundProfile && ok;
             }
         }
         if (ok && criteria_c.get_features().size() > 0)
@@ -589,7 +588,6 @@ namespace og
                 {
                     if (ok = ok && checkFeature(provider_c, feature_c, availbleFeatures))
                         { accum.get<6>().emplace_back(provider_c, feature_c); }
-                    foundProfile = foundProfile && ok;
                 }
             }
         }
@@ -600,7 +598,6 @@ namespace og
                 auto const & [provider_c, properties_c] = prop_c;
                 if (ok = ok && checkProperties(provider_c, properties_c, availableProperties))
                     { accum.get<7>().push_back(prop_c.first); }
-                foundProfile = foundProfile && ok;
             }
         }
         if (ok)
@@ -641,7 +638,7 @@ namespace og
             }
         }
 
-        return std::make_tuple(ok, foundProfile);
+        return ok;
     }
 
     int DeviceCreator::getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & availbleFeatures,
@@ -732,7 +729,6 @@ namespace og
                     (crit const & criteria_c, decltype(accum) & accum, auto _)
         {
             bool ok = true;
-            bool foundProfile = true;
 
             // TODO HERE: Check on queue family properties, and then 
             // pass through to checkCriteria().
@@ -744,14 +740,13 @@ namespace og
                     auto const & [provider_c, qfProperties_c] = qfProp_c;
                     if (ok = ok && checkQueueFamilyProperties(provider_c, qfProperties_c, availableQfProperties))
                         { accum.get<8>().push_back(qfProp_c.first); }
-                    foundProfile = foundProfile && ok;
                 }
             }
 
             if (ok)
                 { return checkCriteria(availbleFeatures, availableProperties, physDev, criteria_c, accum, _); }
             else
-                { return { false, false}; }
+                { return false; }
         };
 
         auto & suitabilityQfs = devSuit.queueFamilies;

@@ -8,6 +8,7 @@
 #include <fmt/core.h>
 #include <fmt/ostream.h>
 #include <humon/humon.hpp>
+#include "../../gen/inc/og.hpp"
 
 namespace og
 {
@@ -22,9 +23,9 @@ namespace og
         version_t & operator=(version_t const & rhs) = default;
         version_t & operator=(version_t && rhs) = default;
 
-        char major() { return VK_API_VERSION_MAJOR(bits); }
-        char minor() { return VK_API_VERSION_MINOR(bits); }
-        char patch() { return VK_API_VERSION_PATCH(bits); }
+        char major() const { return VK_API_VERSION_MAJOR(bits); }
+        char minor() const { return VK_API_VERSION_MINOR(bits); }
+        char patch() const { return VK_API_VERSION_PATCH(bits); }
 
         uint32_t bits = 0;
     };

@@ -19,7 +19,11 @@ namespace og
 
     hu::Node TroveKeeper::keep(hu::Trove && trove, std::string const & path)
     {
+        if (! trove)
+            { throw Ex(fmt::format("Could not keep nullish trove.", path)); }
+
         keptTroves[path] = std::move(trove);
+        trove = {};
         return keptTroves[path].root();
     }
 

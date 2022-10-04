@@ -4,7 +4,7 @@ build/
 gen-cpp/
 gen/
 .boma-post
-.gegstash
+.gegstash.json
 
 # Prerequisites
 *.d

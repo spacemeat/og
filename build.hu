@@ -135,7 +135,7 @@
             ]
             sources: [
                 'og/abilities/gen/src/*.cpp'
-                //'og/abilities/src/*.cpp'
+                'og/abilities/src/*.cpp'
             ]
         }
         --test: {
@@ -216,6 +216,7 @@
             libDirs: [$libDir]
             libs: [!..lib!$outputLibPath,
                    !...logger.lib!$outputLibPath,
+                   !...vkSubsystem.lib!$outputLibPath,
                    !...abilities.lib!$outputLibPath,
                    !...og.lib!$outputLibPath,
                    fmt, humon,

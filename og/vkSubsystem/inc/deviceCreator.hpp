@@ -191,18 +191,17 @@ namespace og
 
     private:
         // new upstart functiopns
-        bool gatherExploratoryInstanceCriteria(
+        void gatherExploratoryInstanceCriteria(
             std::vector<std::string_view> const & deviceGroups,
             std::vector<char const *> const & requiredExtensions,
             std::vector<char const *> const & requiredLayers);
-        bool requireGlfwExtensions();
         void consolidateExploratoryCollections();
         void makeExploratoryInstance();
         //void * makeDebugMessengersAndValidators(InstanceInfo & instanceInfo);
 
         void initPhysDevices();
         void matchDeviceAbilities(std::string_view deviceGroup);
-        std::tuple<bool, bool> checkCriteria(
+        bool checkCriteria(
             VkFeatures const & availbleFeatures, VkProperties const & availableProperties, 
             PhysVkDevice & physDev, abilities::universalCriteria const & criteria_c, decltype(InstanceDeviceInfo().makeAccumulator()) & accum, auto _);
         int getBestProfile(int devGroupIdx, int physDevIdx, VkFeatures const & features, VkProperties const & properties, int startingIdx);

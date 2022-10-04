@@ -242,7 +242,7 @@
             }
             abilityProfileGroup_t: {
                 enabled: { type: bool default: true }
-                sharedCriteria: universalCriteria
+                sharedCriteria: { type: optional of: universalCriteria }
                 profiles: { type: vector of: universalCriteria }
             }
             universalCriteria: {
