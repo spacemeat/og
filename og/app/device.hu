@@ -10,7 +10,7 @@
         sharedAbilitiesLib
     ]
     sharedInstanceCriteria: {
-        abilities: [debug]
+        abilities: [std, debug]
     }
     /*
     instanceProfileGroups: [ {
@@ -265,7 +265,7 @@
             ]
         }, {
             name: computeDevices
-            include [builtin, computeAbilities]
+            include: [builtin, computeAbilities]
             sharedCriteria: {
                 abilities: [appSpecific-compute]
             }

@@ -642,6 +642,7 @@
                     sharedCriteria: {
                         abilities: [ getPhysicalDeviceProperties2 ]
                         features: { multiview: [multiview] }
+                        properties: { multiview: [] }
                     }
                     profiles: [ {
                             name: core

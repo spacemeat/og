@@ -30,7 +30,7 @@ namespace og
         int physicalDeviceIdx = -1;
         VkPhysicalDevice physicalDevice = nullptr;
 
-        std::unordered_set<char const *> availableDeviceExtensions;
+        std::unordered_set<std::string> availableDeviceExtensions;
 
         std::map<std::string_view, int> featureProviderIndexMap;
         VkPhysicalDeviceFeatures2 availableDeviceFeatures;

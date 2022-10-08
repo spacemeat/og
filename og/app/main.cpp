@@ -10,22 +10,20 @@ namespace og
     std::optional<TroveKeeper> troves;
     //std::optional<Engine> e;
 
-    struct makeGlobOpts
+    struct MakeGlobOpts
     {
-        makeGlobOpts(std::string const & loggerConfigPath)
+        MakeGlobOpts(std::string const & loggerConfigPath)
         {
-            troves.emplace(TroveKeeper {});
             //app.emplace(std::string {appConfigPath});
             l.emplace(loggerConfigPath);
             //e.emplace(std::string {app->get_config().get_deviceConfigPath()});
         }
 
-        ~makeGlobOpts()
+        ~MakeGlobOpts()
         {
             //e.reset();
             l.reset();
             //app.reset();
-            troves.reset();
         }
     };
 
@@ -51,9 +49,11 @@ int main(int argc, char * argv[])
 
     try
     {
+        troves.emplace(TroveKeeper {});
+
         App app { "appConfig.hu" };
 
-        auto globOpts = makeGlobOpts { app.get_config().get_loggerConfigPath() };
+        MakeGlobOpts globs { app.get_config().get_loggerConfigPath() };
 
         app.init();
         app.run();
@@ -81,5 +81,6 @@ int main(int argc, char * argv[])
         std::cout << "house exception\n";
     }
 
+    troves.reset();
     std::cout << "Donezo.\n";
 }

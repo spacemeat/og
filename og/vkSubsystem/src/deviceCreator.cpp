@@ -164,32 +164,36 @@ namespace og
    
     InstanceSubsystem DeviceCreator::createVulkanSubsystem(
         std::vector<std::tuple<std::string_view, std::string_view, size_t>> const & schedule,
-        std::vector<char const *> const & requiredExtensions,
-        std::vector<char const *> const & requiredLayers)
+        std::vector<std::string> const & requiredExtensions,
+        std::vector<std::string> const & requiredLayers)
     {
         std::unordered_set<std::string_view> alreadyMatched;
-        std::vector<std::string_view> deviceGroups;
-        for (auto [_0, deviceGroup, _1] : schedule)
+        std::vector<std::string_view> devGroupNames;
+        for (auto [_0, deviceGroupName, _1] : schedule)
         {
-            auto [_, didInsert] = alreadyMatched.insert(deviceGroup);
+            auto [_, didInsert] = alreadyMatched.insert(deviceGroupName);
             if (didInsert)
             {
-                deviceGroups.push_back(deviceGroup);
+                devGroupNames.push_back(deviceGroupName);
+
             }
         }
 
-        gatherExploratoryInstanceCriteria(deviceGroups, requiredExtensions, requiredLayers);
+        if (gatherExploratoryInstanceCriteria(devGroupNames, requiredExtensions, requiredLayers)
+            == false)
+            { return {}; }
+
         makeExploratoryInstance();
         initPhysDevices();
 
-        for (auto deviceGroup : deviceGroups)
+        for (auto devGroupName : devGroupNames)
         {
-            matchDeviceAbilities(deviceGroup);
+            matchDeviceAbilities(devGroupName);
         }
 
-        for (auto [engineName, deviceGroup, numPhysDevices] : schedule)
+        for (auto [engineName, devGroupName, numPhysDevices] : schedule)
         {
-            assignDevices(engineName, deviceGroup, numPhysDevices);
+            assignDevices(engineName, devGroupName, numPhysDevices);
         }
 
         InstanceSubsystem vs;
@@ -217,10 +221,10 @@ namespace og
     set, as well as the layers if we're debugging.
     */
 
-    void DeviceCreator::gatherExploratoryInstanceCriteria(
+    bool DeviceCreator::gatherExploratoryInstanceCriteria(
         std::vector<std::string_view> const & interestingDeviceGroups,
-        std::vector<char const *> const & requiredExtensions,
-        std::vector<char const *> const & requiredLayers)
+        std::vector<std::string> const & requiredExtensions,
+        std::vector<std::string> const & requiredLayers)
     {
         // get vulkan runtime version
         uint32_t vulkanVersion = 0;
@@ -247,6 +251,9 @@ namespace og
                 availableInstanceExtensions[i].extensionName);
         }
 
+        for (auto const & elem : availableInstanceExtensions)
+            { log(fmt::format(". available instance extension: {} v{}", elem.extensionName, elem.specVersion)); }
+
         count = 0;
         vkEnumerateInstanceLayerProperties(& count, nullptr);
         availableLayers.resize(count);
@@ -256,6 +263,9 @@ namespace og
             availableLayerNames.insert(
                 availableLayers[i].layerName);
         }
+
+        for (auto const & elem : availableLayers)
+            { log(fmt::format(". available layer: {} v{}", elem.layerName, elem.specVersion)); }
 
         /*  The rest of this function is about getting all the providers
             and extensions that any ability in this device profile might
@@ -339,12 +349,12 @@ namespace og
             if (auto const & criteria_c = config_c.get_sharedInstanceCriteria();
                 criteria_c.has_value())
             {
-                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, _, false);
+                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, fn, accum, _, false);
             }
 
             for (auto extName : requiredExtensions)
             {
-                if (ok = ok && checkExtension(std::string_view {extName}, availableInstanceExtensionNames))
+                if (ok = ok && checkExtension(extName, availableInstanceExtensionNames))
                     { expInstInfo.extensions.push_back(extName); }
                 else
                 {
@@ -354,7 +364,7 @@ namespace og
 
             for (auto layerName : requiredLayers)
             {
-                if (ok = ok && checkExtension(std::string_view {layerName}, availableLayerNames))
+                if (ok = ok && checkExtension(layerName, availableLayerNames))
                     { expInstInfo.layers.push_back(layerName); }
                 else
                 {
@@ -366,7 +376,18 @@ namespace og
         if (ok == false)
         {
             log(fmt::format("Shared instance ability reqs are too strict for this machine."));
-            return;
+            return false;
+        }
+
+        // Making device groups for all those defined in the config.
+        // We're interested in a subset of these.
+        auto const & dgs_c = config_c.get_deviceProfileGroups();
+        deviceGroups.reserve(dgs_c.size());
+        for (int i = 0; i < dgs_c.size(); ++i)
+        {
+            auto & dg = deviceGroups.emplace_back();
+            dg.groupIdx = i;
+            dg.groupName = dgs_c[i].get_name();
         }
 
         for (auto interestingDevGroupIdx = 0; interestingDevGroupIdx < interestingDeviceGroups.size(); ++interestingDevGroupIdx)
@@ -377,24 +398,20 @@ namespace og
             auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
             auto mark = accum.mark();
 
-            auto & ar = deviceAssignments[devGroupIdx].abilityResolver;
+            auto & ar = deviceGroups[devGroupIdx].abilityResolver;
             ar.init(aliases, abilities);
             for (auto inc_c : profileGroup_c.get_include())
                 { ar.include(inc_c); }
 
-            auto & deviceInfo = deviceAssignments[devGroupIdx].expDeviceInfo;
+            auto & deviceInfo = deviceGroups[devGroupIdx].expDeviceInfo;
 
             auto && devAccum = deviceInfo.makeAccumulator();
 
-            int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false, fn, devAccum, _, false);
+            int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, fn, devAccum, _, false);
             if (profileIdx != NoGoodProfile)
-            {
-                accum.extend(devAccum);
-            }
+                { accum.extend(devAccum); }
             else
-            {
-                devAccum.rollBack(mark);
-            }
+                { devAccum.rollBack(mark); }
 
             for (auto const & qvProfile_c : profileGroup_c.get_queueVillageProfiles())
             {
@@ -403,23 +420,25 @@ namespace og
                     auto const & crit = qfAttribs_c.get_criteria();
                     if (crit.has_value())
                     {
-                        ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), false, fn, accum, _, false);
+                        ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), fn, accum, _, false);
                     }
                 }
             }
         }
 
         consolidateExploratoryCollections();
+
+        return true;
     }
 
     void DeviceCreator::consolidateExploratoryCollections()
     {
-        std::unordered_set<char const *> addedExts;
-        std::unordered_set<char const *> addedLayers;
+        std::unordered_set<std::string> addedExts;
+        std::unordered_set<std::string> addedLayers;
         std::unordered_set<std::string_view> addedDebugMessengers;
         std::unordered_set<VkValidationFeatureEnableEXT> addedEnabledValidations;
         std::unordered_set<VkValidationFeatureDisableEXT> addedDisabledValidations;
-        std::unordered_set<char const *> addedDevExts;
+        std::unordered_set<std::string> addedDevExts;
         std::unordered_map<std::string_view, 
                             std::unordered_set<std::string_view>> addedFeatures;
         std::unordered_set<std::string_view> addedProperties;
@@ -460,14 +479,25 @@ namespace og
             .apiVersion = utilizedVulkanVersion.bits
         };
 
+        std::vector<char const *> layersCc;
+        std::transform(begin(expInstInfo.layers), end(expInstInfo.layers), 
+            std::back_inserter(layersCc), [](auto const & s) { return s.data(); });
+
+        std::vector<char const *> extsCc;
+        std::transform(begin(expInstInfo.extensions), end(expInstInfo.extensions), 
+            std::back_inserter(extsCc), [](auto const & s) { return s.data(); });
+
+        for (auto ex : extsCc)
+            { log(fmt::format("Exploring extension {}", ex)); }
+
         VkInstanceCreateInfo vici {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pNext = createInfo_pNext,
             .pApplicationInfo = & vai,
-            .enabledLayerCount = static_cast<uint32_t>(expInstInfo.layers.size()),
-            .ppEnabledLayerNames = expInstInfo.layers.data(),
-            .enabledExtensionCount = static_cast<uint32_t>(expInstInfo.extensions.size()),
-            .ppEnabledExtensionNames = expInstInfo.extensions.data()
+            .enabledLayerCount = static_cast<uint32_t>(layersCc.size()),
+            .ppEnabledLayerNames = layersCc.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(extsCc.size()),
+            .ppEnabledExtensionNames = extsCc.data()
         };
 
         VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
@@ -488,7 +518,7 @@ namespace og
         }
 
         auto const & profileGroups_c = config_c.get_deviceProfileGroups();
-        deviceAssignments.resize(profileGroups_c.size());
+        deviceGroups.resize(profileGroups_c.size());
     }
 
     void DeviceCreator::matchDeviceAbilities(std::string_view deviceGroup)
@@ -500,41 +530,48 @@ namespace og
         if (dpgIdx == -1)
             { return; }
 
-        auto & devAss = deviceAssignments[dpgIdx];
-        devAss.deviceSuitabilities.resize(physDevices.size());
+        auto & devGroup = deviceGroups[dpgIdx];
+        devGroup.physDevMatches.resize(physDevices.size());
 
         for (int physIdx = 0; physIdx < physDevices.size(); ++physIdx)
         {
             auto & physDevice = physDevices[physIdx].physicalDevice;
             auto const & availableDeviceExts = physDevices[physIdx].availableDeviceExtensions;
-            auto & suitability = devAss.deviceSuitabilities[physIdx];
+            auto & suitability = devGroup.physDevMatches[physIdx];
 
             suitability.physicalDeviceIdx = physIdx;
 
             //  get features, props, etc from device
             VkFeatures availableFeatures;
-            availableFeatures.init(devAss.get_expFeatureProviders());
+            availableFeatures.init(devGroup.get_expFeatureProviders());
             VkProperties availableProperties;
-            availableProperties.init(devAss.get_expPropertyProviders());
+            availableProperties.init(devGroup.get_expPropertyProviders());
             vkGetPhysicalDeviceFeatures2(physDevice, & availableFeatures.mainStruct);
             vkGetPhysicalDeviceProperties2(physDevice, & availableProperties.mainStruct);
 
             //  check device against features, props, etc
+
+            auto const & profileGroup_c = config_c.get_deviceProfileGroups()[dpgIdx];
+
             suitability.bestProfileIdx = -1;
+            int bestIdx = -1;
             do
             {
-                suitability.bestProfileIdx = getBestProfile(dpgIdx, physIdx, availableFeatures,
-                    availableProperties, suitability.bestProfileIdx + 1);
-                if (suitability.bestProfileIdx >= 0)
+                bestIdx = getBestProfile(dpgIdx, physIdx, availableFeatures,
+                    availableProperties, bestIdx + 1);
+                if (bestIdx >= 0)
                 {
                     VkQueueFamilies availableQfProperties;
-                    availableQfProperties.init(devAss.get_expQueueFamilyPropertyProviders());
+                    availableQfProperties.init(devGroup.get_expQueueFamilyPropertyProviders());
                     suitability.bestQueueVillageProfile = getBestQueueVillageProfile(dpgIdx, physIdx,
                         availableFeatures, availableProperties, availableQfProperties);
                     if (suitability.bestQueueVillageProfile < 0)
-                        { suitability.bestProfileIdx = NoGoodProfile; }
+                        { bestIdx = NoGoodProfile; }
                 }
-            } while (suitability.bestProfileIdx < 0);
+            } while (bestIdx < profileGroup_c.get_profiles().size());
+
+            if (bestIdx < profileGroup_c.get_profiles().size())
+                { suitability.bestProfileIdx = bestIdx; }
 
             //  if we found a profile:
             //      da.deviceProfiles[physDevIdx].bestProfileIdx = profileIdx
@@ -645,8 +682,8 @@ namespace og
                                       VkProperties const & availableProperties, int startingProfileIdx)
     {
         auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
-        auto & devAss = deviceAssignments[devGroupIdx];
-        auto & devSuit = devAss.deviceSuitabilities[physDevIdx];
+        auto & devGroup = deviceGroups[devGroupIdx];
+        auto & devSuit = devGroup.physDevMatches[physDevIdx];
         auto & physDev = physDevices[physDevIdx];
 
         auto accum = devSuit.bestProfileDeviceInfo.makeAccumulator();
@@ -674,18 +711,18 @@ namespace og
             if (auto const & criteria_c = config_c.get_sharedInstanceCriteria();
                 criteria_c.has_value())
             {
-                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, false, fn, accum, _, false);
+                ok = ok && ar.doCrit(criteria_c->get_name(), * criteria_c, fn, accum, _, false);
             }
         }
 
         if (ok == false)
             { return NoGoodProfile; }
 
-        auto & ar = devAss.abilityResolver;
+        auto & ar = devGroup.abilityResolver;
         for (auto inc_c : profileGroup_c.get_include())
             { ar.include(inc_c); }
 
-        int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c, false,
+        int profileIdx = ar.doProfileGroup(profileGroup_c.get_name(), profileGroup_c,
                                            fn, accum, _, false, startingProfileIdx);
         if (profileIdx != NoGoodProfile)
         {
@@ -703,8 +740,8 @@ namespace og
 
         auto const & profileGroup_c = config_c.get_deviceProfileGroups()[devGroupIdx];
         auto const & qvProfiles_c = profileGroup_c.get_queueVillageProfiles();
-        auto & devAss = deviceAssignments[devGroupIdx];
-        auto & devSuit = devAss.deviceSuitabilities[physDevIdx];
+        auto & devGroup = deviceGroups[devGroupIdx];
+        auto & devSuit = devGroup.physDevMatches[physDevIdx];
         int bestDevProfileIdx = devSuit.bestProfileIdx;
         auto & physDev = physDevices[physDevIdx];
 
@@ -751,7 +788,7 @@ namespace og
 
         auto & suitabilityQfs = devSuit.queueFamilies;
         devSuit.bestQueueVillageProfile = -1;
-        for (uint32_t qvProfileIdx_c = 0; qvProfileIdx_c < qvProfiles_c.size(); ++qvProfileIdx_c)
+        for (int qvProfileIdx_c = 0; qvProfileIdx_c < qvProfiles_c.size(); ++qvProfileIdx_c)
         {
             auto villageMark = accum.mark();
 
@@ -786,8 +823,8 @@ namespace og
                     if (qfAttribs_c.get_criteria().has_value())
                     {
                         bool _ = false;
-                        auto & ar = devAss.abilityResolver;
-                        ok = ok && ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), false, check, accum, _, false);
+                        auto & ar = devGroup.abilityResolver;
+                        ok = ok && ar.doCrit(qfAttribs_c.get_name(), * qfAttribs_c.get_criteria(), check, accum, _, false);
                     }
                     if (ok)
                     {
@@ -860,9 +897,9 @@ namespace og
             // This monsta lets us recurse to n dimensions to score up a village.
             // We keep a running score, which gets zeroed out for illegal combos.
             // TODO: This doesn't need to be recursive or a lambda.
-            auto scoreVillage = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score) -> void
+            auto scoreVillage = [&](uint32_t famIdx, std::bitset<64> busyFamilies, int & comboIdx, uint64_t score) -> void
             {
-                auto scoreVillage_int = [&](uint32_t famIdx, std::bitset<64> busyFamilies, uint32_t & comboIdx, uint64_t score, auto recurse) -> void
+                auto scoreVillage_int = [&](uint32_t famIdx, std::bitset<64> busyFamilies, int & comboIdx, uint64_t score, auto recurse) -> void
                 {
                     auto const & qfis = selectableQueueFamilyIndices[famIdx];
                     for (uint32_t qfi : qfis)
@@ -906,7 +943,7 @@ namespace og
                 scoreVillage_int(famIdx, busyFamilies, comboIdx, score, scoreVillage_int);
             };
 
-            uint32_t comboIdx = 0;
+            int comboIdx = 0;
             scoreVillage(0, 0, comboIdx, 1);
 
             if (winningCombo != -1)
@@ -965,7 +1002,7 @@ namespace og
         int groupIdx = getDeviceGroupIdx(groupName);
         auto const & profileGroups_c = config_c.get_deviceProfileGroups();
         auto const & group_c = profileGroups_c[groupIdx];
-        auto & deviceAssignmentGroup = deviceAssignments[groupIdx];
+        auto & deviceAssignmentGroup = deviceGroups[groupIdx];
 
         // compute the best numDevices devices for this device group.
         for (int numAssignments = 0; numAssignments < numDevices; ++numAssignments)
@@ -980,7 +1017,7 @@ namespace og
                 if (device.isAssignedToDeviceProfileGroup)
                     { continue; }
 
-                auto & suitability = deviceAssignmentGroup.deviceSuitabilities[devIdx];
+                auto & suitability = deviceAssignmentGroup.physDevMatches[devIdx];
                 if (suitability.bestProfileIdx == -1 ||
                     suitability.bestQueueVillageProfile == -1)
                     { continue; }
@@ -1024,24 +1061,24 @@ namespace og
         */
         vs.info.vulkanVersion = utilizedVulkanVersion;
 
-        std::unordered_set<char const *> addedExts;
-        std::unordered_set<char const *> addedLayers;
+        std::unordered_set<std::string> addedExts;
+        std::unordered_set<std::string> addedLayers;
         std::unordered_set<std::string_view> addedDebugMessengers;
         std::unordered_set<VkValidationFeatureEnableEXT> addedEnabledValidations;
         std::unordered_set<VkValidationFeatureDisableEXT> addedDisabledValidations;
 
-        for (int dai = 0; dai < deviceAssignments.size(); ++dai)
+        for (int dai = 0; dai < deviceGroups.size(); ++dai)
         {
-            auto & ass = deviceAssignments[dai];
+            auto & ass = deviceGroups[dai];
             for (auto [engineName, physDevIdx] : ass.winningDeviceIdxs)
             {
-                std::unordered_set<char const *> addedDevExts;
+                std::unordered_set<std::string> addedDevExts;
                 std::unordered_map<std::string_view, 
                                    std::unordered_set<std::string_view>> addedFeatures;
                 std::unordered_set<std::string_view> addedProperties;
                 std::unordered_set<std::string_view> addedQueueFamilyProperties;
 
-                auto & suit = ass.deviceSuitabilities[physDevIdx];
+                auto & suit = ass.physDevMatches[physDevIdx];
                 auto & idi = suit.bestProfileDeviceInfo;
 
                 vs.devices.push_back(DeviceSubsystem {});
@@ -1126,14 +1163,22 @@ namespace og
             .apiVersion = utilizedVulkanVersion.bits
         };
 
+        std::vector<char const *> layersCc;
+        std::transform(begin(vs.info.layers), end(vs.info.layers), 
+            std::back_inserter(layersCc), [](auto s) { return s.data(); });
+
+        std::vector<char const *> extsCc;
+        std::transform(begin(vs.info.extensions), end(vs.info.extensions), 
+            std::back_inserter(extsCc), [](auto s) { return s.data(); });
+
         VkInstanceCreateInfo vici {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pNext = createInfo_pNext,
             .pApplicationInfo = & vai,
-            .enabledLayerCount = static_cast<uint32_t>(vs.info.layers.size()),
-            .ppEnabledLayerNames = vs.info.layers.data(),
-            .enabledExtensionCount = static_cast<uint32_t>(vs.info.extensions.size()),
-            .ppEnabledExtensionNames = vs.info.extensions.data()
+            .enabledLayerCount = static_cast<uint32_t>(layersCc.size()),
+            .ppEnabledLayerNames = layersCc.data(),
+            .enabledExtensionCount = static_cast<uint32_t>(extsCc.size()),
+            .ppEnabledExtensionNames = extsCc.data()
         };
 
         VKR(vkCreateInstance(& vici, nullptr, & vkInstance));
@@ -1194,6 +1239,14 @@ namespace og
                 };
             }
 
+            std::vector<char const *> layersCc;
+            std::transform(begin(vs.info.layers), end(vs.info.layers), 
+                std::back_inserter(layersCc), [](auto s) { return s.data(); });
+
+            std::vector<char const *> extsCc;
+            std::transform(begin(vs.info.extensions), end(ds.info.deviceExtensions), 
+                std::back_inserter(extsCc), [](auto s) { return s.data(); });
+
             VkDeviceCreateInfo dci =
             {
                 .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -1201,10 +1254,10 @@ namespace og
                 .flags = 0,
                 .queueCreateInfoCount = static_cast<uint32_t>(dqcis.size()),
                 .pQueueCreateInfos = dqcis.data(),
-                .enabledLayerCount = static_cast<uint32_t>(vs.info.layers.size()),
-                .ppEnabledLayerNames = vs.info.layers.data(),
-                .enabledExtensionCount = static_cast<uint32_t>(ds.info.deviceExtensions.size()),
-                .ppEnabledExtensionNames = ds.info.deviceExtensions.data(),
+                .enabledLayerCount = static_cast<uint32_t>(layersCc.size()),
+                .ppEnabledLayerNames = layersCc.data(),
+                .enabledExtensionCount = static_cast<uint32_t>(extsCc.size()),
+                .ppEnabledExtensionNames = extsCc.data(),
                 .pEnabledFeatures = NULL
             };
 
@@ -1241,19 +1294,19 @@ namespace og
         return version_t {vulkanVersion} .bits <= available.bits;
     }
 
-    bool DeviceCreator::checkExtension(std::string_view extension, std::unordered_set<char const *> const & available)
+    bool DeviceCreator::checkExtension(std::string_view extension, std::unordered_set<std::string> const & available)
     {
-        return available.find(extension.data()) != end(available);
+        return available.find(std::string(extension)) != end(available);
     }
 
-    bool DeviceCreator::checkLayer(std::string_view layer, std::unordered_set<char const *> const & available)
+    bool DeviceCreator::checkLayer(std::string_view layer, std::unordered_set<std::string> const & available)
     {
-        return available.find(layer.data()) != end(available);
+        return available.find(std::string(layer)) != end(available);
     }
 
-    bool DeviceCreator::checkDeviceExtension(std::string_view extension, std::unordered_set<char const *> const & available)
+    bool DeviceCreator::checkDeviceExtension(std::string_view extension, std::unordered_set<std::string> const & available)
     {
-        return available.find(extension.data()) != end(available);
+        return available.find(std::string(extension)) != end(available);
     }
 
     bool DeviceCreator::checkFeature(std::string_view provider_c, std::string_view feature_c, VkFeatures const & available)

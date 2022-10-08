@@ -187,7 +187,7 @@ namespace og
 
     // TODO: glfwGetPhysicalDevicePresentationSupport should be used to ensure preso
 
-    void App::getVkExtensionsForGlfw(std::vector<char const *> & extensions)
+    void App::getVkExtensionsForGlfw(std::vector<std::string> & extensions)
     {
         uint32_t count = 0;
 
@@ -196,7 +196,7 @@ namespace og
 
         for (int i = 0; i < count; ++i)
         {
-            extensions.push_back(exts[i]);
+            extensions.emplace_back(exts[i]);
             log(fmt::format("Extension required for GLFW: {}\n", exts[i]));
         }
     }

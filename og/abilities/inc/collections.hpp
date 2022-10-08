@@ -9,6 +9,7 @@
 #include "../inc/providerAliasResolver.hpp"
 #include "../../app/inc/troveKeeper.hpp"
 #include "../../gen/inc/enums.hpp"
+#include "../../app/inc/except.hpp"
 
 namespace og
 {
@@ -38,7 +39,11 @@ namespace og
 
         abilities::abilityLibrary_t const & getLibrary(std::string_view libraryName) const
         {
-            return libraries_c.find(libraryName)->second;
+            auto const & lib = libraries_c.find(libraryName);
+            if (lib == end(libraries_c))
+                { throw Ex(fmt::format("Invalid ability library '{}'", libraryName)); }
+            
+            return lib->second;
         }
 
     private:

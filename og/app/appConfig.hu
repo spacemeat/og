@@ -7,8 +7,8 @@
     deviceConfigPath: device.hu
 
     providerAliasesPath: providerAliases.hu
-    builtinAbilitiesPaths: [builtinAbilities.hu]
-    abilitiesPaths: [abilities.hu]
+    //builtinAbilitiesPaths: [builtinAbilities.hu]
+    abilitiesPaths: [builtinAbilities.hu, abilities.hu]
 
     views: [ { @ type: windowConfig_t
             name: mainWindow

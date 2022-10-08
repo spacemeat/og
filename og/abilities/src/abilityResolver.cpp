@@ -32,6 +32,11 @@ namespace og
         }
     }
 
+    void AbilityResolver::invalidateAbilityProfileCache()
+    {
+        cache.clear();
+    }
+
     abilities::abilityProfileGroup_t const * AbilityResolver::findAbility(std::string_view abilityName, bool caching)
     {
         // check for cached value
@@ -42,26 +47,24 @@ namespace og
         }
         else
         {
-            for (auto & libraryName : abilityIncludes)
+            for (auto const & libraryName : abilityIncludes)
             {
-                auto & group = abilityCollection->getLibrary(libraryName);
-                auto & abilities_c = group.get_abilities();
-                auto & ability_c = abilities_c.at(abilityName);
+                auto const & group = abilityCollection->getLibrary(libraryName);
+                auto const & abilities_c = group.get_abilities();
+                auto ita_c = abilities_c.find(abilityName);
+                if (ita_c != abilities_c.end())
+                {
+                    auto const & ability_c = ita_c->second;
 
-                if (caching)
-                    { cache[abilityName] = & ability_c; }
+                    if (caching)
+                        { cache[abilityName] = & ability_c; }
 
-                return & ability_c;
+                    return & ability_c;
+                }
             }
         }
 
         return nullptr;
-    }
-
-
-    void AbilityResolver::invalidateAbilityProfileCache()
-    {
-        cache.clear();
     }
 }
 

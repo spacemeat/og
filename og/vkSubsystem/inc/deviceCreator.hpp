@@ -18,8 +18,8 @@ namespace og
     struct InstanceInfo
     {
         version_t vulkanVersion;
-        std::vector<char const *> extensions;
-        std::vector<char const *> layers;
+        std::vector<std::string> extensions;
+        std::vector<std::string> layers;
         std::vector<std::tuple<std::string_view, abilities::debugUtilsMessenger_t>> debugMessengers;
         std::vector<VkValidationFeatureEnableEXT> enabledValidations;
         std::vector<VkValidationFeatureDisableEXT> disabledValidations;
@@ -32,7 +32,7 @@ namespace og
 
     struct DeviceInfo
     {
-        std::vector<char const *> deviceExtensions;
+        std::vector<std::string> deviceExtensions;
         std::vector<std::tuple<std::string_view, std::string_view>> features;
         std::vector<std::string_view> propertyProviders;
         std::vector<std::string_view> queueFamilyPropertyProviders;
@@ -118,9 +118,9 @@ namespace og
         VkProperties properties;
     };
 
-    struct PhysicalDeviceSuitability
+    struct PhysicalDeviceMatch
     {
-        uint32_t physicalDeviceIdx;
+        int physicalDeviceIdx;
         // one for each profile
         std::vector<ProfileSpecificCriteria> profileCritera;
         InstanceDeviceInfo bestProfileDeviceInfo;
@@ -128,21 +128,15 @@ namespace og
         // (once we've chosen the best profile idx)
         std::vector<VkQueueFamilies> queueFamilies;
 
-        uint32_t bestProfileIdx;
+        int bestProfileIdx;
         VkFeatures bestProfileFeatures;
-        uint32_t bestQueueVillageProfile;
+        int bestQueueVillageProfile;
         std::vector<QueueFamilyAssignment> queueFamilyAssignments;
     };
 
     // One of these is stored per device group
-    struct DevProfileGroupAssignment
+    struct DevProfileGroup
     {
-        int groupIdx = -1;
-        bool hasBeenComputed = false;
-        AbilityResolver abilityResolver;
-
-        InstanceDeviceInfo expDeviceInfo;
-
         std::vector<std::string_view> get_expFeatureProviders()
         {
             return getElement<0>(expDeviceInfo.features);
@@ -158,8 +152,15 @@ namespace og
             return expDeviceInfo.queueFamilyPropertyProviders;
         }
 
+        int groupIdx = -1;
+        std::string_view groupName;
+        bool hasBeenComputed = false;
+        AbilityResolver abilityResolver;
+
+        InstanceDeviceInfo expDeviceInfo;
+
         // one for each enumerated physical device
-        std::vector<PhysicalDeviceSuitability> deviceSuitabilities;
+        std::vector<PhysicalDeviceMatch> physDevMatches;
         // winning physical device indices
         std::vector<std::tuple<std::string_view, int>> winningDeviceIdxs;
     };
@@ -186,15 +187,15 @@ namespace og
 
         InstanceSubsystem createVulkanSubsystem(
             std::vector<std::tuple<std::string_view, std::string_view, size_t>> const & schedule,
-            std::vector<char const *> const & requiredExtensions,
-            std::vector<char const *> const & requiredLayers);
+            std::vector<std::string> const & requiredExtensions,
+            std::vector<std::string> const & requiredLayers);
 
     private:
         // new upstart functiopns
-        void gatherExploratoryInstanceCriteria(
+        bool gatherExploratoryInstanceCriteria(
             std::vector<std::string_view> const & deviceGroups,
-            std::vector<char const *> const & requiredExtensions,
-            std::vector<char const *> const & requiredLayers);
+            std::vector<std::string> const & requiredExtensions,
+            std::vector<std::string> const & requiredLayers);
         void consolidateExploratoryCollections();
         void makeExploratoryInstance();
         //void * makeDebugMessengersAndValidators(InstanceInfo & instanceInfo);
@@ -219,9 +220,9 @@ namespace og
 
         int getDeviceGroupIdx(std::string_view deviceGroupName);
         bool checkVulkan(std::string_view vulkanVersion, version_t available);
-        bool checkExtension(std::string_view extension, std::unordered_set<char const *> const & available);
-        bool checkLayer(std::string_view layer, std::unordered_set<char const *> const & available);
-        bool checkDeviceExtension(std::string_view extension, std::unordered_set<char const *> const & available);
+        bool checkExtension(std::string_view extension, std::unordered_set<std::string> const & available);
+        bool checkLayer(std::string_view layer, std::unordered_set<std::string> const & available);
+        bool checkDeviceExtension(std::string_view extension, std::unordered_set<std::string> const & available);
         bool checkFeature(std::string_view provider_c, std::string_view feature_c, VkFeatures const & available);
         bool checkProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & properties_c, VkProperties const & available);
         bool checkQueueFamilyProperties(std::string_view provider_c, std::vector<std::tuple<std::string_view, og::abilities::op, std::string_view>> const & qfProperties_c, VkQueueFamilies const & available);
@@ -252,9 +253,9 @@ namespace og
         version_t utilizedVulkanVersion;
 
         std::vector<VkExtensionProperties> availableInstanceExtensions;
-        std::unordered_set<char const *> availableInstanceExtensionNames;
+        std::unordered_set<std::string> availableInstanceExtensionNames;
         std::vector<VkLayerProperties> availableLayers;
-        std::unordered_set<char const *> availableLayerNames;
+        std::unordered_set<std::string> availableLayerNames;
 
         InstanceDeviceInfo expInstInfo;
 
@@ -268,7 +269,7 @@ namespace og
 
         // vector of [groupIdx, vector of [phIdx, profileIdx], winningPhysIdx]
         // matches 1-1 with groups
-        std::vector<DevProfileGroupAssignment> deviceAssignments;
+        std::vector<DevProfileGroup> deviceGroups;
         AbilityResolver sharedInstanceAbilityResolver;
     };
 }

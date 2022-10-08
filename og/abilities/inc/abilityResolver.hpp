@@ -36,7 +36,8 @@ namespace og
         template<class ...Args, std::size_t... I>
         void rollerBacker_impl(std::tuple<Args & ...> & collections, AMark<Args...> const & mark, std::index_sequence<I...>)
         {
-            [[maybe_unused]] auto foo = { (std::get<I>(collections).resize(std::get<I>(mark.indices)), 0) ...};
+            [[maybe_unused]] auto foo = 
+            { (std::get<I>(collections).resize(std::get<I>(mark.indices)), 0) ...};
         }
 
         template<class ...Args, typename Indices = std::make_index_sequence<sizeof...(Args)>>
@@ -105,16 +106,9 @@ namespace og
                   AbilityCollection const & abilityCollection);
 
         void include(std::string_view group);
-        //void addProfileGroup(crit const & criteria);
-    private:
-        //void addAbility(std::string_view ability);
-        //void addBuiltin(std::string_view builtin);
 
-        abilities::abilityProfileGroup_t const * findAbility(std::string_view ability, bool caching = true);
-
-    public:
         template <class ProfileGroup_t, typename VisitorFn, class Accumulator, class Payload>
-        int doProfileGroup(std::string_view profileGroupName, ProfileGroup_t const & profileGroup_c, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true, int startingProfileIdx = 0)
+        int doProfileGroup(std::string_view profileGroupName, ProfileGroup_t const & profileGroup_c, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true, int startingProfileIdx = 0)
         {
             int result = 0;
             bool ok = true;
@@ -122,7 +116,7 @@ namespace og
             auto const & criteria_c = profileGroup_c.get_sharedCriteria();
             if (criteria_c.has_value())
             {
-                ok = doCrit(profileGroupName, * criteria_c, builtinsOnly, fn, accum, payload, cacheAbilities);
+                ok = doCrit(profileGroupName, * criteria_c, fn, accum, payload, cacheAbilities);
             }
             if (ok)
             {
@@ -134,7 +128,7 @@ namespace og
                 {
                     auto const & profile_c = profiles_c[profileIdx_c];
                     auto cmark = accum.mark();
-                    auto cok = doCrit(profile_c.get_name(), profile_c, builtinsOnly, fn, accum, payload, cacheAbilities);
+                    auto cok = doCrit(profile_c.get_name(), profile_c, fn, accum, payload, cacheAbilities);
                     if (cok)
                         { return profileIdx_c; }
                     else
@@ -149,21 +143,19 @@ namespace og
         }
 
         template <typename VisitorFn, class Accumulator, class Payload>
-        bool doCrit(std::string_view profileGroupName, crit const & criteria_c, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true)
+        bool doCrit(std::string_view profileGroupName, crit const & criteria_c, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true)
         {
             bool ok = true;
             auto mark = accum.mark();
 
-            //  ok = doEachAbility(profileGroupName, profileGroup.sharedCriteria, builtinsOnly, fn) != -1
             for (auto const & abilityName_c : criteria_c.get_abilities())
             {
-                int idx = doAbility(abilityName_c, builtinsOnly, fn, accum, payload, cacheAbilities);
+                int idx = doAbility(abilityName_c, fn, accum, payload, cacheAbilities);
                 ok = idx != NoGoodProfile;
                 if (! ok)
                     { break; }
             }
 
-            //  ok = ok && fn(profileGroup.sharedCriteria)
             ok = ok && fn(criteria_c, accum, payload);
 
             if (ok == false)
@@ -173,7 +165,7 @@ namespace og
         }
 
         template <typename VisitorFn, class Accumulator, class Payload>
-        int doAbility(std::string_view abilityName, bool builtinsOnly, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true)
+        int doAbility(std::string_view abilityName, VisitorFn && fn, Accumulator & accum, Payload & payload, bool cacheAbilities = true)
         {
             // TODO: interpret query syntax here: '? multiview >= 2+1'
 
@@ -192,7 +184,7 @@ namespace og
             if (pProfileGroup == nullptr)
                 { return NoGoodProfile; }
 
-            return doProfileGroup(abilityName, * pProfileGroup, builtinsOnly,
+            return doProfileGroup(abilityName, * pProfileGroup,
                 fn, accum, payload, cacheAbilities);
         }
 
@@ -200,43 +192,12 @@ namespace og
         void invalidateAbilityProfileCache();
 
     private:
+        abilities::abilityProfileGroup_t const * findAbility(std::string_view ability, bool caching = true);
         ProviderAliasResolver const * aliasResolver;
         AbilityCollection const * abilityCollection;
-        std::vector<std::string_view> builtinIncludes;
         std::vector<std::string_view> abilityIncludes;
 
         std::unordered_map<std::string_view,
                            abilities::abilityProfileGroup_t const *> cache;
     };
-
-
-
-
-    /*
-    struct ProviderGroup
-    {
-        std::vector<std::string_view> featureProviders;
-        std::vector<std::string_view> propertyProviders;
-        std::vector<std::string_view> queueFamilyPropertyProviders;
-    };
-
-    class BuiltinAbilities
-    {
-        bool initProviders(int vulkanVersion, ProviderGroup & providers);
-
-        void computeProfiles(DeviceCapabilities & capabilities);
-
-        bool hasAbility(std::string_view ability);
-        std::string_view get_profile();
-        bool is(og::abilitiesOperator op, std::string_view comparand);
-
-
-    };
-    */
 }
-
-/*
-
-
-
-*/

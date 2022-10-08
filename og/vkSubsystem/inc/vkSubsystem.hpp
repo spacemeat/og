@@ -95,8 +95,8 @@ namespace og
 
         void create(
             std::vector<std::tuple<std::string_view, std::string_view, size_t>> const & schedule,
-            std::vector<char const *> const & requiredExtensions,
-            std::vector<char const *> const & requiredLayers);
+            std::vector<std::string> const & requiredExtensions,
+            std::vector<std::string> const & requiredLayers);
         
         // recreateEngine()
 
@@ -126,8 +126,8 @@ namespace og
         VkInstance instance;
 
         version_t vulkanVersion;
-        std::vector<char const *> extensions;
-        std::vector<char const *> layers;
+        std::vector<std::string> extensions;
+        std::vector<std::string> layers;
         std::vector<std::tuple<std::string_view, abilities::debugUtilsMessenger_t>> debugMessengers;
         std::vector<VkValidationFeatureEnableEXT> enabledValidations;
         std::vector<VkValidationFeatureDisableEXT> disabledValidations;

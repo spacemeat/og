@@ -4,6 +4,14 @@
         sharedAbilitiesLib: {
             include: []
             abilities: {
+                std: {
+                    sharedCriteria: {
+                        desiredDeviceExtensions: [
+                            // TODO: Only for full-screen Win32:
+                            //VK_EXT_full_screen_exclusive
+                        ]
+                    }
+                }
                 debug: {
                     sharedCriteria: {
                         extensions: [
@@ -20,7 +28,7 @@
                         validationFeatures: {
                             enabled: [
                                 gpu_assisted,
-                                best_practies,
+                                best_practices,
                                 //debug_printf,
                                 synchronization_validation
                             ]
@@ -54,7 +62,7 @@
             }
         }
 
-        graphicsAbilitiesLib: {
+        graphicsAbilities: {
             include: [sharedAbilitiesLib]
             abilities: {
                 // This would notmally be in an app's specific abilities.hu
@@ -90,7 +98,7 @@
             }
         }
 
-        computeAbilitiesLib: {
+        computeAbilities: {
             include: [sharedAbilitiesLib]
             abilities: {
                 appSpecific-compute: {

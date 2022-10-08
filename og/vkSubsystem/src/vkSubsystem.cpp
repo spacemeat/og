@@ -18,8 +18,8 @@ namespace og
 
     void VkSubsystem::create(
             std::vector<std::tuple<std::string_view, std::string_view, size_t>> const & schedule,
-            std::vector<char const *> const & requiredExtensions,
-            std::vector<char const *> const & requiredLayers)
+            std::vector<std::string> const & requiredExtensions,
+            std::vector<std::string> const & requiredLayers)
     {
         DeviceCreator dc(config_c, aliases, abilities, appName_c, appVersion_c);
 

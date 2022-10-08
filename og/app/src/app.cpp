@@ -76,12 +76,11 @@ namespace og
 
         //create device schedule
         auto && sched = createSchedule();
-        std::vector<char const *> requiredExtensions;
-        std::vector<char const *> requiredLayers;
+        std::vector<std::string> requiredExtensions;
+        std::vector<std::string> requiredLayers;
 
         getVkExtensionsForGlfw(requiredExtensions);
 
-        // TODO: get GLFW extensions here
         vk->create(sched, requiredExtensions, requiredLayers);
     }
 

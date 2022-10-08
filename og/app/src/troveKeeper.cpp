@@ -9,12 +9,13 @@ namespace og
         auto tr = hu::Trove::fromFile(path, {hu::Encoding::utf8}, hu::ErrorResponse::stderrAnsiColor);
         if (auto t = std::get_if<hu::Trove>(& tr))
         {
-            return keep(std::move(* t), path);
+            if (* t)
+                { return keep(std::move(* t), path); }
+            else
+                { throw Ex(fmt::format("Could not load trove at {}: file had errors.", path)); }
         }
         else
-        {
-            throw Ex(fmt::format("Could not load trove at {}: bad humon formatting.", path));
-        }
+            { throw Ex(fmt::format("Could not load trove at {}: could not load file.", path)); }
     }
 
     hu::Node TroveKeeper::keep(hu::Trove && trove, std::string const & path)
@@ -22,7 +23,7 @@ namespace og
         if (! trove)
             { throw Ex(fmt::format("Could not keep nullish trove.", path)); }
 
-        keptTroves[path] = std::move(trove);
+        keptTroves.insert(std::make_pair(path, std::move(trove)));
         trove = {};
         return keptTroves[path].root();
     }

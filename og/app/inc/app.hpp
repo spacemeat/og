@@ -60,7 +60,7 @@ namespace og
         bool iterateWindowsLoop(int view);
         bool shouldClose(int view);
         bool glfwSupportsVulkan();
-        void getVkExtensionsForGlfw(std::vector<char const *> & extensions);
+        void getVkExtensionsForGlfw(std::vector<std::string> & extensions);
 
         void createVulkanSubsystem();
     private:
