@@ -553,25 +553,37 @@ namespace og
 
             auto const & profileGroup_c = config_c.get_deviceProfileGroups()[dpgIdx];
 
-            suitability.bestProfileIdx = -1;
-            int bestIdx = -1;
+            suitability.bestProfileIdx = NoGoodProfile;
+            suitability.bestQueueVillageProfile = NoGoodProfile;
+            int bestIdx = NoGoodProfile;
+            int bestQfpIdx = NoGoodProfile;
+            int nextCheckIdx = 0;
             do
             {
                 bestIdx = getBestProfile(dpgIdx, physIdx, availableFeatures,
-                    availableProperties, bestIdx + 1);
+                    availableProperties, nextCheckIdx);
                 if (bestIdx >= 0)
                 {
                     VkQueueFamilies availableQfProperties;
                     availableQfProperties.init(devGroup.get_expQueueFamilyPropertyProviders());
-                    suitability.bestQueueVillageProfile = getBestQueueVillageProfile(dpgIdx, physIdx,
+                    bestQfpIdx = getBestQueueVillageProfile(dpgIdx, physIdx,
                         availableFeatures, availableProperties, availableQfProperties);
-                    if (suitability.bestQueueVillageProfile < 0)
-                        { bestIdx = NoGoodProfile; }
+                    if (bestQfpIdx == NoGoodProfile)
+                    {
+                        nextCheckIdx = bestIdx + 1;
+                        bestIdx = NoGoodProfile;
+                    }
+                    else
+                    {
+                        suitability.bestProfileIdx = bestIdx;
+                        suitability.bestQueueVillageProfile = bestQfpIdx;
+                        break;
+                    }
                 }
-            } while (bestIdx < profileGroup_c.get_profiles().size());
-
-            if (bestIdx < profileGroup_c.get_profiles().size())
-                { suitability.bestProfileIdx = bestIdx; }
+                else
+                    { break; }
+            } while (bestIdx == NoGoodProfile 
+                 && nextCheckIdx < profileGroup_c.get_profiles().size());
 
             //  if we found a profile:
             //      da.deviceProfiles[physDevIdx].bestProfileIdx = profileIdx
